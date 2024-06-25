@@ -7,7 +7,7 @@ public class encargadoCanchaMapper {
     public static encargadoCanchaDto toDto(encargadoCancha encargadoCancha){
         encargadoCanchaDto encargadoCanchaDto = new encargadoCanchaDto();
         encargadoCanchaDto.setUuid(encargadoCancha.getUuid());
-        encargadoCanchaDto.setUserId(encargadoCancha.getUserId());
+        encargadoCanchaDto.setUserUuid(encargadoCancha.getUserUuid());
         encargadoCanchaDto.setTelefono(encargadoCancha.getTelefono());
         encargadoCanchaDto.setHoraEntrada(encargadoCancha.getHoraEntrada());
         encargadoCanchaDto.setHoraSalida(encargadoCancha.getHoraSalida());
@@ -19,7 +19,7 @@ public class encargadoCanchaMapper {
     public static encargadoCancha toEntity(encargadoCanchaDto encargadoCanchaDto){
         encargadoCancha encargadoCancha =new encargadoCancha();
         encargadoCancha.setUuid(encargadoCanchaDto.getUuid());
-        encargadoCancha.setUserId(encargadoCanchaDto.getUserId());
+        encargadoCancha.setUserUuid(encargadoCanchaDto.getUserUuid());
         encargadoCancha.setTelefono(encargadoCanchaDto.getTelefono());
         encargadoCancha.setHoraEntrada(encargadoCanchaDto.getHoraEntrada());
         encargadoCancha.setHoraSalida(encargadoCanchaDto.getHoraSalida());

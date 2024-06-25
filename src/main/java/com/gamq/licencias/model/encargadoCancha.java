@@ -30,8 +30,8 @@ public class encargadoCancha {
     private Long idEncargadoCancha;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Column(name = "user_id", nullable = false, length = 20)
-    private Long userId;
+    @Column(name = "user_uuid", nullable = false, length = 50)
+    private String userUuid;
     @Column(name = "hora_entrada", nullable = false)
     private LocalTime horaEntrada;
     @Column(name = "hora_salida", nullable = false)

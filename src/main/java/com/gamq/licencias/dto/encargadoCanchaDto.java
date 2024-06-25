@@ -25,7 +25,7 @@ public class encargadoCanchaDto {
 
     private String uuid;
 
-    private Long userId;
+    private String userUuid;
 
     private LocalTime horaEntrada;
 
