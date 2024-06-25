@@ -1,0 +1,59 @@
+package com.gamq.licencias.model;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+
+import javax.persistence.*;
+import java.sql.Time;
+import java.time.LocalTime;
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+@Entity
+@Table(name = "encargadoCancha", indexes = @Index(name = "idx_encan_uuid", columnList = "uuid", unique = true))
+@SQLDelete(sql = "UPDATE encargadoCancha SET estado=true WHERE id_encargadoCancha=?")
+@Where(clause = "estado = false")
+
+public class encargadoCancha {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_encargadoCancha")
+    private Long idEncargadoCancha;
+    @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
+    private String uuid;
+    @Column(name = "user_id", nullable = false, length = 20)
+    private Long userId;
+    @Column(name = "hora_entrada", nullable = false)
+    private LocalTime horaEntrada;
+    @Column(name = "hora_salida", nullable = false)
+    private LocalTime horaSalida;
+    @Column(name = "telefono", nullable = false,  length = 12)
+    private String telefono;
+
+    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
+    private boolean estado;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id_cancha")
+    public canchas cancha;
+
+    public encargadoCancha(String uuid) {
+        this.uuid = uuid;
+    }
+
+    @PrePersist
+    public void initializeUuid() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
+
+
+}

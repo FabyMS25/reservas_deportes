@@ -1,0 +1,51 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.15'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+group = 'com.gamq'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '11'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url "https://jaspersoft.jfrog.io/jaspersoft/third-party-ce-artifacts/" }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation group: 'org.hibernate', name: 'hibernate-spatial', version: '5.6.15.Final'
+	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+	//jasperreport
+	implementation 'net.sf.jasperreports:jasperreports:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-fonts:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-metadata:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-functions:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-custom-visualization:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-chart-themes:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-chart-customizers:6.20.1'
+	implementation 'net.sf.jasperreports:jasperreports-annotation-processors:6.20.1'
+
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

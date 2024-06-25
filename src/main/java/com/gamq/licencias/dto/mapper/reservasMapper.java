@@ -1,0 +1,33 @@
+package com.gamq.licencias.dto.mapper;
+
+import com.gamq.licencias.dto.reservasDto;
+import com.gamq.licencias.model.reservas;
+
+public class reservasMapper {
+    public static reservasDto toDto(reservas reservas){
+        reservasDto reservasDto=new reservasDto();
+        reservasDto.setUuid(reservas.getUuid());
+        reservasDto.setFechaReserva(reservas.getFechaReserva());
+        reservasDto.setHoraEntrada(reservas.getHoraEntrada());
+        reservasDto.setHoraSalida(reservas.getHoraSalida());
+        reservasDto.setTotalPago(reservas.getTotalPago());
+        reservasDto.setEstado(reservas.isEstado());
+        reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
+        reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
+        reservasDto.setPagosDto(pagosMapper.toDto(reservas.getPago()));
+
+        return reservasDto;
+    }
+
+    public static reservas toEntity(reservasDto reservasDto){
+        reservas reservas=new reservas();
+        reservas.setUuid(reservasDto.getUuid());
+        reservas.setFechaReserva(reservasDto.getFechaReserva());
+        reservas.setHoraEntrada(reservasDto.getHoraEntrada());
+        reservas.setHoraSalida(reservasDto.getHoraSalida());
+        reservas.setTotalPago(reservasDto.getTotalPago());
+        reservas.setEstado(reservasDto.isEstado());
+
+        return reservas;
+    }
+}
