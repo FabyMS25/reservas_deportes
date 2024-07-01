@@ -35,11 +35,11 @@ public class canchas {
     private String uuid;
     @Column(name = "techado", nullable = false, length = 15)
     private String techado;
-    @Column(name = "superficie", nullable = false,  length = 10)
+    @Column(name = "superficie", nullable = false,  length = 50)
     private String superficie;
     @Column(name = "ubicacion", nullable = false, length = 150)
     private String ubicacion;
-    @Column(name = "distrito", nullable = false,  length = 15)
+    @Column(name = "distrito", nullable = false,  length = 50)
     private String distrito;
     @Column(name = "totalxhora", nullable = false)
     private Double totalxhora;
