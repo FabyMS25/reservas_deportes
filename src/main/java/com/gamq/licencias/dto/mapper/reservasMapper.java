@@ -14,8 +14,9 @@ public class reservasMapper {
         reservasDto.setEstado(reservas.isEstado());
         reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
-        reservasDto.setPagosDto(pagosMapper.toDto(reservas.getPago()));
-
+        if (reservas.getPago()!=null) {
+            reservasDto.setPagosDto(pagosMapper.toDto(reservas.getPago()));
+        }
         return reservasDto;
     }
 

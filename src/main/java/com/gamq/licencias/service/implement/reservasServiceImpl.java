@@ -79,12 +79,15 @@ public class reservasServiceImpl implements reservasService {
         if (reservasDto != null) {
             canchas cancha = getCancha(reservasDto.getCanchasDto().getUuid());
             contribuyentes contri= getContri(reservasDto.getContribuyenteDto().getUuid());
-            pagos pago=getPago(reservasDto.getPagosDto().getUuid());
+
 
             reservas newReserva = reservasMapper.toEntity(reservasDto);
             newReserva.setCancha(cancha);
             newReserva.setContribuyente(contri);
-            newReserva.setPago(pago);
+            if (reservasDto.getPagosDto()!=null) {
+                pagos pago = getPago(reservasDto.getPagosDto().getUuid());
+                newReserva.setPago(pago);
+            }
 
             return reservasMapper.toDto(reservasRepository.save(newReserva));
         } else {
