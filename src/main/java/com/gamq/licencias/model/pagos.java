@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +33,7 @@ public class pagos {
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
     @Column(name = "monto_pago", nullable = false)
-    private Long montoPago;
+    private BigDecimal montoPago;
     @Column(name = "fecha_pago", nullable = false)
     private Date fechaPago;
     @Column(name = "nro_tasa", nullable = false,  length = 16)

@@ -1,7 +1,5 @@
 package com.gamq.licencias.repository;
 
-import com.gamq.licencias.model.encargadoCancha;
-import com.gamq.licencias.model.pagos;
 import com.gamq.licencias.model.reservas;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

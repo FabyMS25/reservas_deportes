@@ -31,11 +31,6 @@ public class encargadoCanchaDto {
 
     private LocalTime horaSalida;
 
-    private String telefono;
-
-    private boolean estado;
-
-    private canchasDto canchasDto;
 
     /*@ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_cancha")

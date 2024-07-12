@@ -9,7 +9,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.sql.Time;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -23,7 +22,7 @@ import java.util.UUID;
 @SQLDelete(sql = "UPDATE encargadoCancha SET estado=true WHERE id_encargadoCancha=?")
 @Where(clause = "estado = false")
 
-public class encargadoCancha {
+public class encargadoComplejo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_encargadoCancha")
@@ -43,10 +42,10 @@ public class encargadoCancha {
     private boolean estado;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_cancha")
-    public canchas cancha;
+    @JoinColumn(name="id_complejo")
+    public complejo complejo;
 
-    public encargadoCancha(String uuid) {
+    public encargadoComplejo(String uuid) {
         this.uuid = uuid;
     }
 

@@ -5,13 +5,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.Where;
-import org.locationtech.jts.geom.Point;
 //import com.vividsolutions.jts.geom.Point;
 
 import javax.persistence.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,36 +30,32 @@ public class canchas {
     private Long idCancha;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Column(name = "techado", nullable = false, length = 15)
-    private String techado;
-    @Column(name = "superficie", nullable = false,  length = 50)
-    private String superficie;
-    @Column(name = "ubicacion", nullable = false, length = 150)
-    private String ubicacion;
-    @Column(name = "distrito", nullable = false,  length = 50)
-    private String distrito;
-    @Column(name = "totalxhora", nullable = false)
-    private Double totalxhora;
-
-    @Column(name = "geo_ubicacion", columnDefinition = "Geometry")
-    private Point geoUbicacion;
-    @Column(name = "nombre", nullable = false,  length = 75)
-    private String nombre;
+    @Column(name = "codigo", nullable = false, length = 20)
+    private String codigo;
+    @Column(name = "tipo", nullable = false, length = 50)
+    private String tipo;
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<canchaDeportes> canchaDeportesList = new ArrayList<>();
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id_complejo")
+    public complejo complejo;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id_superficie")
+    public Superficie superficie;
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<encargadoCancha> encargadoCanchaList = new ArrayList<>();
+    public List<Tarifas> TarifasList = new ArrayList<>();
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
     public List<horario> horarioList = new ArrayList<>();
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
     public List<reservas> reservasList = new ArrayList<>();
+
 
     public canchas(String uuid) {
         this.uuid = uuid;

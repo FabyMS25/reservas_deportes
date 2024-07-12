@@ -2,10 +2,7 @@ package com.gamq.licencias.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.gamq.licencias.model.canchaDeportes;
-import com.gamq.licencias.model.encargadoCancha;
-import com.gamq.licencias.model.horario;
-import com.gamq.licencias.model.reservas;
+import com.gamq.licencias.model.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,29 +24,18 @@ public class canchasDto {
 
     private String uuid;
 
-    private String techado;
+    private String codigo;
 
-    private String superficie;
-
-    private String ubicacion;
-
-    private String distrito;
-
-    private Double totalxhora;
-
-    private Double latitud;
-
-    private Double longitud;
-
-    private String nombre;
+    private String Tipo;
 
     private boolean estado;
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<canchaDeportes> canchaDeportesList = new ArrayList<>();
+    public complejoDto complejoDto;
+
+    public SuperficieDto superficieDto;
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<encargadoCancha> encargadoCanchaList = new ArrayList<>();
+    public List<encargadoComplejo> encargadoComplejoList = new ArrayList<>();
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
     public List<horario> horarioList = new ArrayList<>();
