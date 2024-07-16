@@ -1,28 +1,28 @@
 package com.gamq.licencias.dto.mapper;
 
-import com.gamq.licencias.dto.encargadoCanchaDto;
+import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.encargadoComplejo;
 
 public class encargadoCanchaMapper {
-    public static encargadoCanchaDto toDto(encargadoComplejo encargadoComplejo){
-        encargadoCanchaDto encargadoCanchaDto = new encargadoCanchaDto();
-        encargadoCanchaDto.setUuid(encargadoComplejo.getUuid());
-        encargadoCanchaDto.setUserUuid(encargadoComplejo.getUserUuid());
-        encargadoCanchaDto.setTelefono(encargadoComplejo.getTelefono());
-        encargadoCanchaDto.setHoraEntrada(encargadoComplejo.getHoraEntrada());
-        encargadoCanchaDto.setHoraSalida(encargadoComplejo.getHoraSalida());
-        encargadoCanchaDto.setEstado(encargadoComplejo.isEstado());
-        encargadoCanchaDto.setCanchasDto(canchasMapper.toDto(encargadoComplejo.getCancha()));
+    public static encargadoComplejoDto toDto(encargadoComplejo encargadoComplejo){
+        encargadoComplejoDto encargadoComplejoDto = new encargadoComplejoDto();
+        encargadoComplejoDto.setUuid(encargadoComplejo.getUuid());
+        encargadoComplejoDto.setUserUuid(encargadoComplejo.getUserUuid());
+        encargadoComplejoDto.setTelefono(encargadoComplejo.getTelefono());
+        encargadoComplejoDto.setHoraEntrada(encargadoComplejo.getHoraEntrada());
+        encargadoComplejoDto.setHoraSalida(encargadoComplejo.getHoraSalida());
+        encargadoComplejoDto.setEstado(encargadoComplejo.isEstado());
+        encargadoComplejoDto.setComplejoDto(complejoMapper.toDto(encargadoComplejo.getComplejo()));
 
-        return encargadoCanchaDto;
+        return encargadoComplejoDto;
     }
-    public static encargadoComplejo toEntity(encargadoCanchaDto encargadoCanchaDto){
+    public static encargadoComplejo toEntity(encargadoComplejoDto encargadoComplejoDto){
         encargadoComplejo encargadoComplejo =new encargadoComplejo();
-        encargadoComplejo.setUuid(encargadoCanchaDto.getUuid());
-        encargadoComplejo.setUserUuid(encargadoCanchaDto.getUserUuid());
-        encargadoComplejo.setTelefono(encargadoCanchaDto.getTelefono());
-        encargadoComplejo.setHoraEntrada(encargadoCanchaDto.getHoraEntrada());
-        encargadoComplejo.setHoraSalida(encargadoCanchaDto.getHoraSalida());
+        encargadoComplejo.setUuid(encargadoComplejoDto.getUuid());
+        encargadoComplejo.setUserUuid(encargadoComplejoDto.getUserUuid());
+        encargadoComplejo.setTelefono(encargadoComplejoDto.getTelefono());
+        encargadoComplejo.setHoraEntrada(encargadoComplejoDto.getHoraEntrada());
+        encargadoComplejo.setHoraSalida(encargadoComplejoDto.getHoraSalida());
         encargadoComplejo.setEstado(encargadoComplejo.isEstado());
 
         return encargadoComplejo;

@@ -1,11 +1,8 @@
 package com.gamq.licencias.controller;
 
 
-import com.gamq.licencias.dto.canchasDto;
-import com.gamq.licencias.dto.encargadoCanchaDto;
-import com.gamq.licencias.repository.encargadoCanchaRepository;
+import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.dto.response.Response;
-import com.gamq.licencias.service.canchasService;
 import com.gamq.licencias.service.encargadoCanchaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,38 +17,37 @@ public class encargadoCanchaController {
     encargadoCanchaService encargadoCanchaService;
 
     @GetMapping()
-    public Response obtenerCanchas() {
-        try{
-            List<encargadoCanchaDto> encargadoCanchaDtos =  encargadoCanchaService.obtenerEncargadosCanchas();
-            return Response.ok().setPayload(encargadoCanchaDtos);
-        } catch(Exception ex) {
+    public Response obtenerEncargados() {
+        try {
+            List<encargadoComplejoDto> encargadoComplejoDtos = encargadoCanchaService.obtenerEncargadosCanchas();
+            return Response.ok().setPayload(encargadoComplejoDtos);
+        } catch (Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-
     @GetMapping("/{uuid}")
-    public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidCanchas) {
+    public Response buscarEncargadoPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
-            encargadoCanchaDto encargadoCanchaDto = encargadoCanchaService.findByUuid(uuidCanchas);
-            return Response.ok().setPayload(encargadoCanchaDto);
+            encargadoComplejoDto encargadoComplejoDto = encargadoCanchaService.findByUuid(uuidCanchas);
+            return Response.ok().setPayload(encargadoComplejoDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
 
     @PostMapping()
-    public Response crearConstruccion(@RequestBody encargadoCanchaDto encargadoCanchaDto) {
+    public Response crearEncargado(@RequestBody encargadoComplejoDto encargadoComplejoDto) {
         try{
-            return Response.ok().setPayload(encargadoCanchaService.crearEncargadoCancha(encargadoCanchaDto));
+            return Response.ok().setPayload(encargadoCanchaService.crearEncargadoCancha(encargadoComplejoDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
 
     @PutMapping()
-    public Response actualizarConstruccion(@RequestBody encargadoCanchaDto encargadoCanchaDto) {
+    public Response actualizarEncargado(@RequestBody encargadoComplejoDto encargadoComplejoDto) {
         try{
-            return Response.ok().setPayload(encargadoCanchaService.actualizarEncargadoCancha(encargadoCanchaDto));
+            return Response.ok().setPayload(encargadoCanchaService.actualizarEncargadoCancha(encargadoComplejoDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }

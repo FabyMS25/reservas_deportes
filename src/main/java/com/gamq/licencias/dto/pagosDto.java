@@ -10,6 +10,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +28,7 @@ public class pagosDto {
 
     private String uuid;
 
-    private Long montoPago;
+    private BigDecimal montoPago;
 
     private Date fechaPago;
 

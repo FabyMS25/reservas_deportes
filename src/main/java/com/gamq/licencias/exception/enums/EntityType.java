@@ -2,7 +2,8 @@ package com.gamq.licencias.exception.enums;
 
 public enum EntityType {
     CANCHAS,
-    CANCHASDEPORTES,
+    CATEGORIA,
+    COMPLEJO,
     ENCARGADOCANCHA,
     DEPORTES,
     GESTION,
@@ -11,5 +12,8 @@ public enum EntityType {
     PAGOS,
     RESERVAS,
     HORARIO,
+    TARIFA,
+    TARIFACATEGORIA,
+    SUPERFICIE
 
 }

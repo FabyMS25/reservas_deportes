@@ -2,14 +2,12 @@ package com.gamq.licencias.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.gamq.licencias.model.canchas;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.*;
 import java.time.LocalTime;
 
 @Getter
@@ -19,7 +17,7 @@ import java.time.LocalTime;
 @ToString
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class encargadoCanchaDto {
+public class encargadoComplejoDto {
 
     private Long idEncargadoCancha;
 
@@ -31,8 +29,10 @@ public class encargadoCanchaDto {
 
     private LocalTime horaSalida;
 
+    private String telefono;
 
-    /*@ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_cancha")
-    public canchas cancha;*/
+    private boolean estado;
+
+    private complejoDto complejoDto;
+
 }

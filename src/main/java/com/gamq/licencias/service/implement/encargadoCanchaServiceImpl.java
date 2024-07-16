@@ -1,10 +1,11 @@
 package com.gamq.licencias.service.implement;
 
 import com.gamq.licencias.dto.mapper.encargadoCanchaMapper;
-import com.gamq.licencias.dto.encargadoCanchaDto;
+import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.canchas;
+import com.gamq.licencias.model.complejo;
 import com.gamq.licencias.model.encargadoComplejo;
-import com.gamq.licencias.repository.canchasRepository;
+import com.gamq.licencias.repository.complejoRepository;
 import com.gamq.licencias.repository.encargadoCanchaRepository;
 import com.gamq.licencias.service.encargadoCanchaService;
 import com.gamq.licencias.exception.NoResultException;
@@ -17,18 +18,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.licencias.exception.enums.EntityType.CANCHAS;
-import static com.gamq.licencias.exception.enums.EntityType.ENCARGADOCANCHA;
+import static com.gamq.licencias.exception.enums.EntityType.*;
+
 @Component
 public class encargadoCanchaServiceImpl implements encargadoCanchaService {
     @Autowired
     encargadoCanchaRepository encargadoCanchaRepository;
 
     @Autowired
-    canchasRepository canchasRepository;
+    complejoRepository complejoRepository;
 
     @Override
-    public encargadoCanchaDto findByUuid(String uuid){
+    public encargadoComplejoDto findByUuid(String uuid){
 
         Optional<encargadoComplejo> encargadoCanchaOptional = encargadoCanchaRepository.findByUuid(uuid);
         if (encargadoCanchaOptional.isPresent()) {
@@ -39,7 +40,7 @@ public class encargadoCanchaServiceImpl implements encargadoCanchaService {
 
     }
     @Override
-    public List<encargadoCanchaDto> obtenerEncargadosCanchas(){
+    public List<encargadoComplejoDto> obtenerEncargadosCanchas(){
 
         List<encargadoComplejo> encargadoComplejos = encargadoCanchaRepository.findAll();
 
@@ -52,37 +53,37 @@ public class encargadoCanchaServiceImpl implements encargadoCanchaService {
         }
     }
     @Override
-    public encargadoCanchaDto crearEncargadoCancha(encargadoCanchaDto encargadoCanchaDto){
+    public encargadoComplejoDto crearEncargadoCancha(encargadoComplejoDto encargadoComplejoDto){
 
-        if (encargadoCanchaDto != null) {
-            canchas cancha = getCancha(encargadoCanchaDto.getCanchasDto().getUuid());
-            encargadoComplejo newEncargadoComplejo = encargadoCanchaMapper.toEntity(encargadoCanchaDto);
-            newEncargadoComplejo.setCancha(cancha);
+        if (encargadoComplejoDto != null) {
+            complejo complejo = getComplejo(encargadoComplejoDto.getComplejoDto().getUuid());
+            encargadoComplejo newEncargadoComplejo = encargadoCanchaMapper.toEntity(encargadoComplejoDto);
+            newEncargadoComplejo.setComplejo(complejo);
             return encargadoCanchaMapper.toDto(encargadoCanchaRepository.save(newEncargadoComplejo));
         } else {
             throw new NullReferenceException(CANCHAS);
         }
     }
     @Override
-    public encargadoCanchaDto actualizarEncargadoCancha(encargadoCanchaDto encargadoCanchaDto){
+    public encargadoComplejoDto actualizarEncargadoCancha(encargadoComplejoDto encargadoComplejoDto){
 
-        if (encargadoCanchaDto != null) {
-            Optional<encargadoComplejo> encargadoCanchaOptional = encargadoCanchaRepository.findByUuid(encargadoCanchaDto.getUuid());
+        if (encargadoComplejoDto != null) {
+            Optional<encargadoComplejo> encargadoCanchaOptional = encargadoCanchaRepository.findByUuid(encargadoComplejoDto.getUuid());
 
             if (encargadoCanchaOptional.isPresent()) {
 
-                canchas cancha = getCancha(encargadoCanchaDto.getCanchasDto().getUuid());
+                complejo complejo = getComplejo(encargadoComplejoDto.getComplejoDto().getUuid());
 
-                encargadoComplejo encargadoComplejoModificado = encargadoCanchaMapper.toEntity(encargadoCanchaDto);
+                encargadoComplejo encargadoComplejoModificado = encargadoCanchaMapper.toEntity(encargadoComplejoDto);
                 encargadoComplejoModificado.setIdEncargadoCancha(encargadoCanchaOptional.get().getIdEncargadoCancha());
 
-                encargadoComplejoModificado.setCancha(cancha);
+                encargadoComplejoModificado.setComplejo(complejo);
                 return encargadoCanchaMapper.toDto(encargadoCanchaRepository.save(encargadoComplejoModificado));
             } else {
-                throw new NotFoundException(CANCHAS, encargadoCanchaDto.getUuid());
+                throw new NotFoundException(ENCARGADOCANCHA, encargadoComplejoDto.getUuid());
             }
         } else {
-            throw new NullReferenceException(CANCHAS);
+            throw new NullReferenceException(ENCARGADOCANCHA);
         }
     }
     @Override
@@ -91,8 +92,8 @@ public class encargadoCanchaServiceImpl implements encargadoCanchaService {
         return null;
     }
 
-    private canchas getCancha(String Uuid) {
-        return canchasRepository.findByUuid(Uuid)
-                .orElseThrow(() -> new NotFoundException(CANCHAS, Uuid));
+    private complejo getComplejo(String Uuid) {
+        return complejoRepository.findByUuid(Uuid)
+                .orElseThrow(() -> new NotFoundException(COMPLEJO, Uuid));
     }
 }

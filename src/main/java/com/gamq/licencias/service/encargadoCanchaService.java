@@ -1,7 +1,6 @@
 package com.gamq.licencias.service;
 
-import com.gamq.licencias.dto.canchasDto;
-import com.gamq.licencias.dto.encargadoCanchaDto;
+import com.gamq.licencias.dto.encargadoComplejoDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,10 +8,10 @@ import java.util.List;
 @Service
 public interface encargadoCanchaService {
 
-    encargadoCanchaDto findByUuid(String uuid);
-    List<encargadoCanchaDto> obtenerEncargadosCanchas();
-    encargadoCanchaDto crearEncargadoCancha(encargadoCanchaDto encargadoCanchaDto);
-    encargadoCanchaDto actualizarEncargadoCancha(encargadoCanchaDto encargadoCanchaDto);
+    encargadoComplejoDto findByUuid(String uuid);
+    List<encargadoComplejoDto> obtenerEncargadosCanchas();
+    encargadoComplejoDto crearEncargadoCancha(encargadoComplejoDto encargadoComplejoDto);
+    encargadoComplejoDto actualizarEncargadoCancha(encargadoComplejoDto encargadoComplejoDto);
     String eliminarEncargadoCancha(String uuid);
 
 

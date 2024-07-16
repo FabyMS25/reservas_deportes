@@ -1,6 +1,5 @@
 package com.gamq.licencias.repository;
 
-import com.gamq.licencias.model.canchaDeportes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

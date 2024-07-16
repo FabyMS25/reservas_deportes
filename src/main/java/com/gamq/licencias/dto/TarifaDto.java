@@ -29,4 +29,8 @@ public class TarifaDto {
     private LocalTime hasta;
 
     private BigDecimal costo;
+
+    private canchasDto canchasDto;
+
+    private boolean estado;
 }

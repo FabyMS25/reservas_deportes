@@ -1,12 +1,8 @@
 package com.gamq.licencias.controller;
-import com.gamq.licencias.dto.canchasDeporteDto;
 import com.gamq.licencias.dto.response.Response;
-import com.gamq.licencias.service.canchasDeporteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.HashMap;
+
 import java.util.List;
 
 @RestController

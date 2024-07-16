@@ -13,24 +13,18 @@ public class canchasMapper {
         canchasDto.setUuid(canchas.getUuid());
         canchasDto.setCodigo(canchas.getCodigo());
         canchasDto.setTipo(canchas.getTipo());
-
+        canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
+        canchasDto.setSuperficieDto(SuperficieMapper.toDto(canchas.getSuperficie()));
         return canchasDto;
     }
     public static canchas toEntity(canchasDto canchasDto){
         canchas canchas =new canchas();
         canchas.setUuid(canchasDto.getUuid());
+        canchas.setCodigo(canchasDto.getCodigo());
+        canchas.setTipo(canchasDto.getTipo());
 
         return canchas;
     }
 
-   /* private static Point setLatLgtCoordinates(Double pointX, Double pointY) {
-        GeometryFactory geometryFactory = new GeometryFactory();
 
-        Coordinate coordinate = new Coordinate();
-        coordinate.x = pointX;
-        coordinate.y = pointY;
-
-        Point latLgt = geometryFactory.createPoint(coordinate);
-        return latLgt;
-    }*/
 }
