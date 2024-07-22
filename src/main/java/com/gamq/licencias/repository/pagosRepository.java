@@ -4,11 +4,13 @@ import com.gamq.licencias.model.pagos;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface pagosRepository extends JpaRepository<pagos,Long> {
 
     @Query("SELECT c FROM pagos c WHERE c.uuid = ?1")

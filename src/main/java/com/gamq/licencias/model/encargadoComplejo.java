@@ -18,15 +18,15 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "encargadoCancha", indexes = @Index(name = "idx_encan_uuid", columnList = "uuid", unique = true))
-@SQLDelete(sql = "UPDATE encargadoCancha SET estado=true WHERE id_encargadoCancha=?")
+@Table(name = "encargado_complejo", indexes = @Index(name = "idx_encom_uuid", columnList = "uuid", unique = true))
+@SQLDelete(sql = "UPDATE encargado_complejo SET estado=true WHERE id_encargado_complejo=?")
 @Where(clause = "estado = false")
 
 public class encargadoComplejo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_encargadoCancha")
-    private Long idEncargadoCancha;
+    @Column(name = "id_encargado_complejo")
+    private Long idEncargadoComplejo;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
     @Column(name = "user_uuid", nullable = false, length = 50)

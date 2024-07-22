@@ -3,7 +3,7 @@ package com.gamq.licencias.dto.mapper;
 import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.encargadoComplejo;
 
-public class encargadoCanchaMapper {
+public class encargadoComplejoMapper {
     public static encargadoComplejoDto toDto(encargadoComplejo encargadoComplejo){
         encargadoComplejoDto encargadoComplejoDto = new encargadoComplejoDto();
         encargadoComplejoDto.setUuid(encargadoComplejo.getUuid());

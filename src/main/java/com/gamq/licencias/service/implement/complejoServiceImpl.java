@@ -1,6 +1,8 @@
 package com.gamq.licencias.service.implement;
 
 import com.gamq.licencias.dto.complejoDto;
+import com.gamq.licencias.service.complejoService;
+
 import com.gamq.licencias.dto.mapper.CategoriaMapper;
 import com.gamq.licencias.dto.mapper.complejoMapper;
 import com.gamq.licencias.exception.NoResultException;
@@ -20,7 +22,7 @@ import static com.gamq.licencias.exception.enums.EntityType.CATEGORIA;
 import static com.gamq.licencias.exception.enums.EntityType.COMPLEJO;
 
 @Component
-public class complejoServiceImpl {
+public class complejoServiceImpl implements complejoService {
     @Autowired
     complejoRepository complejoRepository;
 

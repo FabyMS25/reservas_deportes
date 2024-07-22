@@ -13,6 +13,6 @@ public interface complejoService {
     List<complejoDto> obtenerComplejos();
     complejoDto crearComplejo(complejoDto complejoDto);
     complejoDto actualizarComplejo(complejoDto complejoDto);
-    String eliminarComplejo(String uuid);
+    //String eliminarComplejo(String uuid);
 
 }

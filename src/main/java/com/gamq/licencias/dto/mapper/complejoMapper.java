@@ -30,7 +30,7 @@ public class complejoMapper {
         comple.setDistrito(complejoDto.getDistrito());
         comple.setNombre(complejoDto.getNombre());
         comple.setTechado(complejoDto.getTechado());
-        comple.setUbicacion(comple.getUbicacion());
+        comple.setUbicacion(complejoDto.getUbicacion());
         if (!complejoDto.getLatitud().isNaN() && !complejoDto.getLatitud().isNaN()) {
             comple.setGeoUbicacion(setLatLgtCoordinates(complejoDto.getLatitud(), complejoDto.getLongitud()));
         }

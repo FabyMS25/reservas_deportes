@@ -19,7 +19,7 @@ import java.time.LocalTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class encargadoComplejoDto {
 
-    private Long idEncargadoCancha;
+    private Long idEncargadoComplejo;
 
     private String uuid;
 
