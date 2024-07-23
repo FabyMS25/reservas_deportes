@@ -31,6 +31,8 @@ public class encargadoComplejoDto {
 
     private String telefono;
 
+    private String nombre;
+
     private boolean estado;
 
     private complejoDto complejoDto;

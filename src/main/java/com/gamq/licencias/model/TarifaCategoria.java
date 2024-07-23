@@ -11,6 +11,7 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -39,5 +40,10 @@ public class TarifaCategoria {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_categoria")
     public Categoria categoria;
+
+    @PrePersist
+    public void initializeUuid() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 
 }

@@ -34,14 +34,14 @@ public class canchasDto {
 
     public SuperficieDto superficieDto;
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<encargadoComplejo> encargadoComplejoList = new ArrayList<>();
+    //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
+   // public List<encargadoComplejo> encargadoComplejoList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<horario> horarioList = new ArrayList<>();
+    //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
+    //public List<horario> horarioList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<reservas> reservasList = new ArrayList<>();
+    //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
+    //public List<reservas> reservasList = new ArrayList<>();
 
 
 }

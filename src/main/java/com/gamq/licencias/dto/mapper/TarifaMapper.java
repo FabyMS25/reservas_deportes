@@ -11,7 +11,7 @@ public class TarifaMapper {
         tarifaDto.setDescripcion(tarifa.getDescripcion());
         tarifaDto.setDesde(tarifa.getDesde());
         tarifaDto.setHasta(tarifa.getHasta());
-        tarifaDto.setCosto(tarifaDto.getCosto());
+        tarifaDto.setCosto(tarifa.getCosto());
         tarifaDto.setEstado(tarifa.isEstado());
         tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha()));
         return tarifaDto;

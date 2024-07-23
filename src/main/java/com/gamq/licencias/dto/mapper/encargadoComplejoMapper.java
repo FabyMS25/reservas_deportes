@@ -11,6 +11,7 @@ public class encargadoComplejoMapper {
         encargadoComplejoDto.setTelefono(encargadoComplejo.getTelefono());
         encargadoComplejoDto.setHoraEntrada(encargadoComplejo.getHoraEntrada());
         encargadoComplejoDto.setHoraSalida(encargadoComplejo.getHoraSalida());
+        encargadoComplejoDto.setNombre(encargadoComplejo.getNombre());
         encargadoComplejoDto.setEstado(encargadoComplejo.isEstado());
         encargadoComplejoDto.setComplejoDto(complejoMapper.toDto(encargadoComplejo.getComplejo()));
 
@@ -23,6 +24,7 @@ public class encargadoComplejoMapper {
         encargadoComplejo.setTelefono(encargadoComplejoDto.getTelefono());
         encargadoComplejo.setHoraEntrada(encargadoComplejoDto.getHoraEntrada());
         encargadoComplejo.setHoraSalida(encargadoComplejoDto.getHoraSalida());
+        encargadoComplejo.setNombre(encargadoComplejoDto.getNombre());
         encargadoComplejo.setEstado(encargadoComplejo.isEstado());
 
         return encargadoComplejo;

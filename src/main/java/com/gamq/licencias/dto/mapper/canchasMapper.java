@@ -13,6 +13,7 @@ public class canchasMapper {
         canchasDto.setUuid(canchas.getUuid());
         canchasDto.setCodigo(canchas.getCodigo());
         canchasDto.setTipo(canchas.getTipo());
+        canchasDto.setEstado(canchas.isEstado());
         canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
         canchasDto.setSuperficieDto(SuperficieMapper.toDto(canchas.getSuperficie()));
         return canchasDto;
@@ -22,7 +23,7 @@ public class canchasMapper {
         canchas.setUuid(canchasDto.getUuid());
         canchas.setCodigo(canchasDto.getCodigo());
         canchas.setTipo(canchasDto.getTipo());
-
+        canchas.setEstado(canchasDto.isEstado());
         return canchas;
     }
 

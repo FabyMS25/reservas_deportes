@@ -7,9 +7,11 @@ import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
 import com.gamq.licencias.exception.NullReferenceException;
 import com.gamq.licencias.model.Tarifas;
+import com.gamq.licencias.model.canchas;
 import com.gamq.licencias.repository.TarifasRepository;
-import com.gamq.licencias.repository.TarifasRepository;
+import com.gamq.licencias.repository.canchasRepository;
 import com.gamq.licencias.service.TarifasService;
+import com.gamq.licencias.service.canchasService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,13 +19,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.licencias.exception.enums.EntityType.TARIFA;
+import static com.gamq.licencias.exception.enums.EntityType.*;
 
 
 @Component
 public class TarifasServiceImpl implements TarifasService {
     @Autowired 
     TarifasRepository tarifasRepository;
+
+    @Autowired
+    canchasRepository canchasRepository;
 
     public TarifaDto findByUuid(String uuid){
         Optional<Tarifas> TarifasOptional = tarifasRepository.findByUuid(uuid);
@@ -52,6 +57,8 @@ public class TarifasServiceImpl implements TarifasService {
         if (TarifaDto != null) {
 
             Tarifas newTarifas = TarifaMapper.toEntity(TarifaDto);
+            canchas cancha = obtenerCancha(TarifaDto.getCanchasDto().getUuid());
+            newTarifas.setCancha(cancha);
             newTarifas =tarifasRepository.save(newTarifas);
             return TarifaMapper.toDto(newTarifas);
         } else {
@@ -66,6 +73,9 @@ public class TarifasServiceImpl implements TarifasService {
             if (TarifasOptional.isPresent()) {
                 Tarifas TarifasModificado = TarifaMapper.toEntity(TarifaDto);
                 TarifasModificado.setIdTarifa(TarifasOptional.get().getIdTarifa());
+                canchas cancha = obtenerCancha(TarifaDto.getCanchasDto().getUuid());
+                TarifasModificado.setCancha(cancha);
+
 
                 return TarifaMapper.toDto(tarifasRepository.save(TarifasModificado));
             } else {
@@ -76,4 +86,8 @@ public class TarifasServiceImpl implements TarifasService {
         }
     }
 
+    public canchas obtenerCancha(String uuid){
+        return canchasRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(CANCHAS, uuid));
+    }
 }

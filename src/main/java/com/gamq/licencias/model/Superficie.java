@@ -11,6 +11,7 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -35,6 +36,9 @@ public class Superficie {
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
-
+    @PrePersist
+    public void initializeUuid() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 
 }
