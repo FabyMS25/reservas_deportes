@@ -53,6 +53,21 @@ public class contribuyentes {
     private String celular;
     @Column(name = "correo", nullable = false,  length = 30)
     private String correo;
+    @Column(name = "tipo_contribuyente", nullable = false,  length = 30)
+    private String tipoContribuyente;
+    @Column(name = "codigo_contribuyente", nullable = false,  length = 30)
+    private String codigoContribuyente;
+    @Column(name = "tipo_documento", nullable = false,  length = 30)
+    private String tipoDocumento;
+    @Column(name = "estado_civil", nullable = false,  length = 30)
+    private String estadoCivil;
+    @Column(name = "fecha_nac", nullable = false)
+    private String fechaNac;
+    @Column(name = "estado_usuario", nullable = false,  length = 30)
+    private String estadoUsuario;
+
+
+
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 

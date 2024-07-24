@@ -18,6 +18,15 @@ public class contribuyentesMapper {
         contribuyenteDto.setCelular(contribuyenteDto.getCelular());
         contribuyenteDto.setCorreo(contri.getCorreo());
         contribuyenteDto.setSexo(contri.getSexo());
+        //////
+        contribuyenteDto.setTipoContribuyente(contri.getTipoContribuyente());
+        contribuyenteDto.setCodigoContribuyente(contri.getCodigoContribuyente());
+        contribuyenteDto.setTipoDocumento(contri.getTipoDocumento());
+        contribuyenteDto.setEstadoCivil(contri.getEstadoCivil());
+        contribuyenteDto.setFechaNac(contri.getFechaNac());
+        contribuyenteDto.setEstadoUsuario(contri.getEstadoUsuario());
+
+        //////
         contribuyenteDto.setUserName(contri.getUserName());
         contribuyenteDto.setPassword(contri.getPassword());
 
@@ -39,7 +48,14 @@ public class contribuyentesMapper {
         contribuyentes.setSexo(contri.getSexo());
         contribuyentes.setUserName(contri.getUserName());
         contribuyentes.setPassword(contri.getPassword());
-
+        /////
+        contribuyentes.setTipoContribuyente(contri.getTipoContribuyente());
+        contribuyentes.setCodigoContribuyente(contri.getCodigoContribuyente());
+        contribuyentes.setTipoDocumento(contri.getTipoDocumento());
+        contribuyentes.setEstadoCivil(contri.getEstadoCivil());
+        contribuyentes.setFechaNac(contri.getFechaNac());
+        contribuyentes.setEstadoUsuario(contri.getEstadoUsuario());
+        /////
         return contribuyentes;
     }
 }

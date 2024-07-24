@@ -33,6 +33,8 @@ public class Categoria {
     private String codigo;
     @Column(name = "tipo", nullable = false, length = 50)
     private String tipo;
+    @Column(name = "nombre", nullable = false, length = 150)
+    private String nombre;
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;

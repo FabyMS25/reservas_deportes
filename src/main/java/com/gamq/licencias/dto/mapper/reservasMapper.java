@@ -11,6 +11,9 @@ public class reservasMapper {
         reservasDto.setHoraEntrada(reservas.getHoraEntrada());
         reservasDto.setHoraSalida(reservas.getHoraSalida());
         reservasDto.setTotalPago(reservas.getTotalPago());
+        reservasDto.setCategoria(reservas.getCategoria());
+        reservasDto.setSuperficie(reservas.getSuperficie());
+        reservasDto.setTotalPersonas(reservas.getTotalPersonas());
         reservasDto.setEstado(reservas.isEstado());
         reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
@@ -27,6 +30,9 @@ public class reservasMapper {
         reservas.setHoraEntrada(reservasDto.getHoraEntrada());
         reservas.setHoraSalida(reservasDto.getHoraSalida());
         reservas.setTotalPago(reservasDto.getTotalPago());
+        reservas.setCategoria(reservasDto.getCategoria());
+        reservas.setSuperficie(reservasDto.getSuperficie());
+        reservas.setTotalPersonas(reservasDto.getTotalPersonas());
         reservas.setEstado(reservasDto.isEstado());
 
         return reservas;

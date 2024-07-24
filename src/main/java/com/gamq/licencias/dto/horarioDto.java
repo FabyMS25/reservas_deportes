@@ -31,6 +31,7 @@ public class horarioDto {
 
     private LocalTime horaFin;
 
+    private boolean abierto;
 
     private boolean estado;
 

@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.UUID;
@@ -36,7 +37,14 @@ public class reservas {
     @Column(name = "hora_salida", nullable = false)
     private LocalTime horaSalida;
     @Column(name = "total_pago", nullable = false)
-    private Long totalPago;
+    private BigDecimal totalPago;
+    @Column(name = "categoria", nullable = false)
+    private String categoria;
+    @Column(name = "superficie", nullable = false)
+    private String superficie;
+    @Column(name = "total_personas", nullable = false)
+    private int totalPersonas;
+
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;

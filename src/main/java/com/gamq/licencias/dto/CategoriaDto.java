@@ -23,6 +23,7 @@ public class CategoriaDto {
 
     private String tipo;
 
+    private String nombre;
 
     private boolean estado;
 }

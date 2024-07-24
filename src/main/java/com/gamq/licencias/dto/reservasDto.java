@@ -12,6 +12,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -33,8 +34,13 @@ public class reservasDto {
 
     private LocalTime horaSalida;
 
-    private Long totalPago;
+    private BigDecimal totalPago;
 
+    private String categoria;
+
+    private String superficie;
+
+    private int totalPersonas;
 
     private boolean estado;
 

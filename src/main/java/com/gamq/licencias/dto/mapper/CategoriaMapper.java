@@ -9,6 +9,7 @@ public class CategoriaMapper {
         categoriaDto.setUuid(categoria.getUuid());
         categoriaDto.setTipo(categoria.getTipo());
         categoriaDto.setCodigo(categoria.getCodigo());
+        categoriaDto.setNombre(categoria.getNombre());
         return categoriaDto;
     }
     public static Categoria toEntity (CategoriaDto categoriaDto){
@@ -16,6 +17,7 @@ public class CategoriaMapper {
         categoria.setUuid(categoriaDto.getUuid());
         categoria.setCodigo(categoriaDto.getCodigo());
         categoria.setTipo(categoriaDto.getCodigo());
+        categoria.setNombre(categoria.getNombre());
         return categoria;
     }
 }

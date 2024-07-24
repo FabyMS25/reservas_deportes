@@ -50,6 +50,18 @@ public class contribuyenteDto {
 
     private String correo;
 
+    private String tipoContribuyente;
+
+    private String codigoContribuyente;
+
+    private String tipoDocumento;
+
+    private String estadoCivil;
+
+    private String fechaNac;
+
+    private String estadoUsuario;
+
     private boolean estado;
 
 

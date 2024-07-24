@@ -34,8 +34,10 @@ public class horario {
     private LocalTime horaInicio;
     @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
+
     @Column(name = "abierto", nullable = false)
     private boolean abierto;
+
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;

@@ -11,6 +11,7 @@ public class horarioMapper {
         horarioDto.setDia(horario.getDia());
         horarioDto.setHoraFin(horario.getHoraFin());
         horarioDto.setHoraInicio(horario.getHoraInicio());
+        horarioDto.setAbierto(horario.isAbierto());
         horarioDto.setEstado(horario.isEstado());
         horarioDto.setCanchasDto(canchasMapper.toDto(horario.getCancha()));
 
@@ -22,6 +23,7 @@ public class horarioMapper {
         horario.setDia(horarioDto.getDia());
         horario.setHoraFin(horarioDto.getHoraFin());
         horario.setHoraInicio(horarioDto.getHoraInicio());
+        horario.setAbierto(horarioDto.isAbierto());
         horario.setEstado(horarioDto.isEstado());
 
         return horario;
