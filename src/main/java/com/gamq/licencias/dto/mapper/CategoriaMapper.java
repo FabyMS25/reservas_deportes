@@ -16,7 +16,7 @@ public class CategoriaMapper {
         Categoria categoria= new Categoria();
         categoria.setUuid(categoriaDto.getUuid());
         categoria.setCodigo(categoriaDto.getCodigo());
-        categoria.setTipo(categoriaDto.getCodigo());
+        categoria.setTipo(categoriaDto.getTipo());
         categoria.setNombre(categoriaDto.getNombre());
         return categoria;
     }
