@@ -15,7 +15,7 @@ public class contribuyentesMapper {
         contribuyenteDto.setCiExpedido(contri.getCiExpedido());
         contribuyenteDto.setNroNit(contri.getNroNit());
         contribuyenteDto.setDireccion(contri.getDireccion());
-        contribuyenteDto.setCelular(contribuyenteDto.getCelular());
+        contribuyenteDto.setCelular(contri.getCelular());
         contribuyenteDto.setCorreo(contri.getCorreo());
         contribuyenteDto.setSexo(contri.getSexo());
         //////
