@@ -1,10 +1,7 @@
 package com.gamq.licencias.service.implement;
 
 import com.gamq.licencias.dto.mapper.contribuyentesMapper;
-import com.gamq.licencias.dto.mapper.contribuyentesMapper;
 import com.gamq.licencias.dto.contribuyenteDto;
-import com.gamq.licencias.model.canchas;
-import com.gamq.licencias.model.contribuyentes;
 import com.gamq.licencias.model.contribuyentes;
 import com.gamq.licencias.repository.contribuyentesRepository;
 import com.gamq.licencias.service.contribuyenteService;

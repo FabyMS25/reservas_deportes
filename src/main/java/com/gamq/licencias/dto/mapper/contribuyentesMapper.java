@@ -33,7 +33,7 @@ public class contribuyentesMapper {
         return contribuyenteDto;
     }
     public static contribuyentes toEntity(contribuyenteDto contri){
-        contribuyentes contribuyentes=new contribuyentes();
+        contribuyentes contribuyentes =new contribuyentes();
         contribuyentes.setUuid(contri.getUuid());
         contribuyentes.setEstado(contri.isEstado());
         contribuyentes.setNombre(contri.getNombre());

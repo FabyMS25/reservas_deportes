@@ -2,16 +2,12 @@ package com.gamq.licencias.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.gamq.licencias.model.canchas;
-import com.gamq.licencias.model.contribuyentes;
-import com.gamq.licencias.model.pagos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Date;

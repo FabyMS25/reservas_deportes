@@ -1,12 +1,9 @@
 package com.gamq.licencias.service.implement;
 
-import com.gamq.licencias.dto.mapper.canchasMapper;
-import com.gamq.licencias.dto.mapper.pagosMapper;
 import com.gamq.licencias.dto.mapper.reservasMapper;
-import com.gamq.licencias.dto.pagosDto;
 import com.gamq.licencias.dto.reservasDto;
-import com.gamq.licencias.model.canchas;
 import com.gamq.licencias.model.contribuyentes;
+import com.gamq.licencias.model.canchas;
 import com.gamq.licencias.model.pagos;
 import com.gamq.licencias.model.reservas;
 import com.gamq.licencias.repository.canchasRepository;
