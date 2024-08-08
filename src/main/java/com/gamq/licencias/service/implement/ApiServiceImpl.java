@@ -6,6 +6,12 @@ import com.gamq.licencias.model.AnularTasa.AnularTasaToken;
 import com.gamq.licencias.model.Contribuyente.ContribuyenteRequest;
 import com.gamq.licencias.model.Contribuyente.ContribuyenteResponse;
 import com.gamq.licencias.model.Contribuyente.ContribuyenteToken;
+import com.gamq.licencias.model.Pagos.PagoRequest;
+import com.gamq.licencias.model.Pagos.PagoResponse;
+import com.gamq.licencias.model.Pagos.PagoToken;
+import com.gamq.licencias.model.Registro.RegistroRequest;
+import com.gamq.licencias.model.Registro.RegistroResponse;
+import com.gamq.licencias.model.Registro.RegistroToken;
 import com.gamq.licencias.model.Tasa.TasaRequest;
 import com.gamq.licencias.model.Tasa.TasaResponse;
 import com.gamq.licencias.model.Tasa.TasaToken;
@@ -91,6 +97,7 @@ public class ApiServiceImpl extends AbstractClient implements ApiService {
 
 
     }
+    @Override
     public AnularTasaResponse anularTasa(AnularTasaToken anularTasaToken){
         String uri = baseUrl + "/RuatServiciosWebTasasOI/tasasOI/anulacionTasa";
         String cadena= anularTasaToken.getToken();
@@ -105,10 +112,58 @@ public class ApiServiceImpl extends AbstractClient implements ApiService {
             return response.getBody();
         }
         else {
-
             log.error("Error en Anular Tasa", response.getStatusCode());
-            throw new RuntimeException("Error");
+            return response.getBody();
+            //throw new RuntimeException("Error");
+
         }
+
+    }
+    @Override
+    public RegistroResponse registro(RegistroToken registroToken){
+
+        String uri = baseUrl + "/RuatServiciosWebContribuyentes/contribuyentes/registroContribuyente";
+        String cadena= registroToken.getToken();
+        RegistroRequest registroRequest = new RegistroRequest();
+        registroRequest = registroToken.getRegistro();
+        HttpEntity<RegistroRequest> requestEntity = new HttpEntity<RegistroRequest>(registroRequest,loguearse(cadena));
+        ResponseEntity<RegistroResponse> response = restTemplate.exchange(
+                uri, HttpMethod.POST, requestEntity ,RegistroResponse.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("Registro Exitoso !! ");
+            return response.getBody();
+        }
+        else {
+            log.error("Error en el Registro", response.getStatusCode());
+            return response.getBody();
+            //throw new RuntimeException("Error");
+
+        }
+
+
+    }
+    @Override
+    public PagoResponse consultaPago (PagoToken pagoToken){
+        String uri = baseUrl + "/RuatServiciosWebTasasOI/tasasOI/consultaPagoTasa";
+        String cadena= pagoToken.getToken();
+        PagoRequest pagoRequest = new PagoRequest();
+        pagoRequest = pagoToken.getPago();
+        HttpEntity<PagoRequest> requestEntity = new HttpEntity<PagoRequest>(pagoRequest,loguearse(cadena));
+        ResponseEntity<PagoResponse> response = restTemplate.exchange(
+                uri, HttpMethod.POST, requestEntity ,PagoResponse.class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("Consulta Realizada !! ");
+            return response.getBody();
+        }
+        else {
+            log.error("No hay pagos", response.getStatusCode());
+            return response.getBody();
+            //throw new RuntimeException("Error");
+
+        }
+
 
     }
 }
