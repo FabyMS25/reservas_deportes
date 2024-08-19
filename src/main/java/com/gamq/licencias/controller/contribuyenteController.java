@@ -58,7 +58,7 @@ public class contribuyenteController {
     }
 
     @GetMapping("/login")
-    public Response loginContribuyente(@RequestBody String user, String pass ) {
+    public Response loginContribuyente(@RequestBody String user, @RequestBody String pass ) {
         try{
             return Response.ok().setPayload(contribuyenteService.loginContribuyente(user, pass));
         } catch (Exception ex) {
