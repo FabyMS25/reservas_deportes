@@ -88,7 +88,7 @@ public class ApiController {
     }
 
     @GetMapping()
-   public String cadena(){
+    public String cadena(){
         return "prueba";
-   }
+    }
 }

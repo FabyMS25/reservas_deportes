@@ -82,4 +82,15 @@ public class contribuyenteServiceImpl implements contribuyenteService {
 
         return "Eliminacion exitosa";
     }
+    public contribuyenteDto loginContribuyente(String user, String pass){
+
+        if ((user != null)&&(pass!= null)) {
+            Optional<contribuyentes> contribuyenteOptional = contribuyentesRepository.Login(user, pass);
+
+                return contribuyentesMapper.toDto(contribuyenteOptional.get());
+        } else {
+                throw new NotFoundException(CONTRIBUYENTE, user);
+        }
+
+    }
 }

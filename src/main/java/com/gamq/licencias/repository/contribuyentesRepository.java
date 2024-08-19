@@ -12,4 +12,7 @@ public interface contribuyentesRepository extends JpaRepository<contribuyentes, 
 
     @Query("SELECT c FROM contribuyentes c WHERE c.uuid = ?1")
     Optional<contribuyentes> findByUuid(String uuid);
+
+    @Query("SELECT c FROM contribuyentes c WHERE c.userName= ?1 and c.password= ?2")
+    Optional<contribuyentes> Login(String user, String Pass);
 }

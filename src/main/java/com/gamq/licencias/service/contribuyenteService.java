@@ -14,4 +14,5 @@ public interface contribuyenteService {
     contribuyenteDto crearContribuyente(contribuyenteDto contribuyenteDto);
     contribuyenteDto actualizarContribuyente(contribuyenteDto contribuyenteDto);
     String eliminarContribuyente(String uuid);
+    contribuyenteDto loginContribuyente(String user, String pass);
 }
