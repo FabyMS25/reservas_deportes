@@ -2,6 +2,7 @@ package com.gamq.licencias.service;
 
 import com.gamq.licencias.dto.canchasDto;
 import com.gamq.licencias.dto.contribuyenteDto;
+import com.gamq.licencias.model.login.login;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public interface contribuyenteService {
     contribuyenteDto crearContribuyente(contribuyenteDto contribuyenteDto);
     contribuyenteDto actualizarContribuyente(contribuyenteDto contribuyenteDto);
     String eliminarContribuyente(String uuid);
-    contribuyenteDto loginContribuyente(String user, String pass);
+    contribuyenteDto loginContribuyente(login login);
 }

@@ -3,6 +3,7 @@ package com.gamq.licencias.service.implement;
 import com.gamq.licencias.dto.mapper.contribuyentesMapper;
 import com.gamq.licencias.dto.contribuyenteDto;
 import com.gamq.licencias.model.contribuyentes;
+import com.gamq.licencias.model.login.login;
 import com.gamq.licencias.repository.contribuyentesRepository;
 import com.gamq.licencias.service.contribuyenteService;
 import com.gamq.licencias.exception.NoResultException;
@@ -82,14 +83,15 @@ public class contribuyenteServiceImpl implements contribuyenteService {
 
         return "Eliminacion exitosa";
     }
-    public contribuyenteDto loginContribuyente(String user, String pass){
+    public contribuyenteDto loginContribuyente(login login){
 
-        if ((user != null)&&(pass!= null)) {
-            Optional<contribuyentes> contribuyenteOptional = contribuyentesRepository.Login(user, pass);
+        if ((login.getUser()!= null)&&(login.getPass()!= null)) {
+            Optional<contribuyentes> contribuyenteOptional = contribuyentesRepository.Login(login.getUser(), login.getPass());
 
                 return contribuyentesMapper.toDto(contribuyenteOptional.get());
         } else {
-                throw new NotFoundException(CONTRIBUYENTE, user);
+                throw new NotFoundException(CONTRIBUYENTE, login.getUser());
+
         }
 
     }

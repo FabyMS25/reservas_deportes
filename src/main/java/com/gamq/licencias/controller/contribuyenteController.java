@@ -3,6 +3,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.contribuyenteDto;
 //import com.gamq.licencias.dto.contribuyenteDto;
 import com.gamq.licencias.dto.response.Response;
+import com.gamq.licencias.model.login.login;
 import com.gamq.licencias.service.contribuyenteService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +59,9 @@ public class contribuyenteController {
     }
 
     @GetMapping("/login")
-    public Response loginContribuyente(@RequestBody String user, @RequestBody String pass ) {
+    public Response loginContribuyente(@RequestBody login login ) {
         try{
-            return Response.ok().setPayload(contribuyenteService.loginContribuyente(user, pass));
+            return Response.ok().setPayload(contribuyenteService.loginContribuyente(login));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
