@@ -12,4 +12,7 @@ public interface encargadoComplejoRepository extends JpaRepository<encargadoComp
 
     @Query("SELECT c FROM encargadoComplejo c WHERE c.uuid = ?1")
     Optional<encargadoComplejo> findByUuid(String uuid);
+    @Query("SELECT c FROM encargadoComplejo c WHERE c.userUuid = ?1")
+    Optional<encargadoComplejo> findByUserUuid(String userUuid);
+
 }

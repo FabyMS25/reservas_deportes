@@ -9,6 +9,7 @@ import java.util.List;
 public interface encargadoComplejoService {
 
     encargadoComplejoDto findByUuid(String uuid);
+    encargadoComplejoDto findByUserUuid(String userUuid);
     List<encargadoComplejoDto> obtenerEncargadosComplejos();
     encargadoComplejoDto crearEncargadoComplejo(encargadoComplejoDto encargadoComplejoDto);
     encargadoComplejoDto actualizarEncargadoComplejo(encargadoComplejoDto encargadoComplejoDto);

@@ -61,6 +61,11 @@ public class reservas {
     @JoinColumn(name="id_pago")
     public pagos pago;
 
+    @Column(name = "numero_tasa", nullable = false)
+    private String numeroTasa;
+
+    @Column(name = "estado_reserva", nullable = false)
+    private String estadoReserva;
 
     public reservas(String uuid) {
         this.uuid = uuid;

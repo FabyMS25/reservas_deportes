@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate;
 
 public abstract class AbstractClient {
 
-    @Value("https://aplicaciones.ruat.gob.bo")
+    @Value("https://verificacionjboss.ruat.gob.bo")
     protected String baseUrl;
 
     protected final  RestTemplate restTemplate;

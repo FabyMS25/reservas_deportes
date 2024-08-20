@@ -6,6 +6,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
+import java.util.stream.Collectors;
+
 public class canchasMapper {
 
     public static canchasDto toDto(canchas canchas){
@@ -16,8 +18,18 @@ public class canchasMapper {
         canchasDto.setEstado(canchas.isEstado());
         canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
         canchasDto.setSuperficieDto(SuperficieMapper.toDto(canchas.getSuperficie()));
+
+
+//        canchasDto.setTarifaDtoList(
+//                canchas.getTarifasList().stream().map(tarifa -> {
+//                    return TarifaMapper.toDto(tarifa);
+//                }).collect(Collectors.toList())
+//        );
+
+
         return canchasDto;
     }
+
     public static canchas toEntity(canchasDto canchasDto){
         canchas canchas =new canchas();
         canchas.setUuid(canchasDto.getUuid());

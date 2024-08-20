@@ -40,6 +40,14 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
 
     }
 
+    public encargadoComplejoDto findByUserUuid(String userUuid){
+        Optional<encargadoComplejo> ENCARGADOCOMPLEJOOptional = encargadoComplejoRepository.findByUserUuid(userUuid);
+        if (ENCARGADOCOMPLEJOOptional.isPresent()) {
+            return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJOOptional.get());
+        } else {
+            throw new NotFoundException(ENCARGADOCOMPLEJO , userUuid);
+        }
+    }
     public List<encargadoComplejoDto> obtenerEncargadosComplejos(){
 
         List<encargadoComplejo> encargadoComplejos = encargadoComplejoRepository.findAll();

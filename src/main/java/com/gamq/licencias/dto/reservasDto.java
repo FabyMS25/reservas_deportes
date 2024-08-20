@@ -46,6 +46,9 @@ public class reservasDto {
 
     private pagosDto pagosDto;
 
+    private String numeroTasa;
+    private String estadoReserva;
+
     /*@ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_cancha")
     public canchas cancha;

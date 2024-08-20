@@ -15,6 +15,8 @@ public class reservasMapper {
         reservasDto.setSuperficie(reservas.getSuperficie());
         reservasDto.setTotalPersonas(reservas.getTotalPersonas());
         reservasDto.setEstado(reservas.isEstado());
+        reservasDto.setNumeroTasa(reservas.getNumeroTasa());
+        reservasDto.setEstadoReserva(reservas.getEstadoReserva());
         reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
         if (reservas.getPago()!=null) {
@@ -34,6 +36,8 @@ public class reservasMapper {
         reservas.setSuperficie(reservasDto.getSuperficie());
         reservas.setTotalPersonas(reservasDto.getTotalPersonas());
         reservas.setEstado(reservasDto.isEstado());
+        reservas.setNumeroTasa(reservasDto.getNumeroTasa());
+        reservas.setEstadoReserva(reservasDto.getEstadoReserva());
 
         return reservas;
     }

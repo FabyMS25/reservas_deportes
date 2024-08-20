@@ -58,7 +58,8 @@ public class contribuyenteController {
         }
     }
 
-    @GetMapping("/login")
+
+    @PostMapping("/login")
     public Response loginContribuyente(@RequestBody login login ) {
         try{
             return Response.ok().setPayload(contribuyenteService.loginContribuyente(login));
@@ -66,6 +67,5 @@ public class contribuyenteController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
 
 }

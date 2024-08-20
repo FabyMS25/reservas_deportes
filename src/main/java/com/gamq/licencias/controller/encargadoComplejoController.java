@@ -35,6 +35,15 @@ public class encargadoComplejoController {
         }
     }
 
+    @GetMapping("user/{userUuid}")
+    public Response buscarEncargadoPorUserUuid( @PathVariable("userUuid") String userUuid) {
+        try{
+            encargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUserUuid(userUuid);
+            return Response.ok().setPayload(encargadoComplejoDto);
+        } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
     @PostMapping()
     public Response crearEncargado(@RequestBody encargadoComplejoDto encargadoComplejoDto) {
         try{

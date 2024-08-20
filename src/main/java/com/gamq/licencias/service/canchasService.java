@@ -9,6 +9,7 @@ import java.util.List;
 public interface canchasService {
 
     canchasDto findByUuid(String uuid);
+    List<canchasDto> findCanchasByComplejo(String uuidComplejo);
     List<canchasDto> obtenerCanchas();
     canchasDto crearCancha(canchasDto canchasDto);
     canchasDto actualizarCancha(canchasDto canchasDto);

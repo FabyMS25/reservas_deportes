@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
 @RequestMapping("/api/canchas")
@@ -35,6 +37,12 @@ public class canchasController {
         }
     }
 
+    @Operation(summary = "Busca Canchas por su Uuid de complejo")
+    @GetMapping("/complejo/{uuid}")
+    public Response buscarCanchasPorComplejo(@Parameter(description = "Uuid de Complejo para busqueda de Canchas")
+                                             @PathVariable("uuid") String uuidComplejo) {
+        return Response.ok().setPayload(canchasService.findCanchasByComplejo(uuidComplejo));
+    }
     @PostMapping()
     public Response crearConstruccion(@RequestBody canchasDto canchasDto) {
         try{

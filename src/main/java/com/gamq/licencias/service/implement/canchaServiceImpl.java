@@ -45,6 +45,18 @@ public class canchaServiceImpl implements canchasService {
 
 
     }
+
+    public List<canchasDto> findCanchasByComplejo(String uuidComplejo){
+        List<canchas> canchass = canchasRepository.findCanchasByComplejo(uuidComplejo);
+
+        if (!canchass.isEmpty()) {
+            return canchass.stream().map(canchas -> {
+                return canchasMapper.toDto(canchas);
+            }).collect(Collectors.toList());
+        } else {
+            throw new NoResultException(CANCHAS);
+        }
+    }
     public List<canchasDto> obtenerCanchas(){
         List<canchas> canchass = canchasRepository.findAll();
 

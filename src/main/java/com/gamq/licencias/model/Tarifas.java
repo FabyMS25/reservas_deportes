@@ -47,6 +47,10 @@ public class Tarifas {
     @JoinColumn(name="id_cancha")
     public canchas cancha;
 
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name="id_cancha")
+//    public canchas cancha;
+
     @PrePersist
     public void initializeUuid() {
         this.setUuid(UUID.randomUUID().toString());
