@@ -11,7 +11,9 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -42,9 +44,16 @@ public class reservas {
     private String categoria;
     @Column(name = "superficie", nullable = false)
     private String superficie;
+
+
     @Column(name = "total_personas", nullable = false)
     private int totalPersonas;
 
+    @Column(name = "numero_tasa", nullable = false)
+    private String numeroTasa;
+
+    @Column(name = "estado_reserva", nullable = false)
+    private String estadoReserva;
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
@@ -57,15 +66,11 @@ public class reservas {
     @JoinColumn(name="id_contribuyente")
     public contribuyentes contribuyente;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_pago")
-    public pagos pago;
+    @OneToMany(mappedBy = "reservas", cascade = CascadeType.ALL)
+    public List<pagos> pagosList = new ArrayList<>();
 
-    @Column(name = "numero_tasa", nullable = false)
-    private String numeroTasa;
 
-    @Column(name = "estado_reserva", nullable = false)
-    private String estadoReserva;
+
 
     public reservas(String uuid) {
         this.uuid = uuid;

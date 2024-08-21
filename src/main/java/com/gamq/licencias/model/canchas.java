@@ -48,13 +48,13 @@ public class canchas {
     public Superficie superficie;
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<Tarifas> TarifasList = new ArrayList<>();
+    public List<Tarifas> tarifasList = new ArrayList<>();
 
     @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
     public List<horario> horarioList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    public List<reservas> reservasList = new ArrayList<>();
+    //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
+    //public List<reservas> reservasList = new ArrayList<>();
 
 
     public canchas(String uuid) {

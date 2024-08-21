@@ -3,6 +3,8 @@ package com.gamq.licencias.dto.mapper;
 import com.gamq.licencias.dto.reservasDto;
 import com.gamq.licencias.model.reservas;
 
+import java.util.stream.Collectors;
+
 public class reservasMapper {
     public static reservasDto toDto(reservas reservas){
         reservasDto reservasDto=new reservasDto();
@@ -19,9 +21,11 @@ public class reservasMapper {
         reservasDto.setEstadoReserva(reservas.getEstadoReserva());
         reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
-        if (reservas.getPago()!=null) {
-            reservasDto.setPagosDto(pagosMapper.toDto(reservas.getPago()));
-        }
+        reservasDto.setPagosDtoList(
+                reservas.getPagosList().stream().map(pagos->{
+                    return pagosMapper.toDto(pagos,false);
+                }).collect(Collectors.toList())
+        );
         return reservasDto;
     }
 

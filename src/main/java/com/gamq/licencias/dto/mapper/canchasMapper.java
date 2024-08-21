@@ -19,12 +19,16 @@ public class canchasMapper {
         canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
         canchasDto.setSuperficieDto(SuperficieMapper.toDto(canchas.getSuperficie()));
 
-
-//        canchasDto.setTarifaDtoList(
-//                canchas.getTarifasList().stream().map(tarifa -> {
-//                    return TarifaMapper.toDto(tarifa);
-//                }).collect(Collectors.toList())
-//        );
+        canchasDto.setTarifasDtoList(
+        canchas.getTarifasList().stream().map(tarifa -> {
+                   return TarifaMapper.toDto(tarifa, false);
+                }).collect(Collectors.toList())
+        );
+        canchasDto.setHorarioDtoList(
+            canchas.getHorarioList().stream().map(horario->{
+                return horarioMapper.toDTo(horario, false);
+                }).collect(Collectors.toList())
+        );
 
 
         return canchasDto;

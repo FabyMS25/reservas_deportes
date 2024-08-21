@@ -44,9 +44,9 @@ public class pagos {
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
-    @OneToMany(mappedBy = "pago", cascade = CascadeType.ALL)
-    public List<reservas> reservasList = new ArrayList<>();
-
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id_reserva")
+    public reservas reservas;
 
     public pagos(String uuid) {
         this.uuid = uuid;

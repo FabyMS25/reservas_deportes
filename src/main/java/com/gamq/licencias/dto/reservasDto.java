@@ -2,6 +2,7 @@ package com.gamq.licencias.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.gamq.licencias.model.pagos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,9 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,21 +47,9 @@ public class reservasDto {
 
     private contribuyenteDto contribuyenteDto;
 
-    private pagosDto pagosDto;
-
     private String numeroTasa;
     private String estadoReserva;
 
-    /*@ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_cancha")
-    public canchas cancha;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_contribuyente")
-    public contribuyentes contribuyente;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_pago")
-    public pagos pago;*/
+    public List<pagosDto> pagosDtoList = new ArrayList<>();
 
 }

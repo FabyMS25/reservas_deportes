@@ -81,10 +81,6 @@ public class reservasServiceImpl implements reservasService {
             reservas newReserva = reservasMapper.toEntity(reservasDto);
             newReserva.setCancha(cancha);
             newReserva.setContribuyente(contri);
-            if (reservasDto.getPagosDto()!=null) {
-                pagos pago = getPago(reservasDto.getPagosDto().getUuid());
-                newReserva.setPago(pago);
-            }
 
             return reservasMapper.toDto(reservasRepository.save(newReserva));
         } else {
@@ -101,14 +97,14 @@ public class reservasServiceImpl implements reservasService {
 
                 canchas cancha = getCancha(reservasDto.getCanchasDto().getUuid());
                 contribuyentes contri= getContri(reservasDto.getContribuyenteDto().getUuid());
-                pagos pago=getPago(reservasDto.getPagosDto().getUuid());
+                //pagos pago=getPago(reservasDto.getPagosDto().getUuid());
 
                 reservas reservasModificado = reservasMapper.toEntity(reservasDto);
                 reservasModificado.setIdReserva(reservasOptional.get().getIdReserva());
 
                 reservasModificado.setCancha(cancha);
                 reservasModificado.setContribuyente(contri);
-                reservasModificado.setPago(pago);
+                //reservasModificado.setPago(pago);
                 return reservasMapper.toDto(reservasRepository.save(reservasModificado));
             } else {
                 throw new NotFoundException(CANCHAS, reservasDto.getUuid());

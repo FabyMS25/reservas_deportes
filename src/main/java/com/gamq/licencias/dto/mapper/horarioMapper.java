@@ -5,7 +5,7 @@ import com.gamq.licencias.model.horario;
 
 public class horarioMapper {
 
-    public static horarioDto toDTo(horario horario){
+    public static horarioDto toDTo(horario horario, boolean op){
         horarioDto horarioDto=new horarioDto();
         horarioDto.setUuid(horario.getUuid());
         horarioDto.setDia(horario.getDia());
@@ -13,8 +13,9 @@ public class horarioMapper {
         horarioDto.setHoraInicio(horario.getHoraInicio());
         horarioDto.setAbierto(horario.isAbierto());
         horarioDto.setEstado(horario.isEstado());
-        horarioDto.setCanchasDto(canchasMapper.toDto(horario.getCancha()));
-
+        if(op) {
+            horarioDto.setCanchasDto(canchasMapper.toDto(horario.getCancha()));
+        }
         return horarioDto;
     }
     public static horario toEntity(horarioDto horarioDto){

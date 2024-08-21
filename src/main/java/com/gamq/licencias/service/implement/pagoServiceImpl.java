@@ -35,7 +35,7 @@ public class pagoServiceImpl implements pagoService {
 
         Optional<pagos> pagoOptional = pagosRepository.findByUuid(uuid);
         if (pagoOptional.isPresent()) {
-            return pagosMapper.toDto(pagoOptional.get());
+            return pagosMapper.toDto(pagoOptional.get(), true);
         } else {
             throw new NotFoundException(PAGOS , uuid);
         }
@@ -46,7 +46,7 @@ public class pagoServiceImpl implements pagoService {
 
         if (!pagos.isEmpty()) {
             return pagos.stream().map(pag -> {
-                return pagosMapper.toDto(pag);
+                return pagosMapper.toDto(pag, true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(PAGOS);
@@ -60,7 +60,7 @@ public class pagoServiceImpl implements pagoService {
 
         if (!pagos.isEmpty()) {
             return pagos.stream().map(pagos1 -> {
-                return pagosMapper.toDto(pagos1);
+                return pagosMapper.toDto(pagos1, true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(PAGOS);
@@ -71,7 +71,7 @@ public class pagoServiceImpl implements pagoService {
         if (pagosDto != null) {
 
             pagos newPago = pagosMapper.toEntity(pagosDto);
-            return pagosMapper.toDto(pagosRepository.save(newPago));
+            return pagosMapper.toDto(pagosRepository.save(newPago), true);
         } else {
             throw new NullReferenceException(PAGOS);
         }
@@ -85,7 +85,7 @@ public class pagoServiceImpl implements pagoService {
                 pagos pagosModificado = pagosMapper.toEntity(pagosDto);
                 pagosModificado.setIdPago(pagosOptional.get().getIdPago());
 
-                return pagosMapper.toDto(pagosRepository.save(pagosModificado));
+                return pagosMapper.toDto(pagosRepository.save(pagosModificado),true);
             } else {
                 throw new NotFoundException(PAGOS, pagosDto.getUuid());
             }

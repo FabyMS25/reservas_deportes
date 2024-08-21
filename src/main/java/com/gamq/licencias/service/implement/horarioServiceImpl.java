@@ -38,7 +38,7 @@ public class horarioServiceImpl implements horarioService {
 
         Optional<horario> horarioOptional = horarioRepository.findByUuid(uuid);
         if (horarioOptional.isPresent()) {
-            return horarioMapper.toDTo(horarioOptional.get());
+            return horarioMapper.toDTo(horarioOptional.get(), true);
         } else {
             throw new NotFoundException(HORARIO , uuid);
         }
@@ -50,7 +50,7 @@ public class horarioServiceImpl implements horarioService {
 
         if (!horarios.isEmpty()) {
             return horarios.stream().map(horario -> {
-                return horarioMapper.toDTo(horario);
+                return horarioMapper.toDTo(horario,true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(HORARIO);
@@ -66,7 +66,7 @@ public class horarioServiceImpl implements horarioService {
             if (cancha.isPresent())
                 newHorario.setCancha(cancha.get());
                 horario horarioNew= horarioRepository.save(newHorario);
-            return horarioMapper.toDTo(horarioNew);
+            return horarioMapper.toDTo(horarioNew,true);
         } else {
             throw new NullReferenceException(HORARIO);
         }
@@ -84,7 +84,7 @@ public class horarioServiceImpl implements horarioService {
                     horarioModificado.setCancha(cancha.get());
 
 
-                return horarioMapper.toDTo(horarioRepository.save(horarioModificado));
+                return horarioMapper.toDTo(horarioRepository.save(horarioModificado),true);
             } else {
                 throw new NotFoundException(HORARIO, horarioDto.getUuid());
             }

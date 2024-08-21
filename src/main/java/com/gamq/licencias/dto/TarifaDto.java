@@ -33,4 +33,5 @@ public class TarifaDto {
     private canchasDto canchasDto;
 
     private boolean estado;
+
 }

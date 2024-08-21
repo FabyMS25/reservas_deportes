@@ -33,7 +33,7 @@ public class TarifasServiceImpl implements TarifasService {
     public TarifaDto findByUuid(String uuid){
         Optional<Tarifas> TarifasOptional = tarifasRepository.findByUuid(uuid);
         if (TarifasOptional.isPresent()) {
-            return TarifaMapper.toDto(TarifasOptional.get());
+            return TarifaMapper.toDto(TarifasOptional.get(),true);
         } else {
             throw new NotFoundException(TARIFA, uuid);
         }
@@ -45,7 +45,7 @@ public class TarifasServiceImpl implements TarifasService {
 
         if (!Tarifass.isEmpty()) {
             return Tarifass.stream().map(tarifa -> {
-                return TarifaMapper.toDto(tarifa);
+                return TarifaMapper.toDto(tarifa, true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(TARIFA);
@@ -60,7 +60,7 @@ public class TarifasServiceImpl implements TarifasService {
             canchas cancha = obtenerCancha(TarifaDto.getCanchasDto().getUuid());
             newTarifas.setCancha(cancha);
             newTarifas =tarifasRepository.save(newTarifas);
-            return TarifaMapper.toDto(newTarifas);
+            return TarifaMapper.toDto(newTarifas,true);
         } else {
             throw new NullReferenceException(TARIFA);
         }
@@ -77,7 +77,7 @@ public class TarifasServiceImpl implements TarifasService {
                 TarifasModificado.setCancha(cancha);
 
 
-                return TarifaMapper.toDto(tarifasRepository.save(TarifasModificado));
+                return TarifaMapper.toDto(tarifasRepository.save(TarifasModificado),true);
             } else {
                 throw new NotFoundException(TARIFA, TarifaDto.getUuid());
             }

@@ -4,7 +4,7 @@ import com.gamq.licencias.dto.TarifaDto;
 import com.gamq.licencias.model.Tarifas;
 
 public class TarifaMapper {
-    public static TarifaDto toDto(Tarifas tarifa)
+    public static TarifaDto toDto(Tarifas tarifa, boolean op)
     {
         TarifaDto tarifaDto = new TarifaDto();
         tarifaDto.setUuid(tarifa.getUuid());
@@ -13,7 +13,9 @@ public class TarifaMapper {
         tarifaDto.setHasta(tarifa.getHasta());
         tarifaDto.setCosto(tarifa.getCosto());
         tarifaDto.setEstado(tarifa.isEstado());
-        tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha()));
+        if (op) {
+            tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha()));
+        }
         return tarifaDto;
     }
 

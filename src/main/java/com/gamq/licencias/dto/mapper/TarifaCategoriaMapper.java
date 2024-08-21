@@ -9,7 +9,7 @@ public class TarifaCategoriaMapper {
         tarifaCategoriaDto.setUuid(tarifaCategoria.getUuid());
         tarifaCategoriaDto.setEstado(tarifaCategoria.isEstado());
         tarifaCategoriaDto.setCategoriaDto(CategoriaMapper.toDto(tarifaCategoria.getCategoria()));
-        tarifaCategoriaDto.setTarifaDto(TarifaMapper.toDto(tarifaCategoria.getTarifa()));
+        tarifaCategoriaDto.setTarifaDto(TarifaMapper.toDto(tarifaCategoria.getTarifa(), true));
         return tarifaCategoriaDto;
     }
     public static TarifaCategoria toEntity(TarifaCategoriaDto tarifaCategoriaDto){

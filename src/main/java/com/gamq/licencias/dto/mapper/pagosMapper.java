@@ -4,15 +4,15 @@ import com.gamq.licencias.dto.pagosDto;
 import com.gamq.licencias.model.pagos;
 
 public class pagosMapper {
-    public static pagosDto toDto(pagos pagos){
+    public static pagosDto toDto(pagos pagos, boolean op){
         pagosDto pagosDto=new pagosDto();
         pagosDto.setUuid(pagos.getUuid());
         pagosDto.setEstadoPago(pagos.getEstadoPago());
         pagosDto.setFechaPago(pagos.getFechaPago());
         pagosDto.setMontoPago(pagos.getMontoPago());
         pagosDto.setNroTasa(pagos.getNroTasa());
-        pagosDto.setEstado(pagos.isEstado());
-
+        if(op){
+        pagosDto.setReservasDto(reservasMapper.toDto(pagos.getReservas()));}
         return pagosDto;
     }
 

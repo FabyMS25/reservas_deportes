@@ -38,7 +38,14 @@ public class canchasDto {
    // public List<encargadoComplejo> encargadoComplejoList = new ArrayList<>();
 
     //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
-    //public List<horario> horarioList = new ArrayList<>();
+
+    public List<TarifaDto> tarifasDtoList = new ArrayList<>();
+
+    public List<horarioDto> horarioDtoList = new ArrayList<>();
+
+
+    //public List<horarioDto> horarioListDto = new ArrayList<>();
+
 
     //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
     //public List<reservas> reservasList = new ArrayList<>();
