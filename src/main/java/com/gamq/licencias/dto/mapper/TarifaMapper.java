@@ -2,8 +2,10 @@ package com.gamq.licencias.dto.mapper;
 
 import com.gamq.licencias.dto.TarifaDto;
 import com.gamq.licencias.model.Tarifas;
+import java.util.stream.Collectors;
 
 public class TarifaMapper {
+
     public static TarifaDto toDto(Tarifas tarifa, boolean op)
     {
         TarifaDto tarifaDto = new TarifaDto();
@@ -16,6 +18,12 @@ public class TarifaMapper {
         if (op) {
             tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha()));
         }
+
+        tarifaDto.setCategoriaDtoList(
+                tarifa.getCategoriasList().stream().map(categoria -> {
+                    return TarifaCategoriaMapper.toDto(categoria, false);
+                }).collect(Collectors.toList())
+        );
         return tarifaDto;
     }
 

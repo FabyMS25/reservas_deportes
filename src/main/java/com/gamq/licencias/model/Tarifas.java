@@ -12,6 +12,8 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -46,6 +48,9 @@ public class Tarifas {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_cancha")
     public canchas cancha;
+
+    @OneToMany(mappedBy = "tarifa", cascade = CascadeType.ALL)
+    public List<TarifaCategoria> categoriasList = new ArrayList<>();
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name="id_cancha")

@@ -11,6 +11,8 @@ import lombok.experimental.Accessors;
 import javax.persistence.Column;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -33,5 +35,7 @@ public class TarifaDto {
     private canchasDto canchasDto;
 
     private boolean estado;
+
+    public List<TarifaCategoriaDto> categoriaDtoList = new ArrayList<>();
 
 }

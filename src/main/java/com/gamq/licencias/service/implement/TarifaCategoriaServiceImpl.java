@@ -33,39 +33,37 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
     @Autowired
     TarifasRepository tarifasRepository;
 
+
     public TarifaCategoriaDto findByUuid(String uuid){
         Optional<TarifaCategoria> TarifaCategoriasOptional = tarifaCategoriaRepository.findByUuid(uuid);
         if (TarifaCategoriasOptional.isPresent()) {
-            return TarifaCategoriaMapper.toDto(TarifaCategoriasOptional.get());
+            return TarifaCategoriaMapper.toDto(TarifaCategoriasOptional.get(),true);
         } else {
             throw new NotFoundException(TARIFACATEGORIA, uuid);
         }
-
-
     }
+
     public List<TarifaCategoriaDto> obtenerTarifaCategorias(){
         List<TarifaCategoria> TarifaCategoriass =tarifaCategoriaRepository.findAll();
-
         if (!TarifaCategoriass.isEmpty()) {
             return TarifaCategoriass.stream().map(TarifaCatego -> {
-                return TarifaCategoriaMapper.toDto(TarifaCatego);
+                return TarifaCategoriaMapper.toDto(TarifaCatego,true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(TARIFACATEGORIA);
         }
 
     }
+
     public TarifaCategoriaDto crearTarifaCategoria(TarifaCategoriaDto TarifaCategoriaDto){
-
         if (TarifaCategoriaDto != null) {
-
             TarifaCategoria newTarifaCategorias = TarifaCategoriaMapper.toEntity(TarifaCategoriaDto);
             Categoria catgegoria = obtenerCategoria(TarifaCategoriaDto.getCategoriaDto().getUuid());
             Tarifas tarifa = obtenerTarifa(TarifaCategoriaDto.getTarifaDto().getUuid());
             newTarifaCategorias.setCategoria(catgegoria);
             newTarifaCategorias.setTarifa(tarifa);
             newTarifaCategorias =tarifaCategoriaRepository.save(newTarifaCategorias);
-            return TarifaCategoriaMapper.toDto(newTarifaCategorias);
+            return TarifaCategoriaMapper.toDto(newTarifaCategorias,true);
         } else {
             throw new NullReferenceException(TARIFACATEGORIA);
         }
@@ -74,12 +72,11 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
     public TarifaCategoriaDto actualizarTarifaCategoria(TarifaCategoriaDto TarifaCategoriaDto){
         if (TarifaCategoriaDto != null) {
             Optional<TarifaCategoria> TarifaCategoriasOptional = tarifaCategoriaRepository.findByUuid(TarifaCategoriaDto.getUuid());
-
             if (TarifaCategoriasOptional.isPresent()) {
                 TarifaCategoria TarifaCategoriasModificado = TarifaCategoriaMapper.toEntity(TarifaCategoriaDto);
                 TarifaCategoriasModificado.setIdTarifaCategoria(TarifaCategoriasOptional.get().getIdTarifaCategoria());
 
-                return TarifaCategoriaMapper.toDto(tarifaCategoriaRepository.save(TarifaCategoriasModificado));
+                return TarifaCategoriaMapper.toDto(tarifaCategoriaRepository.save(TarifaCategoriasModificado),true);
             } else {
                 throw new NotFoundException(TARIFACATEGORIA,TarifaCategoriaDto.getUuid());
             }
@@ -88,13 +85,12 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
         }
     }
 
-  public Categoria obtenerCategoria(String uuid){
-      return categoriaRepository.findByUuid(uuid)
-              .orElseThrow(() -> new NotFoundException(CATEGORIA, uuid));
-  }
-  public Tarifas obtenerTarifa(String uuid){
-      return tarifasRepository.findByUuid(uuid)
-              .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
-
-  }
+    public Categoria obtenerCategoria(String uuid){
+        return categoriaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(CATEGORIA, uuid));
+    }
+    public Tarifas obtenerTarifa(String uuid){
+        return tarifasRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
+    }
 }
