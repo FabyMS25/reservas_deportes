@@ -5,13 +5,14 @@ import com.gamq.licencias.dto.mapper.pagosMapper;
 import com.gamq.licencias.dto.mapper.pagosMapper;
 
 import com.gamq.licencias.dto.pagosDto;
-import com.gamq.licencias.model.pagos;
+import com.gamq.licencias.model.*;
 import com.gamq.licencias.model.pagos;
 import com.gamq.licencias.model.pagos;
 import com.gamq.licencias.model.pagos;
 
 
 import com.gamq.licencias.repository.pagosRepository;
+import com.gamq.licencias.repository.reservasRepository;
 import com.gamq.licencias.service.pagoService;
 import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
@@ -30,6 +31,9 @@ public class pagoServiceImpl implements pagoService {
 
     @Autowired
     pagosRepository pagosRepository;
+
+    @Autowired
+    reservasRepository reservasRepository;
 
     public pagosDto findByUuid(String uuid){
 
@@ -71,6 +75,8 @@ public class pagoServiceImpl implements pagoService {
         if (pagosDto != null) {
 
             pagos newPago = pagosMapper.toEntity(pagosDto);
+            reservas reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
+            newPago.setReservas(reservas);
             return pagosMapper.toDto(pagosRepository.save(newPago), true);
         } else {
             throw new NullReferenceException(PAGOS);
@@ -84,6 +90,8 @@ public class pagoServiceImpl implements pagoService {
             if (pagosOptional.isPresent()) {
                 pagos pagosModificado = pagosMapper.toEntity(pagosDto);
                 pagosModificado.setIdPago(pagosOptional.get().getIdPago());
+                reservas reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
+                pagosModificado.setReservas(reservas);
 
                 return pagosMapper.toDto(pagosRepository.save(pagosModificado),true);
             } else {
@@ -100,5 +108,10 @@ public class pagoServiceImpl implements pagoService {
         pagosRepository.delete(pagos);
 
         return "Eliminacion exitosa";
+    }
+
+    public reservas obtenerReserva(String uuid){
+        return reservasRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVAS, uuid));
     }
 }
