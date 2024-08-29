@@ -7,10 +7,14 @@ public class pagosMapper {
     public static pagosDto toDto(pagos pagos, boolean op){
         pagosDto pagosDto=new pagosDto();
         pagosDto.setUuid(pagos.getUuid());
-        pagosDto.setEstadoPago(pagos.getEstadoPago());
         pagosDto.setFechaPago(pagos.getFechaPago());
         pagosDto.setMontoPago(pagos.getMontoPago());
-        pagosDto.setNroTasa(pagos.getNroTasa());
+        pagosDto.setNumeroTasa(pagos.getNumeroTasa());
+        pagosDto.setEntidadFinanciera(pagos.getEntidadFinanciera());
+        pagosDto.setFolio(pagos.getFolio());
+        pagosDto.setFormaPago(pagos.getFormaPago());
+        pagosDto.setObservacion(pagos.getObservacion());
+
         if(op){
         pagosDto.setReservasDto(reservasMapper.toDto(pagos.getReservas()));}
         return pagosDto;
@@ -19,10 +23,13 @@ public class pagosMapper {
     public static pagos toEntity(pagosDto pagosDto){
         pagos pagos= new pagos();
         pagos.setUuid(pagosDto.getUuid());
-        pagos.setEstadoPago(pagosDto.getEstadoPago());
         pagos.setFechaPago(pagosDto.getFechaPago());
         pagos.setMontoPago(pagosDto.getMontoPago());
-        pagos.setNroTasa(pagosDto.getNroTasa());
+        pagos.setNumeroTasa(pagosDto.getNumeroTasa());
+        pagos.setEntidadFinanciera(pagosDto.getEntidadFinanciera());
+        pagos.setFolio(pagosDto.getFolio());
+        pagos.setFormaPago(pagosDto.getFormaPago());
+        pagos.setObservacion(pagosDto.getObservacion());
         pagos.setEstado(pagosDto.isEstado());
 
         return pagos;

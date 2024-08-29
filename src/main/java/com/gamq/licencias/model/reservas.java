@@ -32,6 +32,9 @@ public class reservas {
     private Long idReserva;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+    @Column(name = "fecha_created", nullable = false)
+    private Date fechaCreated;
+
     @Column(name = "fecha_reserva", nullable = false)
     private Date fechaReserva;
     @Column(name = "hora_entrada", nullable = false)

@@ -9,6 +9,7 @@ public class reservasMapper {
     public static reservasDto toDto(reservas reservas){
         reservasDto reservasDto=new reservasDto();
         reservasDto.setUuid(reservas.getUuid());
+        reservasDto.setFechaCreated(reservas.getFechaCreated());
         reservasDto.setFechaReserva(reservas.getFechaReserva());
         reservasDto.setHoraEntrada(reservas.getHoraEntrada());
         reservasDto.setHoraSalida(reservas.getHoraSalida());
@@ -32,6 +33,7 @@ public class reservasMapper {
     public static reservas toEntity(reservasDto reservasDto){
         reservas reservas=new reservas();
         reservas.setUuid(reservasDto.getUuid());
+        reservas.setFechaCreated(reservasDto.getFechaCreated());
         reservas.setFechaReserva(reservasDto.getFechaReserva());
         reservas.setHoraEntrada(reservasDto.getHoraEntrada());
         reservas.setHoraSalida(reservasDto.getHoraSalida());

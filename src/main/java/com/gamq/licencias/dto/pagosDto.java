@@ -28,13 +28,21 @@ public class pagosDto {
 
     private String uuid;
 
-    private BigDecimal montoPago;
-
     private Date fechaPago;
 
-    private String nroTasa;
+    private BigDecimal montoPago;
+
+    private String numeroTasa;
 
     private String estadoPago;
+
+    private String entidadFinanciera;
+
+    private String folio;
+
+    private String  formaPago;
+
+    private  String observacion;
 
     private boolean estado;
 

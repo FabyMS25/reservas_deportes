@@ -27,6 +27,8 @@ public class reservasDto {
 
     private String uuid;
 
+    private Date fechaCreated;
+
     private Date fechaReserva;
 
     private LocalTime horaEntrada;
@@ -48,6 +50,7 @@ public class reservasDto {
     private contribuyenteDto contribuyenteDto;
 
     private String numeroTasa;
+
     private String estadoReserva;
 
     public List<pagosDto> pagosDtoList = new ArrayList<>();

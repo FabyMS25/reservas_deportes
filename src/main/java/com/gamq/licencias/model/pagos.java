@@ -32,14 +32,20 @@ public class pagos {
     private Long idPago;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Column(name = "monto_pago", nullable = false)
-    private BigDecimal montoPago;
     @Column(name = "fecha_pago", nullable = false)
     private Date fechaPago;
-    @Column(name = "nro_tasa", nullable = false,  length = 16)
-    private String nroTasa;
-    @Column(name = "estado_pago", nullable = false,  length = 15)
-    private String estadoPago;
+    @Column(name = "monto_pago", nullable = false)
+    private BigDecimal montoPago;
+    @Column(name = "numero_tasa", nullable = false)
+    private String numeroTasa;
+    @Column(name = "entidad_financiera", nullable = false)
+    private String entidadFinanciera;
+    @Column(name = "folio", nullable = false)
+    private String folio;
+    @Column(name = "formaPago", nullable = false)
+    private String formaPago;
+    @Column(name = "observacion", nullable = false)
+    private String observacion;
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
