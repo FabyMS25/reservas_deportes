@@ -6,6 +6,7 @@ import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.CategoriaService;
 import com.gamq.licencias.service.TarifaCategoriaService;
 import com.gamq.licencias.service.TarifasService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,4 +62,9 @@ public class TarifasCategoriaController {
         }
     }
 
+    @DeleteMapping("/{uuid}")
+    public Response deleteTarifaCategory(@Parameter(description = "Uuid para eliminar relacion tarida categoria")
+                                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(tarifaCategoriaService.deleteTarifaCategory(uuid));
+    }
 }

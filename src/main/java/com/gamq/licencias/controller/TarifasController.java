@@ -3,6 +3,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.TarifaDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.TarifasService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,12 +45,16 @@ public class TarifasController {
     }
 
     @PutMapping()
-    public Response actualizarConstruccion(@RequestBody TarifaDto TarifaDto) {
+    public Response actualizarTarifa(@RequestBody TarifaDto TarifaDto) {
         try{
             return Response.ok().setPayload(tarifasService.actualizarTarifa(TarifaDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteTarifa(@Parameter(description = "Uuid para eliminar tarifa")
+                                         @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(tarifasService.deleteTarifa(uuid));
+    }
 }

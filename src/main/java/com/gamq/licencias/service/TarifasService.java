@@ -11,4 +11,5 @@ public interface TarifasService {
     List<TarifaDto> obtenerTarifas();
     TarifaDto crearTarifa(TarifaDto TarifaDto);
     TarifaDto actualizarTarifa(TarifaDto TarifaDto);
+    TarifaDto deleteTarifa(String uuid);
 }

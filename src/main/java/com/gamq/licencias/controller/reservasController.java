@@ -7,6 +7,8 @@ import com.gamq.licencias.dto.reservasDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.canchasService;
 import com.gamq.licencias.service.reservasService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +53,12 @@ public class reservasController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Busca reservas por su Uuid de cancha")
+    @GetMapping("/cancha/{uuid}")
+    public Response buscarReservasPorCancha(@Parameter(description = "Uuid de Cancha para busqueda")
+                                             @PathVariable("uuid") String uuidCancha) {
+        return Response.ok().setPayload(reservasService.findReservaByCancha(uuidCancha));
+    }
     @PostMapping()
     public Response crearConstruccion(@RequestBody reservasDto reservasDto) {
         try{

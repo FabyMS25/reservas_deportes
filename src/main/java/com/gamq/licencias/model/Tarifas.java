@@ -50,7 +50,10 @@ public class Tarifas {
     public canchas cancha;
 
     @OneToMany(mappedBy = "tarifa", cascade = CascadeType.ALL)
-    public List<TarifaCategoria> categoriasList = new ArrayList<>();
+    public List<TarifaCategoria> categoriaDtoList = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "tarifa", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<TarifaCategoria> categoriaDtoList;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name="id_cancha")

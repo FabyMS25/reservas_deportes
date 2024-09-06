@@ -1,5 +1,7 @@
 package com.gamq.licencias.service.implement;
 
+import com.gamq.licencias.dto.canchasDto;
+import com.gamq.licencias.dto.mapper.canchasMapper;
 import com.gamq.licencias.dto.mapper.reservasMapper;
 import com.gamq.licencias.dto.reservasDto;
 import com.gamq.licencias.model.contribuyentes;
@@ -68,6 +70,29 @@ public class reservasServiceImpl implements reservasService {
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(PAGOS);
+        }
+    }
+
+//    public List<reservasDto> findReservaByCancha(String uuidCancha){
+//        List<reservas> reservas = reservasRepository.findReservasByCancha(uuidCancha);
+//        if (!reservas.isEmpty()) {
+//            return reservas.stream().map(reserva -> {
+//                return reservasMapper.toDto(reserva);
+//            }).collect(Collectors.toList());
+//        } else {
+//            throw new NoResultException(RESERVAS);
+//        }
+//    }
+    public List<reservasDto> findReservaByCancha(String uuidCancha) {
+        try {
+            List<reservas> reservas = reservasRepository.findReservasByCancha(uuidCancha);
+
+            return reservas.stream()
+                    .map(reserva -> reservasMapper.toDto(reserva))
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving reservas for cancha: " + uuidCancha, e);
         }
     }
     @Override

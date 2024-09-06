@@ -12,6 +12,7 @@ import java.util.List;
 public interface reservasService {
 
     reservasDto findByUuid(String uuid);
+    List<reservasDto> findReservaByCancha(String uuid);
     List<reservasDto> obtenerReservas();
     List<reservasDto> buscarPorFechaPago(Date fechaIni, Date fechaFin);
     reservasDto crearReserva(reservasDto reservasDto);

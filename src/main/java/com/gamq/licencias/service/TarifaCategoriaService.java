@@ -11,4 +11,5 @@ public interface TarifaCategoriaService {
     List<TarifaCategoriaDto> obtenerTarifaCategorias();
     TarifaCategoriaDto crearTarifaCategoria(TarifaCategoriaDto TarifaCategoriaDto);
     TarifaCategoriaDto actualizarTarifaCategoria(TarifaCategoriaDto TarifaCategoriaDto);
+    TarifaCategoriaDto deleteTarifaCategory(String uuid);
 }
