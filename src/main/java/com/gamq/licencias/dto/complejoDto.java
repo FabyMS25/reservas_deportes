@@ -8,6 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,4 +36,8 @@ public class complejoDto {
     private Double longitud;
 
     private boolean estado;
+
+
+    public List<encargadoComplejoDto> encargadosDtoList = new ArrayList<>();
+
 }

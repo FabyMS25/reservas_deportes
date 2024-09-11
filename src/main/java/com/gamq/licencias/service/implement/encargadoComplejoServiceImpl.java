@@ -1,5 +1,6 @@
 package com.gamq.licencias.service.implement;
 
+import com.gamq.licencias.dto.mapper.TarifaMapper;
 import com.gamq.licencias.dto.mapper.encargadoComplejoMapper;
 import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.complejo;
@@ -33,7 +34,7 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
 
         Optional<encargadoComplejo> ENCARGADOCOMPLEJOOptional = encargadoComplejoRepository.findByUuid(uuid);
         if (ENCARGADOCOMPLEJOOptional.isPresent()) {
-            return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJOOptional.get());
+            return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJOOptional.get(),true);
         } else {
             throw new NotFoundException(ENCARGADOCOMPLEJO , uuid);
         }
@@ -43,7 +44,7 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
     public encargadoComplejoDto findByUserUuid(String userUuid){
         Optional<encargadoComplejo> ENCARGADOCOMPLEJOOptional = encargadoComplejoRepository.findByUserUuid(userUuid);
         if (ENCARGADOCOMPLEJOOptional.isPresent()) {
-            return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJOOptional.get());
+            return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJOOptional.get(),true);
         } else {
             throw new NotFoundException(ENCARGADOCOMPLEJO , userUuid);
         }
@@ -54,7 +55,7 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
 
         if (!encargadoComplejos.isEmpty()) {
             return encargadoComplejos.stream().map(ENCARGADOCOMPLEJO -> {
-                return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJO);
+                return encargadoComplejoMapper.toDto(ENCARGADOCOMPLEJO,true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(ENCARGADOCOMPLEJO);
@@ -67,7 +68,7 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
             complejo complejo = getComplejo(encargadoComplejoDto.getComplejoDto().getUuid());
             encargadoComplejo newEncargadoComplejo = encargadoComplejoMapper.toEntity(encargadoComplejoDto);
             newEncargadoComplejo.setComplejo(complejo);
-            return encargadoComplejoMapper.toDto(encargadoComplejoRepository.save(newEncargadoComplejo));
+            return encargadoComplejoMapper.toDto(encargadoComplejoRepository.save(newEncargadoComplejo),true);
         } else {
             throw new NullReferenceException(CANCHAS);
         }
@@ -86,7 +87,7 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
                 encargadoComplejoModificado.setIdEncargadoComplejo(ENCARGADOCOMPLEJOOptional.get().getIdEncargadoComplejo());
 
                 encargadoComplejoModificado.setComplejo(complejo);
-                return encargadoComplejoMapper.toDto(encargadoComplejoRepository.save(encargadoComplejoModificado));
+                return encargadoComplejoMapper.toDto(encargadoComplejoRepository.save(encargadoComplejoModificado),true);
             } else {
                 throw new NotFoundException(ENCARGADOCOMPLEJO, encargadoComplejoDto.getUuid());
             }

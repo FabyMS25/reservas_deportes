@@ -7,6 +7,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
+import java.util.stream.Collectors;
+
 public class complejoMapper {
     public static complejoDto toDto(complejo complejo) {
         complejoDto compleDto = new complejoDto();
@@ -19,6 +21,12 @@ public class complejoMapper {
             compleDto.setLatitud(complejo.getGeoUbicacion().getX());
             compleDto.setLongitud(complejo.getGeoUbicacion().getY());
         }
+
+        compleDto.setEncargadosDtoList(
+                complejo.getEncargadoComplejoList().stream().map(encargado -> {
+                    return encargadoComplejoMapper.toDto(encargado, false);
+                }).collect(Collectors.toList())
+        );
 
         compleDto.setEstado(complejo.isEstado());
         return compleDto;

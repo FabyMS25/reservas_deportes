@@ -4,7 +4,7 @@ import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.encargadoComplejo;
 
 public class encargadoComplejoMapper {
-    public static encargadoComplejoDto toDto(encargadoComplejo encargadoComplejo){
+    public static encargadoComplejoDto toDto(encargadoComplejo encargadoComplejo, boolean op){
         encargadoComplejoDto encargadoComplejoDto = new encargadoComplejoDto();
         encargadoComplejoDto.setUuid(encargadoComplejo.getUuid());
         encargadoComplejoDto.setUserUuid(encargadoComplejo.getUserUuid());
@@ -13,8 +13,10 @@ public class encargadoComplejoMapper {
         encargadoComplejoDto.setHoraSalida(encargadoComplejo.getHoraSalida());
         encargadoComplejoDto.setNombre(encargadoComplejo.getNombre());
         encargadoComplejoDto.setEstado(encargadoComplejo.isEstado());
-        encargadoComplejoDto.setComplejoDto(complejoMapper.toDto(encargadoComplejo.getComplejo()));
-
+        //encargadoComplejoDto.setComplejoDto(complejoMapper.toDto(encargadoComplejo.getComplejo()));
+        if(op) {
+            encargadoComplejoDto.setComplejoDto(complejoMapper.toDto(encargadoComplejo.getComplejo()));
+        }
         return encargadoComplejoDto;
     }
     public static encargadoComplejo toEntity(encargadoComplejoDto encargadoComplejoDto){
