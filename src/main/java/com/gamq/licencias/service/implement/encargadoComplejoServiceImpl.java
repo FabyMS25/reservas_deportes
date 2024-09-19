@@ -3,9 +3,7 @@ package com.gamq.licencias.service.implement;
 import com.gamq.licencias.dto.mapper.TarifaMapper;
 import com.gamq.licencias.dto.mapper.encargadoComplejoMapper;
 import com.gamq.licencias.dto.encargadoComplejoDto;
-import com.gamq.licencias.model.complejo;
-import com.gamq.licencias.model.encargadoComplejo;
-import com.gamq.licencias.model.horario;
+import com.gamq.licencias.model.*;
 import com.gamq.licencias.repository.complejoRepository;
 import com.gamq.licencias.repository.encargadoComplejoRepository;
 import com.gamq.licencias.service.encargadoComplejoService;
@@ -13,9 +11,11 @@ import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
 import com.gamq.licencias.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,18 +108,17 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
                 .orElseThrow(() -> new NotFoundException(COMPLEJO, Uuid));
     }
     @Transactional
-    @Override
     public String delete(String uuid) {
-        Optional<encargadoComplejo> encargadoOptional = encargadoComplejoRepository.findByUuid(uuid);
-        if (encargadoOptional.isPresent()) {
-            encargadoComplejo encargado = encargadoOptional.get();
-
+        try {
+            encargadoComplejo encargado = encargadoComplejoRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new NotFoundException(ENCARGADOCOMPLEJO, uuid));
+            // Perform soft delete
             encargado.setEstado(true);
             encargadoComplejoRepository.save(encargado);
 
-            return "Eliminacion exitosa";
-        } else {
-            throw new NotFoundException(ENCARGADOCOMPLEJO, uuid);
+            return "Desactivación exitosa del ENCARGADO";
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error al intentar desactivar el registro. Por favor, inténtelo de nuevo más tarde.", e);
         }
     }
 }

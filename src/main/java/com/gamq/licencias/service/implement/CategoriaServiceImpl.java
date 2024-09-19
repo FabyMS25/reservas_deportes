@@ -98,7 +98,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
             return "Eliminación exitosa de categoria";
         } else {
-            throw new NotFoundException(CATEGORIA, uuid); // Handle the not-found case
+            throw new NotFoundException(CATEGORIA, uuid);
         }
     }
 }
