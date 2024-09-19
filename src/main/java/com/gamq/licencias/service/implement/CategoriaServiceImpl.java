@@ -6,25 +6,31 @@ import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
 import com.gamq.licencias.exception.NullReferenceException;
 import com.gamq.licencias.model.Categoria;
+import com.gamq.licencias.model.Superficie;
+import com.gamq.licencias.model.TarifaCategoria;
 import com.gamq.licencias.model.canchas;
 import com.gamq.licencias.repository.CategoriaRepository;
+import com.gamq.licencias.repository.TarifaCategoriaRepository;
 import com.gamq.licencias.repository.canchasRepository;
 import com.gamq.licencias.service.CategoriaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.licencias.exception.enums.EntityType.CANCHAS;
-import static com.gamq.licencias.exception.enums.EntityType.CATEGORIA;
+import static com.gamq.licencias.exception.enums.EntityType.*;
 
 @Component
 public class CategoriaServiceImpl implements CategoriaService {
 
     @Autowired
     CategoriaRepository categoriaRepository;
+
+    @Autowired
+    TarifaCategoriaRepository tarifaCategoriaRepository;
 
     public CategoriaDto findByUuid(String uuid){
         Optional<Categoria> CategoriaOptional = categoriaRepository.findByUuid(uuid);
@@ -76,5 +82,23 @@ public class CategoriaServiceImpl implements CategoriaService {
             throw new NullReferenceException(CATEGORIA);
         }
     }
+    @Transactional
+    @Override
+    public String delete(String uuid) {
+        Optional<Categoria> item = categoriaRepository.findByUuid(uuid);
+        if (item.isPresent()) {
+            Categoria category = item.get();
 
+            List<TarifaCategoria> canchasAsociadas = tarifaCategoriaRepository.findByCategory(category.getUuid());
+            if (!canchasAsociadas.isEmpty()) {
+                return "No se pudo eliminar la CATEGORIA porque existen datos asociadas a esta misma";
+            }
+
+            categoriaRepository.delete(category);
+
+            return "Eliminación exitosa de categoria";
+        } else {
+            throw new NotFoundException(CATEGORIA, uuid); // Handle the not-found case
+        }
+    }
 }

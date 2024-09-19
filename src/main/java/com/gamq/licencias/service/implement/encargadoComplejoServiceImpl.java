@@ -5,6 +5,7 @@ import com.gamq.licencias.dto.mapper.encargadoComplejoMapper;
 import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.model.complejo;
 import com.gamq.licencias.model.encargadoComplejo;
+import com.gamq.licencias.model.horario;
 import com.gamq.licencias.repository.complejoRepository;
 import com.gamq.licencias.repository.encargadoComplejoRepository;
 import com.gamq.licencias.service.encargadoComplejoService;
@@ -14,6 +15,7 @@ import com.gamq.licencias.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -104,5 +106,20 @@ public class encargadoComplejoServiceImpl implements encargadoComplejoService {
     private complejo getComplejo(String Uuid) {
         return complejoRepository.findByUuid(Uuid)
                 .orElseThrow(() -> new NotFoundException(COMPLEJO, Uuid));
+    }
+    @Transactional
+    @Override
+    public String delete(String uuid) {
+        Optional<encargadoComplejo> encargadoOptional = encargadoComplejoRepository.findByUuid(uuid);
+        if (encargadoOptional.isPresent()) {
+            encargadoComplejo encargado = encargadoOptional.get();
+
+            encargado.setEstado(true);
+            encargadoComplejoRepository.save(encargado);
+
+            return "Eliminacion exitosa";
+        } else {
+            throw new NotFoundException(ENCARGADOCOMPLEJO, uuid);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.SuperficieDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.SuperficieService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,5 +51,9 @@ public class SuperficieController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteSurface(@Parameter(description = "Uuid para eliminar superficie")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(superficieService.delete(uuid));
+    }
 }

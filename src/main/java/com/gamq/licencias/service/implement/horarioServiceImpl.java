@@ -1,5 +1,6 @@
 package com.gamq.licencias.service.implement;
 
+import com.gamq.licencias.dto.TarifaDto;
 import com.gamq.licencias.dto.mapper.*;
 import com.gamq.licencias.dto.mapper.horarioMapper;
 import com.gamq.licencias.dto.mapper.horarioMapper;
@@ -18,12 +19,12 @@ import com.gamq.licencias.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.licencias.exception.enums.EntityType.CANCHAS;
-import static com.gamq.licencias.exception.enums.EntityType.HORARIO;
+import static com.gamq.licencias.exception.enums.EntityType.*;
 
 @Component
 public class horarioServiceImpl implements horarioService {
@@ -98,5 +99,20 @@ public class horarioServiceImpl implements horarioService {
                 .orElseThrow(() -> new NotFoundException(HORARIO, uuid));
         horarioRepository.delete(horario);
         return "Eliminacion exitosa";
+    }
+    @Transactional
+    @Override
+    public String delete(String uuid) {
+        Optional<horario> horarioOptional = horarioRepository.findByUuid(uuid);
+        if (horarioOptional.isPresent()) {
+            horario horario = horarioOptional.get();
+//            horario.setEstado(true);
+//            horarioRepository.save(horario);
+            horarioRepository.delete(horario);
+
+            return "Eliminacion exitosa";
+        } else {
+            throw new NotFoundException(HORARIO, uuid);
+        }
     }
 }

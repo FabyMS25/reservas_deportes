@@ -4,6 +4,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.CategoriaDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.CategoriaService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,5 +53,9 @@ public class CategoriaController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(categoriaService.delete(uuid));
+    }
 }

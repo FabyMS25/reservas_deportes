@@ -13,5 +13,5 @@ public interface canchasService {
     List<canchasDto> obtenerCanchas();
     canchasDto crearCancha(canchasDto canchasDto);
     canchasDto actualizarCancha(canchasDto canchasDto);
-    String eliminarCanchas(String uuid);
+    String deleteField(String uuid);
 }

@@ -15,5 +15,6 @@ public interface canchasRepository extends JpaRepository<canchas, Long> {
 
     @Query("SELECT c FROM canchas c WHERE c.complejo.uuid = ?1")
     List<canchas> findCanchasByComplejo(String uuidComplejo);
-
+    @Query("SELECT c FROM canchas c WHERE c.superficie.uuid = ?1")
+    List<canchas> findBySuperficie(String uuidSuperficie);
 }

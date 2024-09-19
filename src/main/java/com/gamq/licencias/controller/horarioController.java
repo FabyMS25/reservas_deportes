@@ -4,6 +4,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.horarioDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.horarioService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,5 +53,10 @@ public class horarioController {
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
+    }
+    @DeleteMapping("/{uuid}")
+    public Response deleteSchedule(@Parameter(description = "Uuid para eliminar horario")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(horarioService.delete(uuid));
     }
 }

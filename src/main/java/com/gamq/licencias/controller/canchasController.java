@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
@@ -37,7 +36,6 @@ public class canchasController {
         }
     }
 
-    @Operation(summary = "Busca Canchas por su Uuid de complejo")
     @GetMapping("/complejo/{uuid}")
     public Response buscarCanchasPorComplejo(@Parameter(description = "Uuid de Complejo para busqueda de Canchas")
                                              @PathVariable("uuid") String uuidComplejo) {
@@ -60,5 +58,9 @@ public class canchasController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteField(@Parameter(description = "Uuid para eliminar cancha")
+                                 @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(canchasService.deleteField(uuid));
+    }
 }

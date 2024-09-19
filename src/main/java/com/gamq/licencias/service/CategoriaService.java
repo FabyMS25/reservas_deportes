@@ -14,4 +14,5 @@ public interface CategoriaService {
     CategoriaDto crearCategoria(CategoriaDto CategoriaDto);
     CategoriaDto actualizarCategoria(CategoriaDto CategoriaDto);
    // String eliminarCategoria(String uuid);
+   String delete(String uuid);
 }

@@ -1,5 +1,6 @@
 package com.gamq.licencias.service;
 
+import com.gamq.licencias.dto.TarifaDto;
 import com.gamq.licencias.dto.encargadoComplejoDto;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,6 @@ public interface encargadoComplejoService {
     encargadoComplejoDto crearEncargadoComplejo(encargadoComplejoDto encargadoComplejoDto);
     encargadoComplejoDto actualizarEncargadoComplejo(encargadoComplejoDto encargadoComplejoDto);
     //String eliminarEncargadoCancha(String uuid);
-
+    String delete(String uuid);
 
 }

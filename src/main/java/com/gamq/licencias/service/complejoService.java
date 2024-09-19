@@ -14,5 +14,6 @@ public interface complejoService {
     complejoDto crearComplejo(complejoDto complejoDto);
     complejoDto actualizarComplejo(complejoDto complejoDto);
     //String eliminarComplejo(String uuid);
+    String deleteComplex(String uuid);
 
 }

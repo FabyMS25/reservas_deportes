@@ -2,7 +2,6 @@ package com.gamq.licencias.service.implement;
 
 import com.gamq.licencias.dto.TarifaCategoriaDto;
 import com.gamq.licencias.dto.mapper.TarifaCategoriaMapper;
-import com.gamq.licencias.dto.response.Tarifa;
 import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
 import com.gamq.licencias.exception.NullReferenceException;
@@ -14,10 +13,8 @@ import com.gamq.licencias.repository.TarifasRepository;
 import com.gamq.licencias.service.TarifaCategoriaService;
 import com.gamq.licencias.repository.TarifaCategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Component;
 
-import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -95,19 +92,6 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
         return tarifasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }
-//    @Transactional
-//    @Override
-//    public TarifaCategoriaDto deleteTarifaCategory(String uuid) {
-//        TarifaCategoria tarifaCategory = tarifaCategoriaRepository.findByUuid(uuid)
-//                .orElseThrow(() -> new NotFoundException(TARIFACATEGORIA, uuid));
-//
-////        tarifaCategoriaRepository.refresh(tarifaCategory);  // If you have a refresh method
-//        TarifaCategoriaDto dto = TarifaCategoriaMapper.toDto(tarifaCategory, false);
-//
-//        tarifaCategoriaRepository.delete(tarifaCategory);
-//
-//        return dto;
-//    }
 
     @Override
     public TarifaCategoriaDto deleteTarifaCategory(String uuid) {

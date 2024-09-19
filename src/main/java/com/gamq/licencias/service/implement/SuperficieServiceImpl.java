@@ -6,16 +6,20 @@ import com.gamq.licencias.exception.NoResultException;
 import com.gamq.licencias.exception.NotFoundException;
 import com.gamq.licencias.exception.NullReferenceException;
 import com.gamq.licencias.model.Superficie;
+import com.gamq.licencias.model.canchas;
 import com.gamq.licencias.repository.SuperficieRepository;
+import com.gamq.licencias.repository.canchasRepository;
 
 import com.gamq.licencias.service.SuperficieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.gamq.licencias.exception.enums.EntityType.ENCARGADOCOMPLEJO;
 import static com.gamq.licencias.exception.enums.EntityType.SUPERFICIE;
 
 
@@ -23,6 +27,9 @@ import static com.gamq.licencias.exception.enums.EntityType.SUPERFICIE;
 public class SuperficieServiceImpl implements SuperficieService {
     @Autowired
     SuperficieRepository superficieRepository;
+
+    @Autowired
+    canchasRepository canchaRepository;
 
     public SuperficieDto findByUuid(String uuid){
         Optional<Superficie> SuperficieOptional = superficieRepository.findByUuid(uuid);
@@ -72,6 +79,31 @@ public class SuperficieServiceImpl implements SuperficieService {
             }
         } else {
             throw new NullReferenceException(SUPERFICIE);
+        }
+    }
+    @Transactional
+    @Override
+    public String delete(String uuid) {
+        Optional<Superficie> item = superficieRepository.findByUuid(uuid);
+        if (item.isPresent()) {
+            Superficie surface = item.get();
+
+            List<canchas> canchasAsociadas = canchaRepository.findBySuperficie(surface.getUuid());
+            if (!canchasAsociadas.isEmpty()) {
+                return "No se pudo eliminar la SUPERFICIE porque existen canchas asociadas a esta misma";
+            }
+//            // Soft delete associated canchas
+//            for (canchas cancha : canchasAsociadas) {
+//                canchaRepository.delete(cancha);
+//            }
+
+            // (soft delete)
+//            surface.setEstado(true);
+            superficieRepository.delete(surface);
+
+            return "Eliminación exitosa de superficie";
+        } else {
+            throw new NotFoundException(SUPERFICIE, uuid); // Handle the not-found case
         }
     }
 

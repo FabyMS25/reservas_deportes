@@ -12,5 +12,6 @@ public interface horarioService {
     List<horarioDto> obtenerHorarios();
     horarioDto crearHorario(horarioDto horarioDto);
     horarioDto actualizarHorario(horarioDto horarioDto);
-    String eliminarHorario(String uuid);
+//    String eliminarHorario(String uuid);
+    String delete(String uuid);
 }

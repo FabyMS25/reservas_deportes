@@ -151,25 +151,29 @@ public class TarifasServiceImpl implements TarifasService {
 
     @Transactional
     @Override
-    public TarifaDto deleteTarifa(String uuid) {
+    public String deleteTarifa(String uuid) {
         Optional<Tarifas> tarifaOptional = tarifaRepository.findByUuid(uuid);
         if (tarifaOptional.isPresent()) {
             Tarifas tarifa = tarifaOptional.get();
 
-            // Check if the categoriaDtoList is empty
-            if (tarifa.getCategoriaDtoList().isEmpty()) {
-                // If empty, delete the Tarifa
-                tarifaRepository.delete(tarifa);
-            } else {
-                // If not empty, set estado to true and save the Tarifa
-                tarifa.setEstado(true);
-                tarifaRepository.save(tarifa);
+            if (!tarifa.getCategoriaDtoList().isEmpty()) {
+                for (TarifaCategoria tarifaCat : new ArrayList<>(tarifa.getCategoriaDtoList())) {
+                    if (tarifaCat != null && tarifaCat.getUuid() != null) {
+                        tarifaCat.setEstado(true);
+//                        tarifaCategoriaRepository.delete(tarifaCat);
+                    }
+                }
+                tarifa.getCategoriaDtoList().clear();
+//                tarifa.setEstado(true);
+//                tarifaRepository.save(tarifa);
             }
-            return TarifaMapper.toDto(tarifa, false);
+
+            tarifaRepository.delete(tarifa);
+//            return TarifaMapper.toDto(tarifa, false);
+            return "Eliminacion exitosa";
         } else {
             throw new NotFoundException(TARIFA, uuid);
         }
     }
-
 
 }

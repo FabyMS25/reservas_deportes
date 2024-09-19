@@ -4,6 +4,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.encargadoComplejoDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.encargadoComplejoService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,5 +61,11 @@ public class encargadoComplejoController {
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
+    }
+
+    @DeleteMapping("/{uuid}")
+    public Response deleteEmployee(@Parameter(description = "Uuid para eliminar encargado")
+                                 @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(encargadoCcomplejoService.delete(uuid));
     }
 }

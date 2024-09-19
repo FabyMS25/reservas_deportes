@@ -13,4 +13,5 @@ public interface SuperficieService {
     SuperficieDto crearSuperficie(SuperficieDto SuperficieDto);
     SuperficieDto actualizarSuperficie(SuperficieDto SuperficieDto);
     //String eliminarCanchas(String uuid);
+    String delete(String uuid);
 }

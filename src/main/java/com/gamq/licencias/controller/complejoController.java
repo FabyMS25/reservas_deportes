@@ -3,6 +3,7 @@ package com.gamq.licencias.controller;
 import com.gamq.licencias.dto.complejoDto;
 import com.gamq.licencias.dto.response.Response;
 import com.gamq.licencias.service.complejoService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,5 +52,9 @@ public class complejoController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteComplex(@Parameter(description = "Uuid para eliminar complejo")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(complejoService.deleteComplex(uuid));
+    }
 }
