@@ -1,0 +1,61 @@
+package com.gamq.deportes.controller;
+
+
+import com.gamq.deportes.dto.CategoriaDto;
+import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.service.CategoriaService;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/categorias")
+public class CategoriaController {
+    @Autowired
+    private CategoriaService categoriaService;
+
+    @GetMapping()
+    public Response obtenerCategorias() {
+        try{
+            List<CategoriaDto> CategoriaDtos =  categoriaService.obtenerCategorias();
+            return Response.ok().setPayload(CategoriaDtos);
+        } catch(Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/{uuid}")
+    public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
+        try{
+            CategoriaDto CategoriaDto = categoriaService.findByUuid(uuidCategoria);
+            return Response.ok().setPayload(CategoriaDto);
+        } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
+
+    @PostMapping()
+    public Response crearCategoria(@RequestBody CategoriaDto CategoriaDto) {
+        try{
+            return Response.ok().setPayload(categoriaService.crearCategoria(CategoriaDto));
+        } catch (Exception ex) {
+            return  Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+
+    @PutMapping()
+    public Response actualizarCategoria(@RequestBody CategoriaDto CategoriaDto) {
+        try{
+            return Response.ok().setPayload(categoriaService.actualizarCategoria(CategoriaDto));
+        } catch (Exception ex) {
+            return  Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+    @DeleteMapping("/{uuid}")
+    public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(categoriaService.delete(uuid));
+    }
+}
