@@ -7,7 +7,7 @@ services:
     container_name: 'deportes-be'
     build: .
     ports:
-      - '8082:8082'
+      - '8085:8085'
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
       - SPRING_DATASOURCE_USERNAME=deportes
@@ -22,7 +22,7 @@ services:
       - POSTGRES_PASSWORD=deportes123
       - POSTGRES_DB=db_deportes
     ports:
-      - '5435:5432'
+      - '5438:5432'
     volumes:
       - db:/var/lib/postgresql/data
     restart: always
@@ -30,7 +30,7 @@ services:
     image: dpage/pgadmin4
     container_name: 'deportes-pg'
     ports:
-      - "5052:80"
+      - "5055:80"
     environment:
       - PGADMIN_DEFAULT_EMAIL=deportes@admin.com
       - PGADMIN_DEFAULT_PASSWORD=deportes123
