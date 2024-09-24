@@ -15,7 +15,8 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     restart: always
   db-deportes:
-    image: postgres:14-alpine
+    image: postgis/postgis:14-3.2-alpine
+#    image: postgres:14-alpine
     container_name: 'deportes-db'
     environment:
       - POSTGRES_USER=deportes
