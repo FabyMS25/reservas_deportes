@@ -16,7 +16,7 @@ public class TarifaMapper {
         tarifaDto.setCosto(tarifa.getCosto());
         tarifaDto.setEstado(tarifa.isEstado());
         if (op) {
-            tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha()));
+            tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha(),true));
         }
 
         tarifaDto.setCategoriaDtoList(

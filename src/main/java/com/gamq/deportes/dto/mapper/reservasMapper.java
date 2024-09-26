@@ -20,7 +20,7 @@ public class reservasMapper {
         reservasDto.setEstado(reservas.isEstado());
         reservasDto.setNumeroTasa(reservas.getNumeroTasa());
         reservasDto.setEstadoReserva(reservas.getEstadoReserva());
-        reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha()));
+        reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha(),true));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
         reservasDto.setPagosDtoList(
                 reservas.getPagosList().stream().map(pagos->{

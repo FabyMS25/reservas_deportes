@@ -40,4 +40,6 @@ public class complejoDto {
 
     public List<encargadoComplejoDto> encargadosDtoList = new ArrayList<>();
 
+    public List<canchasDto> canchasDtoList = new ArrayList<>();
+
 }

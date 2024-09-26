@@ -14,7 +14,7 @@ public class horarioMapper {
         horarioDto.setAbierto(horario.isAbierto());
         horarioDto.setEstado(horario.isEstado());
         if(op) {
-            horarioDto.setCanchasDto(canchasMapper.toDto(horario.getCancha()));
+            horarioDto.setCanchasDto(canchasMapper.toDto(horario.getCancha(),true));
         }
         return horarioDto;
     }

@@ -37,7 +37,7 @@ public class canchaServiceImpl implements canchasService {
     public canchasDto findByUuid(String uuid){
         Optional<canchas> canchasOptional = canchasRepository.findByUuid(uuid);
         if (canchasOptional.isPresent()) {
-            return canchasMapper.toDto(canchasOptional.get());
+            return canchasMapper.toDto(canchasOptional.get(),true);
         } else {
             throw new NotFoundException(CANCHAS , uuid);
         }
@@ -48,7 +48,7 @@ public class canchaServiceImpl implements canchasService {
 
         if (!canchass.isEmpty()) {
             return canchass.stream().map(canchas -> {
-                return canchasMapper.toDto(canchas);
+                return canchasMapper.toDto(canchas,true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(CANCHAS);
@@ -59,7 +59,7 @@ public class canchaServiceImpl implements canchasService {
 
         if (!canchass.isEmpty()) {
             return canchass.stream().map(canchas -> {
-                return canchasMapper.toDto(canchas);
+                return canchasMapper.toDto(canchas,true);
             }).collect(Collectors.toList());
         } else {
             throw new NoResultException(CANCHAS);
@@ -78,7 +78,7 @@ public class canchaServiceImpl implements canchasService {
             newCancha.setReservasList(null);
             newCancha.setHorarioList(null);*/
             newCancha =canchasRepository.save(newCancha);
-            return canchasMapper.toDto(newCancha);
+            return canchasMapper.toDto(newCancha,true);
         } else {
             throw new NullReferenceException(CANCHAS);
         }
@@ -96,7 +96,7 @@ public class canchaServiceImpl implements canchasService {
                 canchasModificado.setIdCancha(canchasOptional.get().getIdCancha());
                 canchasModificado.setComplejo(comple);
                 canchasModificado.setSuperficie(superficie);
-                return canchasMapper.toDto(canchasRepository.save(canchasModificado));
+                return canchasMapper.toDto(canchasRepository.save(canchasModificado),true);
             } else {
                 throw new NotFoundException(CANCHAS, canchasDto.getUuid());
             }

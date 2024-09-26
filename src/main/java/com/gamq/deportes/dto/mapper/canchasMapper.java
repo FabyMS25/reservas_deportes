@@ -7,15 +7,17 @@ import java.util.stream.Collectors;
 
 public class canchasMapper {
 
-    public static canchasDto toDto(canchas canchas){
+    public static canchasDto toDto(canchas canchas, boolean op){
         canchasDto canchasDto= new canchasDto();
         canchasDto.setUuid(canchas.getUuid());
         canchasDto.setCodigo(canchas.getCodigo());
         canchasDto.setTipo(canchas.getTipo());
         canchasDto.setEstado(canchas.isEstado());
-        canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
         canchasDto.setSuperficieDto(SuperficieMapper.toDto(canchas.getSuperficie()));
 
+        if (op) {
+            canchasDto.setComplejoDto(complejoMapper.toDto(canchas.getComplejo()));
+        }
         canchasDto.setTarifasDtoList(
         canchas.getTarifasList().stream().map(tarifa -> {
                    return TarifaMapper.toDto(tarifa, false);
