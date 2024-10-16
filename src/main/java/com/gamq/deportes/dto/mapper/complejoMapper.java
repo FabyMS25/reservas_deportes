@@ -28,6 +28,12 @@ public class complejoMapper {
                 }).collect(Collectors.toList())
         );
 
+        compleDto.setCanchasDtoList(
+                complejo.getCanchasList().stream().map(cancha -> {
+                    return canchasMapper.toDto(cancha, false);
+                }).collect(Collectors.toList())
+        );
+
         compleDto.setEstado(complejo.isEstado());
         return compleDto;
     }
