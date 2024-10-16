@@ -11,6 +11,7 @@ public enum EntityType {
     HORARIO,
     TARIFA,
     TARIFACATEGORIA,
-    SUPERFICIE
+    SUPERFICIE,
+    PASSRESETS
 
 }
