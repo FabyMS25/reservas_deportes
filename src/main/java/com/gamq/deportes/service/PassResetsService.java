@@ -1,6 +1,6 @@
 package com.gamq.deportes.service;
 
-import com.gamq.deportes.dto.PassResetsDto;
+import com.gamq.deportes.dto.PassDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.List;
 @Service
 public interface PassResetsService {
 
-    PassResetsDto findByUuid(String uuid);
-    List<PassResetsDto> obtenerPassResets();
-    PassResetsDto crearPassResets(PassResetsDto PassResetsDto);
-    PassResetsDto actualizarPassResets(PassResetsDto PassResetsDto);
+    PassDto findByUuid(String uuid);
+    List<PassDto> obtenerPassResets();
+    PassDto crearPassResets(PassDto PassDto);
+    PassDto actualizarPassResets(PassDto PassDto);
 }

@@ -17,10 +17,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "passresets", indexes = @Index(name = "idx_pas_uuid", columnList = "uuid", unique = true))
-@SQLDelete(sql = "UPDATE passresets SET estado=true WHERE id_pass=?")
+@Table(name = "Pass", indexes = @Index(name = "idx_pass_uuid", columnList = "uuid", unique = true))
+@SQLDelete(sql = "UPDATE Pass SET estado=true WHERE id_pass=?")
 @Where(clause = "estado = false")
-public class PassResets {
+public class Pass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_pass")

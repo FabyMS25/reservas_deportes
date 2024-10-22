@@ -1,17 +1,14 @@
 package com.gamq.deportes.service.implement;
 
-import com.gamq.deportes.dto.PassResetsDto;
-import com.gamq.deportes.dto.mapper.PassResetsMapper;
-import com.gamq.deportes.dto.mapper.PassResetsMapper;
-import com.gamq.deportes.dto.mapper.PassResetsMapper;
-import com.gamq.deportes.dto.mapper.PassResetsMapper;
+import com.gamq.deportes.dto.PassDto;
+import com.gamq.deportes.dto.mapper.PassMapper;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
-import com.gamq.deportes.model.*;
-import com.gamq.deportes.model.PassResets;
-import com.gamq.deportes.repository.PassResetsRepository;
+import com.gamq.deportes.model.Pass;
+import com.gamq.deportes.repository.PassRepository;
 import com.gamq.deportes.service.PassResetsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,54 +19,54 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class PassResetsServiceImpl implements PassResetsService {
+    @Autowired
+    PassRepository passRepository;
 
-    PassResetsRepository passResetsRepository;
 
-
-   public PassResetsDto findByUuid(String uuid){
-       Optional<PassResets> PassOptional = passResetsRepository.findByUuid(uuid);
+   public PassDto findByUuid(String uuid){
+       Optional<Pass> PassOptional = passRepository.findByUuid(uuid);
        if (PassOptional.isPresent()) {
-           return PassResetsMapper.toDto(PassOptional.get());
+           return PassMapper.toDto(PassOptional.get());
        } else {
            throw new NotFoundException(PASSRESETS , uuid);
        }
    }
-   public List<PassResetsDto> obtenerPassResets(){
-       List<PassResets> PassResetss = passResetsRepository.findAll();
+   public List<PassDto> obtenerPassResets(){
+       List<Pass> passResetsses = passRepository.findAll();
 
-       if (!PassResetss.isEmpty()) {
-           return PassResetss.stream().map(PassResets -> {
-               return PassResetsMapper.toDto(PassResets);
+       if (!passResetsses.isEmpty()) {
+           return passResetsses.stream().map(Pass -> {
+               return PassMapper.toDto(Pass);
            }).collect(Collectors.toList());
        } else {
            throw new NoResultException(PASSRESETS);
        }
    }
-    public PassResetsDto crearPassResets(PassResetsDto PassResetsDto){
-        if (PassResetsDto != null) {
-            PassResets newPass = PassResetsMapper.toEntity(PassResetsDto);
-            newPass =passResetsRepository.save(newPass);
-            return PassResetsMapper.toDto(newPass);
+    public PassDto crearPassResets(PassDto PassDto){
+        if (PassDto != null) {
+            Pass newPass = PassMapper.toEntity(PassDto);
+            newPass = passRepository.save(newPass);
+            return PassMapper.toDto(newPass);
         } else {
             throw new NullReferenceException(PASSRESETS);
         }
        
     }
     
-    public PassResetsDto actualizarPassResets(PassResetsDto PassResetsDto){
+    public PassDto actualizarPassResets(PassDto PassDto){
 
-        if (PassResetsDto != null) {
-        Optional<PassResets> PassResetsOptional = passResetsRepository.findByUuid(PassResetsDto.getUuid());
+        if (PassDto != null) {
+        Optional<Pass> PassResetsOptional = passRepository.findByUuid(PassDto.getUuid());
 
         if (PassResetsOptional.isPresent()) {
 
 
-            PassResets PassResetsModificado = PassResetsMapper.toEntity(PassResetsDto);
-            PassResetsModificado.setIdPass(PassResetsOptional.get().getIdPass());
+            Pass passModificado = PassMapper.toEntity(PassDto);
+            passModificado.setIdPass(PassResetsOptional.get().getIdPass());
 
-            return PassResetsMapper.toDto(passResetsRepository.save(PassResetsModificado));
+            return PassMapper.toDto(passRepository.save(passModificado));
         } else {
-            throw new NotFoundException(PASSRESETS, PassResetsDto.getUuid());
+            throw new NotFoundException(PASSRESETS, PassDto.getUuid());
         }
     } else {
         throw new NullReferenceException(PASSRESETS);

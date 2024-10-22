@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.springframework.stereotype.Component;
 
-import javax.persistence.Column;
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,7 +15,7 @@ import javax.persistence.Column;
 @ToString
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PassResetsDto {
+public class PassDto {
 
     private String uuid;
 
