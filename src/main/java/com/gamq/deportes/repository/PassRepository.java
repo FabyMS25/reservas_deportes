@@ -13,5 +13,8 @@ public interface PassRepository extends JpaRepository<Pass,Long> {
     @Query("SELECT c FROM Pass c WHERE c.uuid = ?1")
     Optional<Pass> findByUuid(String uuid);
 
+    @Query("SELECT c FROM Pass c WHERE c.token = ?1")
+    Optional<Pass> findByToken(String token);
+
 
 }

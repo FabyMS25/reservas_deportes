@@ -10,10 +10,8 @@ public class PassMapper {
         passDto.setUuid(pass.getUuid());
         passDto.setEmail(pass.getEmail());
         passDto.setToken(pass.getToken());
-        passDto.setExprires_at(pass.getExprires_at());
+        passDto.setExpiresAt(pass.getExpiresAt());
         passDto.setEstado(pass.isEstado());
-
-
         return passDto;
     }
 
@@ -22,7 +20,7 @@ public class PassMapper {
         pass.setUuid(passDto.getUuid());
         pass.setEmail(passDto.getEmail());
         pass.setToken(passDto.getToken());
-        pass.setExprires_at(passDto.getExprires_at());
+        pass.setExpiresAt(passDto.getExpiresAt());
         pass.setEstado(passDto.isEstado());
 
         return pass;

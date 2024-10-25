@@ -37,7 +37,15 @@ public class contribuyenteController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @GetMapping("/email/{correo}")
+    public Response buscarContribuyentePorEmail( @PathVariable("correo") String correo) {
+        try{
+            contribuyenteDto contribuyenteDto = contribuyenteService.findByEmail(correo);
+            return Response.ok().setPayload(contribuyenteDto);
+        } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
     @PostMapping()
     public Response crearConstribuyente(@RequestBody contribuyenteDto contribuyenteDto) {
         try{

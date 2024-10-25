@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,7 +25,7 @@ public class PassDto {
 
     private String token;
 
-    private String exprires_at;
+    private LocalDateTime expiresAt;
 
     private boolean estado;
 

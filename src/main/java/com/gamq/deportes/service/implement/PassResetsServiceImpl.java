@@ -1,16 +1,21 @@
 package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.PassDto;
+import com.gamq.deportes.dto.contribuyenteDto;
 import com.gamq.deportes.dto.mapper.PassMapper;
+import com.gamq.deportes.dto.mapper.contribuyentesMapper;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Pass;
+import com.gamq.deportes.model.contribuyentes;
 import com.gamq.deportes.repository.PassRepository;
+import com.gamq.deportes.repository.contribuyentesRepository;
 import com.gamq.deportes.service.PassResetsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,7 +26,8 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 public class PassResetsServiceImpl implements PassResetsService {
     @Autowired
     PassRepository passRepository;
-
+    @Autowired
+    contribuyentesRepository contribuyentesRepository;
 
    public PassDto findByUuid(String uuid){
        Optional<Pass> PassOptional = passRepository.findByUuid(uuid);
@@ -31,6 +37,35 @@ public class PassResetsServiceImpl implements PassResetsService {
            throw new NotFoundException(PASSRESETS , uuid);
        }
    }
+    public PassDto findByToken(String token){
+        Optional<Pass> PassOptional = passRepository.findByToken(token);
+        if (PassOptional.isPresent()) {
+            Pass passReset = PassOptional.get();
+            // Check if the token has expired
+            if (LocalDateTime.now().isAfter(passReset.getExpiresAt())) {
+                throw new RuntimeException("El link ha expirado");
+            }
+            return PassMapper.toDto(passReset);
+        } else {
+            throw new NotFoundException(PASSRESETS ,token);
+        }
+    }
+    public contribuyenteDto findUserByToken(String token){
+        Optional<Pass> PassOptional = passRepository.findByToken(token);
+        if (PassOptional.isPresent()) {
+            PassDto passDto= PassMapper.toDto(PassOptional.get());
+            Optional<contribuyentes> contriOptional = contribuyentesRepository.findByEmail(passDto.getEmail());
+            if (contriOptional.isPresent()) {
+                return contribuyentesMapper.toDto(contriOptional.get());
+            } else {
+                throw new NotFoundException(CONTRIBUYENTE , passDto.getEmail());
+            }
+
+//            return PassMapper.toDto(PassOptional.get());
+        } else {
+            throw new NotFoundException(PASSRESETS ,token);
+        }
+    }
    public List<PassDto> obtenerPassResets(){
        List<Pass> passResetsses = passRepository.findAll();
 

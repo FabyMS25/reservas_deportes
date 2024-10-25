@@ -1,6 +1,7 @@
 package com.gamq.deportes.service;
 
 import com.gamq.deportes.dto.PassDto;
+import com.gamq.deportes.dto.contribuyenteDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,6 +10,9 @@ import java.util.List;
 public interface PassResetsService {
 
     PassDto findByUuid(String uuid);
+    PassDto findByToken(String token);
+    contribuyenteDto findUserByToken(String token);
+
     List<PassDto> obtenerPassResets();
     PassDto crearPassResets(PassDto PassDto);
     PassDto actualizarPassResets(PassDto PassDto);

@@ -35,6 +35,16 @@ public class contribuyenteServiceImpl implements contribuyenteService {
             throw new NotFoundException(CONTRIBUYENTE , uuid);
         }
     }
+    public contribuyenteDto findByEmail(String email){
+
+        Optional<contribuyentes> contriOptional = contribuyentesRepository.findByEmail(email);
+        if (contriOptional.isPresent()) {
+            return contribuyentesMapper.toDto(contriOptional.get());
+        } else {
+            throw new NotFoundException(CONTRIBUYENTE , email);
+        }
+    }
+
     public List<contribuyenteDto> obtenerContribuyentes(){
         List<contribuyentes> contribuyentes = contribuyentesRepository.findAll();
 

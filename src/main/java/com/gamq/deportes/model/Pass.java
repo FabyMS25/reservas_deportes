@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -35,8 +36,8 @@ public class Pass {
     @Column(name = "token", nullable = false, length = 255)
     private String token;
 
-    @Column(name = "expires_at", nullable = false, length = 255)
-    private String exprires_at;
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt;
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
