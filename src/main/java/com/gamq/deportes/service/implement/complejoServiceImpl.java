@@ -100,6 +100,6 @@ public class complejoServiceImpl implements complejoService {
         } catch (DataAccessException e) {
             throw new RuntimeException("Error al intentar desactivar el COMPLEJO. Por favor, inténtelo de nuevo más tarde.", e);
         }
-
     }
+
 }
