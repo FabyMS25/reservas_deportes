@@ -64,6 +64,6 @@ public class TarifasCategoriaController {
     @DeleteMapping("/{uuid}")
     public Response deleteTarifaCategory(@Parameter(description = "Uuid para eliminar relacion tarida categoria")
                                                 @PathVariable("uuid") String uuid) {
-        return Response.ok().setPayload(tarifaCategoriaService.deleteTarifaCategory(uuid));
+        return Response.ok().setPayload(tarifaCategoriaService.delete(uuid));
     }
 }

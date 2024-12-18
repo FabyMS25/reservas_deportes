@@ -30,9 +30,9 @@ public class horario {
     private String uuid;
     @Column(name = "dia", nullable = false, length = 15)
     private String dia;
-    @Column(name = "hora_inicio", nullable = false)
+    @Column(name = "hora_inicio")
     private LocalTime horaInicio;
-    @Column(name = "hora_fin", nullable = false)
+    @Column(name = "hora_fin")
     private LocalTime horaFin;
 
     @Column(name = "abierto", nullable = false)
