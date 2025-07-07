@@ -140,9 +140,8 @@ public class ApiServiceImpl extends AbstractClient implements ApiService {
             //throw new RuntimeException("Error");
 
         }
-
-
     }
+
     @Override
     public PagoResponse consultaPago (PagoToken pagoToken){
         String uri = baseUrl + "/RuatServiciosWebTasasOI/tasasOI/consultaPagoTasa";
