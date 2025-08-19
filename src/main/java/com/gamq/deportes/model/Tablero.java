@@ -1,14 +1,18 @@
 package com.gamq.deportes.model;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.UUID;
 
-
+@Getter
+@Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
@@ -24,9 +28,14 @@ public class Tablero {
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
     @Column(columnDefinition = "jsonb")
-    private String[][] tablero;
+    private String[][] horario;
 
     @OneToOne(mappedBy = "tablero")
     private ReservasProgramadas reservasProgramadas;
+
+    @PrePersist
+    public void initializeUuid() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 
 }

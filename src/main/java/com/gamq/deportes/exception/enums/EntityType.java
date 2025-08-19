@@ -12,6 +12,8 @@ public enum EntityType {
     TARIFA,
     TARIFACATEGORIA,
     SUPERFICIE,
-    PASSRESETS
+    PASSRESETS,
+    RESERVASPROGRAMADAS,
+    TABLERO
 
 }

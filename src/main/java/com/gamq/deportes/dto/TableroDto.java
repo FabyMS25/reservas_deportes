@@ -1,0 +1,26 @@
+package com.gamq.deportes.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.gamq.deportes.model.ReservasProgramadas;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(chain = true)
+@ToString
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+
+public class TableroDto {
+    private String uuid;
+    private String[][] horario;
+   // private ReservasProgramadasDto reservasProgramadasDto;
+
+}

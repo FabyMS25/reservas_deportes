@@ -13,6 +13,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -61,5 +62,8 @@ public class ReservasProgramadas {
     @JoinColumn(name="id_tablero")
     public Tablero tablero;
 
-
+    @PrePersist
+    public void initializeUuid() {
+        this.setUuid(UUID.randomUUID().toString());
+    }
 }
