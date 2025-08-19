@@ -25,5 +25,7 @@ public class CategoriaDto {
 
     private String nombre;
 
+    private boolean forAsociation;
+
     private boolean estado;
 }

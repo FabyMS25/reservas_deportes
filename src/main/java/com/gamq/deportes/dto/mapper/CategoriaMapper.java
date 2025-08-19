@@ -10,6 +10,7 @@ public class CategoriaMapper {
         categoriaDto.setTipo(categoria.getTipo());
         categoriaDto.setCodigo(categoria.getCodigo());
         categoriaDto.setNombre(categoria.getNombre());
+        categoriaDto.setForAsociation(categoria.isForAsociation());
         return categoriaDto;
     }
     public static Categoria toEntity (CategoriaDto categoriaDto){
@@ -18,6 +19,7 @@ public class CategoriaMapper {
         categoria.setCodigo(categoriaDto.getCodigo());
         categoria.setTipo(categoriaDto.getTipo());
         categoria.setNombre(categoriaDto.getNombre());
+        categoria.setForAsociation(categoria.isForAsociation());
         return categoria;
     }
 }

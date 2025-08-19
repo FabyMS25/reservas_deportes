@@ -57,6 +57,8 @@ public class contribuyenteDto {
 
     private String estadoUsuario;
 
+    private boolean forAsociation;
+
     private boolean estado;
 
 
