@@ -67,7 +67,8 @@ public class contribuyentes {
     private String estadoUsuario;
 
 
-
+    @Column(name = "for_asociation")
+    private boolean forAsociation;
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 

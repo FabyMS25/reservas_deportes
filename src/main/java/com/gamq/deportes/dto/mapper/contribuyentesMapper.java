@@ -18,6 +18,7 @@ public class contribuyentesMapper {
         contribuyenteDto.setCelular(contri.getCelular());
         contribuyenteDto.setCorreo(contri.getCorreo());
         contribuyenteDto.setSexo(contri.getSexo());
+        contribuyenteDto.setForAsociation(contri.isForAsociation());
         //////
         contribuyenteDto.setTipoContribuyente(contri.getTipoContribuyente());
         contribuyenteDto.setCodigoContribuyente(contri.getCodigoContribuyente());
@@ -46,6 +47,7 @@ public class contribuyentesMapper {
         contribuyentes.setCelular(contri.getCelular());
         contribuyentes.setCorreo(contri.getCorreo());
         contribuyentes.setSexo(contri.getSexo());
+        contribuyentes.setForAsociation(contri.isForAsociation());
         contribuyentes.setUserName(contri.getUserName());
         contribuyentes.setPassword(contri.getPassword());
         /////
