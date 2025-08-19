@@ -10,9 +10,12 @@ import java.util.List;
 public interface contribuyenteService {
 
     contribuyenteDto findByUuid(String uuid);
+    contribuyenteDto findByEmail(String email);
     List<contribuyenteDto> obtenerContribuyentes();
     contribuyenteDto crearContribuyente(contribuyenteDto contribuyenteDto);
     contribuyenteDto actualizarContribuyente(contribuyenteDto contribuyenteDto);
     String eliminarContribuyente(String uuid);
     contribuyenteDto loginContribuyente(login login);
+
+    String delete(String uuid);
 }

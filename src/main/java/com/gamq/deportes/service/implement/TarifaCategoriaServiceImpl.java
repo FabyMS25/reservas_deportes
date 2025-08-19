@@ -15,6 +15,8 @@ import com.gamq.deportes.repository.TarifaCategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -93,15 +95,25 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }
 
+    @Transactional
     @Override
-    public TarifaCategoriaDto deleteTarifaCategory(String uuid) {
-        Optional<TarifaCategoria> TarifaCategoriasOptional = tarifaCategoriaRepository.findByUuid(uuid);
-        if (TarifaCategoriasOptional.isPresent()) {
-            TarifaCategoria tarifaCategory = TarifaCategoriasOptional.get();
-            tarifaCategoriaRepository.delete(tarifaCategory);
-            return TarifaCategoriaMapper.toDto(tarifaCategory,false);
+    public String delete(String uuid) {
+        Optional<TarifaCategoria> item = tarifaCategoriaRepository.findByUuid(uuid);
+        if (item.isPresent()) {
+            TarifaCategoria feeCategory = item.get();
+
+//            List<TarifaCategoria> canchasAsociadas = tarifaCategoriaRepository.findByCategory(category.getUuid());
+//            if (!canchasAsociadas.isEmpty()) {
+//                return "No se pudo eliminar la CATEGORIA porque existen datos asociadas a esta misma";
+//            }
+            feeCategory.setEstado(true);
+            tarifaCategoriaRepository.save(feeCategory);
+//            tarifaCategoriaRepository.delete(feeCategory);
+
+            return "Eliminación exitosa de categoria";
         } else {
-            throw new NotFoundException(TARIFACATEGORIA,uuid);
+            throw new NotFoundException(TARIFACATEGORIA, uuid);
         }
     }
+
 }

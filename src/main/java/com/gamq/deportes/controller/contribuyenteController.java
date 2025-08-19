@@ -6,6 +6,7 @@ import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.model.login.login;
 import com.gamq.deportes.service.contribuyenteService;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,15 @@ public class contribuyenteController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @GetMapping("/email/{correo}")
+    public Response buscarContribuyentePorEmail( @PathVariable("correo") String correo) {
+        try{
+            contribuyenteDto contribuyenteDto = contribuyenteService.findByEmail(correo);
+            return Response.ok().setPayload(contribuyenteDto);
+        } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
     @PostMapping()
     public Response crearConstribuyente(@RequestBody contribuyenteDto contribuyenteDto) {
         try{
@@ -65,5 +74,9 @@ public class contribuyenteController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @DeleteMapping("/{uuid}")
+    public Response deleteUser(@Parameter(description = "Uuid para eliminar contribuyente")
+                                  @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(contribuyenteService.delete(uuid));
+    }
 }
