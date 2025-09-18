@@ -14,13 +14,14 @@ import com.gamq.deportes.model.Tablero;
 import com.gamq.deportes.repository.TableroRepository;
 import com.gamq.deportes.service.TableroService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
-
+@Component
 public class TableroServiceImpl implements TableroService {
     
     @Autowired

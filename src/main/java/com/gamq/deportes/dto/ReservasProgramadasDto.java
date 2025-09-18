@@ -32,6 +32,8 @@ public class ReservasProgramadasDto {
     private String estadoReserva;
     private boolean estado;
 
+    public canchasDto canchasDto;
+
     public contribuyenteDto contribuyenteDto;
 
     public TableroDto tableroDto;

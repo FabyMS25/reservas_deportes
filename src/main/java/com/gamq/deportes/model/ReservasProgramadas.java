@@ -55,6 +55,10 @@ public class ReservasProgramadas {
     private boolean estado;
 
     @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id_cancha")
+    public canchas cancha;
+
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_contribuyente")
     public contribuyentes contribuyente;
 

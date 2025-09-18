@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface TableroRepository extends JpaRepository<Tablero,Long> {
-    @Query("SELECT c FROM Tablero c WHERE c.uuid = ?1")
+
     Optional<Tablero> findByUuid(String uuid);
 
 }

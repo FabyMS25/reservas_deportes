@@ -1,5 +1,6 @@
 package com.gamq.deportes.model;
 
+import com.gamq.deportes.Converter.StringArray2DConverter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class Tablero {
     private Long idTablero;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+    @Convert(converter = StringArray2DConverter.class)
     @Column(columnDefinition = "jsonb")
     private String[][] horario;
 

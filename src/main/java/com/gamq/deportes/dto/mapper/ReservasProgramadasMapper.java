@@ -15,7 +15,7 @@ public class ReservasProgramadasMapper {
         reservaDto.setEstadoReserva(reservasProgramadas.getEstadoReserva());
         reservaDto.setEstado(reservasProgramadas.isEstado());
         reservaDto.setNumeroTasa(reservasProgramadas.getNumeroTasa());
-
+        reservaDto.setCanchasDto(canchasMapper.toDto(reservasProgramadas.getCancha(),false));
         reservaDto.setContribuyenteDto(contribuyentesMapper.toDto(reservasProgramadas.getContribuyente()));
         //reservaDto.setTableroDto();
 
@@ -32,6 +32,7 @@ public class ReservasProgramadasMapper {
         reserva.setEstadoReserva(reservasProgramadasDto.getEstadoReserva());
         reserva.setEstado(reservasProgramadasDto.isEstado());
         reserva.setNumeroTasa(reservasProgramadasDto.getNumeroTasa());
+        reserva.setCancha(canchasMapper.toEntity(reservasProgramadasDto.getCanchasDto()));
         reserva.setContribuyente(contribuyentesMapper.toEntity(reservasProgramadasDto.getContribuyenteDto()));
 
 
