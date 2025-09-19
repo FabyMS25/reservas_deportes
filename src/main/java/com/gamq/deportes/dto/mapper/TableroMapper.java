@@ -9,7 +9,7 @@ public class TableroMapper {
         TableroDto tableroDto = new TableroDto();
             tableroDto.setUuid(tabla.getUuid());
             tableroDto.setHorario(tabla.getHorario());
-
+            tableroDto.setEstado(tabla.isEstado());
 
         return tableroDto;
     }
@@ -18,7 +18,7 @@ public class TableroMapper {
         Tablero tabla=new Tablero();
             tabla.setUuid(tableroDto.getUuid());
             tabla.setHorario(tableroDto.getHorario());
-
+            tabla.setEstado(tableroDto.isEstado());
         return tabla;
     }
 }

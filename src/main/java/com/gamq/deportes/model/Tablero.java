@@ -1,5 +1,9 @@
 package com.gamq.deportes.model;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+
 import com.gamq.deportes.Converter.StringArray2DConverter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
+@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @Entity
 @Table(name = "tablero", indexes = @Index(name = "idx_tab_uuid", columnList = "uuid", unique = true))
 @SQLDelete(sql = "UPDATE tablero SET estado=true WHERE id_tablero=?")
@@ -28,10 +33,12 @@ public class Tablero {
     private Long idTablero;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Convert(converter = StringArray2DConverter.class)
-    @Column(columnDefinition = "jsonb")
+    @Type(type = "jsonb")
+    @Column(name = "horario", columnDefinition = "jsonb")
+    //@Convert(converter = StringArray2DConverter.class)
     private String[][] horario;
-
+    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
+    private boolean estado;
     @OneToOne(mappedBy = "tablero")
     private ReservasProgramadas reservasProgramadas;
 
