@@ -42,7 +42,7 @@ public class canchasDto {
     public List<horarioDto> horarioDtoList = new ArrayList<>();
 
 
-    //public List<horarioDto> horarioListDto = new ArrayList<>();
+    //public List<ReservasProgramadasDto> reservasProgramadasDtosListDto = new ArrayList<>();
 
 
     //@OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)

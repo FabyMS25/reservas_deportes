@@ -54,15 +54,15 @@ public class ReservasProgramadas {
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_cancha")
     public canchas cancha;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade ={CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_contribuyente")
     public contribuyentes contribuyente;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_tablero")
     public Tablero tablero;
 
