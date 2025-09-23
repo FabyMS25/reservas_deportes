@@ -1,0 +1,392 @@
+[33mcommit 4d275ad72aaea3fd89dc18961bdbf8c4a29aba1f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Fri Sep 19 11:24:03 2025 -0400
+
+    jsonb imp
+
+[33mcommit 5fe20187cf8c446cb5ec236f225934ac490bf0f3[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Thu Sep 18 17:18:32 2025 -0400
+
+    jasonb
+
+[33mcommit 173d11d6e9b976713389f386d6b0ebb8a9187b2f[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Aug 19 17:10:18 2025 -0400
+
+    Controllers
+
+[33mcommit aee028f23125170acc91e8769f71de2f1ad4c236[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Aug 19 16:51:09 2025 -0400
+
+    Services
+
+[33mcommit 80bc90c45f66ffc5588a3a7af5808b8984e48edd[m[33m ([m[1;31morigin/fix-merge[m[33m, [m[1;32mfix-merge[m[33m)[m
+Merge: a085946 00a9025
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Tue Aug 19 09:11:55 2025 -0400
+
+    last
+
+[33mcommit a08594657e4e34619ec257af7a456fae7b77ba8e[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Tue Aug 19 09:10:39 2025 -0400
+
+    updated
+
+[33mcommit 00a9025196ba83318e63eace67771df97a54f787[m
+Merge: cd738e6 fcb4156
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Aug 19 09:07:01 2025 -0400
+
+    mergeTablero
+
+[33mcommit cd738e650946d86d162c9ed7d3c8ee701cf8034f[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Aug 19 09:03:45 2025 -0400
+
+    Tablero
+
+[33mcommit fcb4156382703f03227ba4399ad9a624e6e43226[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Jul 7 08:35:26 2025 -0400
+
+    feat link to test ruat changed
+
+[33mcommit 4e89cd60879728916f218099d5f1734fbb969464[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Dec 19 09:03:24 2024 -0400
+
+    gradlew
+
+[33mcommit e72e632ce0d4b1626b58d8fca333b3a96f2f7f53[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Dec 19 09:02:55 2024 -0400
+
+    gradlew
+
+[33mcommit 2bbb7dccf8ce76cdcd5239e698bebd6627852e88[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Dec 19 09:00:12 2024 -0400
+
+    docker
+
+[33mcommit 486bee8234057ee8ee8196692b1ed1c2e22907cd[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Wed Dec 18 17:30:29 2024 -0400
+
+    build
+
+[33mcommit 9263762698c9bb7d8ac33ea081cd9fa3ddc40974[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Wed Dec 18 17:30:07 2024 -0400
+
+    build
+
+[33mcommit e4dfa37f92af5addcb9a770f582a5a08c29842a4[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Wed Dec 18 17:11:10 2024 -0400
+
+    .
+
+[33mcommit 9c3c798d4e714b897416c521961210677b36f20c[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Nov 7 16:35:22 2024 -0400
+
+    anular functions updated and reports
+
+[33mcommit d1f08631dee5d6530982a8cc7f98abc0d89f773f[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Oct 28 15:33:36 2024 -0400
+
+    jar updated
+
+[33mcommit 4cad4ee6b9f056b730a13a6f394ed69fd2709763[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Oct 28 15:16:11 2024 -0400
+
+    jar updated
+
+[33mcommit 7e3f76e3e07f3a09d43d33ac288a555f2508d5a4[m[33m ([m[1;31morigin/dev[m[33m)[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Oct 28 14:34:52 2024 -0400
+
+    last
+
+[33mcommit 5174f695fee2555d42bb6d29369ff85052810854[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Oct 25 13:59:34 2024 -0400
+
+    contribuyentes and passRest modules updated
+
+[33mcommit 5069ebe37ecb39294ba29d9093d57773b495afd8[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Oct 22 13:05:35 2024 -0400
+
+    pass
+
+[33mcommit 45b07ec5d3d409e18b85a2fb8761efd451c43201[m
+Merge: 62150be 9dfb361
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Oct 16 18:23:14 2024 -0400
+
+    Merge branch 'main' of https://gitlab.com/devgamq1/reservas-backend
+
+[33mcommit 62150be8f52da09323d5cf2418c4fc50beb777a1[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Oct 16 18:21:50 2024 -0400
+
+    passresets
+
+[33mcommit 9dfb3619cc5d0a3f8c8e59de35c37dea4e34dd74[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Sep 30 09:29:41 2024 -0400
+
+    propieties
+
+[33mcommit 97ce949e83cecda38b07b659bce2425aa4a5ed6e[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Sep 26 18:09:35 2024 -0400
+
+    complejo service modificado
+
+[33mcommit efc41d0ef333395fba216707b057f04c7c63ecfb[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Thu Sep 26 11:30:53 2024 -0400
+
+    reportes
+
+[33mcommit a87d9d299e6da882a71c1c6e90b1f76dee3d03de[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Tue Sep 24 08:52:56 2024 -0400
+
+    yml updated
+
+[33mcommit cb5f0a24f4daee4192053c8892165daea7ff36b6[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Sep 23 11:20:01 2024 -0400
+
+    ports updated
+
+[33mcommit 1de6e8df65fd4524f31a744be2333e682b6b6e25[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Sep 23 11:03:28 2024 -0400
+
+    ports updated
+
+[33mcommit 01b67ccfdc31c698dc1f169ece627b9f5207be95[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Mon Sep 23 10:41:10 2024 -0400
+
+    ports updated
+
+[33mcommit 21281bd56bec5f9b5c05e3ea0c35bbab72b3c650[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 14:29:58 2024 -0400
+
+    builded
+
+[33mcommit fe0da9b2ce05c056cb2c22f1a1b7163786d9c71c[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 14:10:37 2024 -0400
+
+    updated docker and deportes
+
+[33mcommit b9573f1a75bf6a2c5cbfb932f014db0436fcc7d1[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 13:15:28 2024 -0400
+
+    propieties with docker updated
+
+[33mcommit 6d85c0d9dd7c8a34727f69c8b44e131491f41f88[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 13:15:00 2024 -0400
+
+    propieties with docker updated
+
+[33mcommit 37cfce58b2225d11aaa5cfe3156182551fcdfbca[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 12:51:42 2024 -0400
+
+    propieties changed
+
+[33mcommit c5f0a769c48bd58270397c665fff54b0fb46827d[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 20 12:42:57 2024 -0400
+
+    propieties changed
+
+[33mcommit ef121fa4f15507fe5bc45a3e7ff545af4b65b5f5[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Sep 19 17:48:23 2024 -0400
+
+    all delete services updated
+
+[33mcommit 46fe325de92de119788f650189d08e238eca4f2c[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Sep 19 11:01:56 2024 -0400
+
+    all delete services updated
+
+[33mcommit 87769db2db7b91f5e14776c6541ffd7da2f62b82[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Sep 19 11:01:27 2024 -0400
+
+    all delete services updated
+
+[33mcommit 8ca4cb5e780bdd1eef2551e6f1a13660b76261e6[m[33m ([m[1;31morigin/eds[m[33m)[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Wed Sep 11 13:59:27 2024 -0400
+
+    complejos updated
+
+[33mcommit 3714474ebe35bf7af5b0cc4e051e3852cbb9c0db[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Sep 6 18:37:49 2024 -0400
+
+    added findreserva by cancha and others
+
+[33mcommit 193169ef329197833a13a2d6d642f431b7444e2a[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Thu Aug 29 09:11:52 2024 -0400
+
+    correccion de get clases en pagos reservas y tarifas
+
+[33mcommit 64d06f9973500f3d376a0fdc265e4000fa3ef0e2[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Fri Aug 23 18:08:19 2024 -0400
+
+    tarifas
+
+[33mcommit e25269ef5ffb4529840971760802a3b32642e50a[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Fri Aug 23 15:09:26 2024 -0400
+
+    pagos
+
+[33mcommit dd2f068219ddc919b9da20051b59383683ad3ca1[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Aug 21 08:47:22 2024 -0400
+
+    bd
+
+[33mcommit e1c9cf65ed61a26a34abf3b3cf9333a338af7fb3[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Aug 21 08:44:04 2024 -0400
+
+    errores/ciclos
+
+[33mcommit 4a4730c797c5841e9880e6ce78d4561f5700c938[m
+Author: Fabiola Morales <moralessfaby.dev@gmail.com>
+Date:   Tue Aug 20 11:01:27 2024 -0400
+
+    some services
+
+[33mcommit 03fa0a19d3e86ca59180e4b12208137c201ab729[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Aug 20 09:35:25 2024 -0400
+
+    pearl
+
+[33mcommit db1b0fb71e1dbe72026d5e1b367af3ef76999eaf[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Mon Aug 19 10:32:22 2024 -0400
+
+    def
+
+[33mcommit e5a7f439898b26df2bfea7e6ce1f4e05d456e249[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Mon Aug 19 10:00:53 2024 -0400
+
+    login
+
+[33mcommit 0db116abccbff6000bd043e3d12bb2eb4b8df435[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Thu Aug 8 11:08:47 2024 -0400
+
+    RUAT2
+
+[33mcommit 21b346a16f13cd99e980e4362e5a5ba0cfd34902[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Aug 7 18:01:53 2024 -0400
+
+    ruat
+
+[33mcommit 4b3f21db86d1e99b1600a4289b723561e4ae08dc[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Fri Jul 26 15:03:52 2024 -0400
+
+    cel
+
+[33mcommit a737b388f66aea1ef801e1d89203532f02bd87d4[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Jul 24 14:53:42 2024 -0400
+
+    tipocodigo
+
+[33mcommit 9b4164ff0a5cad2c4097c8d58b817704b25fd7ba[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Jul 24 14:44:38 2024 -0400
+
+    catrgoria
+
+[33mcommit 3c5fc89aadd54709fa04b28ec4fd0bbb9bedd4c9[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Wed Jul 24 10:30:25 2024 -0400
+
+    campos Agregados
+
+[33mcommit 462c8346636c10d388bf61794dfca03406a1ab44[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Jul 23 15:48:45 2024 -0400
+
+    Detalles
+
+[33mcommit 2a726bc7bd5a66b9fefc7071bd0ed62d201d8e9b[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Mon Jul 22 19:23:46 2024 -0400
+
+    nuevo
+
+[33mcommit 8290327d44eb646063ecbb6dc8dd1a8f1d5bb264[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Jul 16 16:47:00 2024 -0400
+
+    NUEVO ER
+
+[33mcommit 47880318b4d2e48e5bb0f9e261ef9e076f12355e[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Fri Jul 12 17:53:39 2024 -0400
+
+    version2
+
+[33mcommit d4ebfcf2c8f3f56614ca0be68142f835427a196f[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Mon Jul 1 11:44:48 2024 -0400
+
+    longs
+
+[33mcommit 634051c87b28b43f190056281eecf8d0c1ed2924[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Mon Jul 1 11:38:29 2024 -0400
+
+    reservas
+
+[33mcommit bce34b7b7a9efe3ea6a3107d30afae6a857b7af8[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Jun 25 15:02:20 2024 -0400
+
+    4200
+
+[33mcommit 68b1be1f7568bc245ba20f5b81e0987e494401cd[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Jun 25 14:57:29 2024 -0400
+
+    uuid
+
+[33mcommit b2c7d9e4a7739f3bced2afdb8da41494bfb80376[m
+Author: Gamq Developers <devgamq@gmail.com>
+Date:   Tue Jun 25 14:30:34 2024 -0400
+
+    Initial commit
