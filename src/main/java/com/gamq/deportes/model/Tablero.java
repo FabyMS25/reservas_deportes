@@ -34,7 +34,7 @@ public class Tablero {
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
     @Type(type = "jsonb")
-    @Column(name = "horario", columnDefinition = "jsonb")
+    @Column(name = "HorarioFijo", columnDefinition = "jsonb")
     //@Convert(converter = StringArray2DConverter.class)
     private String[][] horario;
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")

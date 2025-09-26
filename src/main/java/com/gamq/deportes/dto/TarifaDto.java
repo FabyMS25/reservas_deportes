@@ -31,7 +31,7 @@ public class TarifaDto {
 
     private BigDecimal costo;
 
-    private canchasDto canchasDto;
+    private CampoDeportivoDto campoDeportivoDto;
 
     private boolean estado;
 

@@ -74,7 +74,10 @@ public class contribuyentes {
 
 
     @OneToMany(mappedBy = "contribuyente", cascade = CascadeType.ALL)
-    public List<reservas> reservasList = new ArrayList<>();
+    public List<Reserva> reservasList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contribuyente", cascade = CascadeType.ALL)
+    public List<ReservasProgramadas> reservasProgramadasList = new ArrayList<>();
 
     public contribuyentes(String uuid) {
         this.uuid = uuid;

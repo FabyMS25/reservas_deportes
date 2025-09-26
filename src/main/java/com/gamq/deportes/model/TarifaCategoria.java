@@ -33,7 +33,7 @@ public class TarifaCategoria {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_tarifa")
-    public Tarifas tarifa;
+    public Tarifa tarifa;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_categoria")

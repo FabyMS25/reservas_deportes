@@ -1,13 +1,13 @@
 package com.gamq.deportes.dto.mapper;
 
-import com.gamq.deportes.dto.reservasDto;
-import com.gamq.deportes.model.reservas;
+import com.gamq.deportes.dto.ReservaDto;
+import com.gamq.deportes.model.Reserva;
 
 import java.util.stream.Collectors;
 
 public class reservasMapper {
-    public static reservasDto toDto(reservas reservas){
-        reservasDto reservasDto=new reservasDto();
+    public static ReservaDto toDto(Reserva reservas){
+        ReservaDto reservasDto=new ReservaDto();
         reservasDto.setUuid(reservas.getUuid());
         reservasDto.setFechaCreated(reservas.getFechaCreated());
         reservasDto.setFechaReserva(reservas.getFechaReserva());
@@ -20,7 +20,7 @@ public class reservasMapper {
         reservasDto.setEstado(reservas.isEstado());
         reservasDto.setNumeroTasa(reservas.getNumeroTasa());
         reservasDto.setEstadoReserva(reservas.getEstadoReserva());
-        reservasDto.setCanchasDto(canchasMapper.toDto(reservas.getCancha(),true));
+        reservasDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(reservas.getCampoDeportivo(),true));
         reservasDto.setContribuyenteDto(contribuyentesMapper.toDto(reservas.getContribuyente()));
         reservasDto.setPagosDtoList(
                 reservas.getPagosList().stream().map(pagos->{
@@ -30,8 +30,8 @@ public class reservasMapper {
         return reservasDto;
     }
 
-    public static reservas toEntity(reservasDto reservasDto){
-        reservas reservas=new reservas();
+    public static Reserva toEntity(ReservaDto reservasDto){
+        Reserva reservas=new Reserva();
         reservas.setUuid(reservasDto.getUuid());
         reservas.setFechaCreated(reservasDto.getFechaCreated());
         reservas.setFechaReserva(reservasDto.getFechaReserva());

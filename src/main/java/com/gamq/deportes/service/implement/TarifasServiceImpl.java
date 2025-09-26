@@ -10,12 +10,12 @@ import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Categoria;
 import com.gamq.deportes.model.TarifaCategoria;
-import com.gamq.deportes.model.Tarifas;
-import com.gamq.deportes.model.canchas;
+import com.gamq.deportes.model.Tarifa;
+import com.gamq.deportes.model.CampoDeportivo;
 import com.gamq.deportes.repository.CategoriaRepository;
 import com.gamq.deportes.repository.TarifaCategoriaRepository;
 import com.gamq.deportes.repository.TarifasRepository;
-import com.gamq.deportes.repository.canchasRepository;
+import com.gamq.deportes.repository.CampoDeportivoRepository;
 import com.gamq.deportes.service.TarifasService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,13 +40,13 @@ public class TarifasServiceImpl implements TarifasService {
     private TarifaCategoriaRepository tarifaCategoriaRepository;
 
     @Autowired
-    private canchasRepository canchasRepository;
+    private CampoDeportivoRepository canchasRepository;
 
     @Autowired
     private CategoriaRepository categoriaRepository;
 
     public TarifaDto findByUuid(String uuid){
-        Optional<Tarifas> TarifasOptional = tarifaRepository.findByUuid(uuid);
+        Optional<Tarifa> TarifasOptional = tarifaRepository.findByUuid(uuid);
         if (TarifasOptional.isPresent()) {
             return TarifaMapper.toDto(TarifasOptional.get(),true);
         } else {
@@ -56,7 +56,7 @@ public class TarifasServiceImpl implements TarifasService {
 
     }
     public List<TarifaDto> obtenerTarifas(){
-        List<Tarifas> Tarifass = tarifaRepository.findAll();
+        List<Tarifa> Tarifass = tarifaRepository.findAll();
 
         if (!Tarifass.isEmpty()) {
             return Tarifass.stream().map(tarifa -> {
@@ -69,9 +69,9 @@ public class TarifasServiceImpl implements TarifasService {
     }
     public TarifaDto crearTarifa(TarifaDto TarifaDto){
         if (TarifaDto != null) {
-            Tarifas newTarifa = TarifaMapper.toEntity(TarifaDto);
-            canchas cancha = obtenerCancha(TarifaDto.getCanchasDto().getUuid());
-            newTarifa.setCancha(cancha);
+            Tarifa newTarifa = TarifaMapper.toEntity(TarifaDto);
+            CampoDeportivo cancha = obtenerCancha(TarifaDto.getCampoDeportivoDto().getUuid());
+            newTarifa.setCampoDeportivo(cancha);
             newTarifa =tarifaRepository.save(newTarifa);
 
             List<TarifaCategoria> savedCategories = new ArrayList<>();
@@ -99,16 +99,16 @@ public class TarifasServiceImpl implements TarifasService {
     @Transactional
     public TarifaDto actualizarTarifa(TarifaDto TarifaDto) {
         if (TarifaDto != null) {
-                Tarifas newTarifa = tarifaRepository.findByUuid(TarifaDto.getUuid())
+                Tarifa newTarifa = tarifaRepository.findByUuid(TarifaDto.getUuid())
                         .orElseThrow(() -> new NotFoundException(TARIFA, TarifaDto.getUuid()));
 
-                canchas cancha = obtenerCancha(TarifaDto.getCanchasDto().getUuid());
+                CampoDeportivo cancha = obtenerCancha(TarifaDto.getCampoDeportivoDto().getUuid());
 
                 newTarifa.setCosto(TarifaDto.getCosto());
                 newTarifa.setDesde(TarifaDto.getDesde());
                 newTarifa.setHasta(TarifaDto.getHasta());
                 newTarifa.setDescripcion(TarifaDto.getDescripcion());
-                newTarifa.setCancha(cancha);
+                newTarifa.setCampoDeportivo(cancha);
 
 //            tarifa.getCategoriaDtoList().clear();
 //            tarifaCategoriaRepository.deleteByTarifa(tarifa);
@@ -142,7 +142,7 @@ public class TarifasServiceImpl implements TarifasService {
             }
     }
 
-    public canchas obtenerCancha(String uuid){
+    public CampoDeportivo obtenerCancha(String uuid){
         return canchasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CANCHAS, uuid));
     }
@@ -150,9 +150,9 @@ public class TarifasServiceImpl implements TarifasService {
     @Transactional
     @Override
     public String deleteTarifa(String uuid) {
-        Optional<Tarifas> tarifaOptional = tarifaRepository.findByUuid(uuid);
+        Optional<Tarifa> tarifaOptional = tarifaRepository.findByUuid(uuid);
         if (tarifaOptional.isPresent()) {
-            Tarifas tarifa = tarifaOptional.get();
+            Tarifa tarifa = tarifaOptional.get();
 
             if (!tarifa.getCategoriaDtoList().isEmpty()) {
                 for (TarifaCategoria tarifaCat : new ArrayList<>(tarifa.getCategoriaDtoList())) {

@@ -17,8 +17,8 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "superficie", indexes = @Index(name = "idx_sup_uuid", columnList = "uuid", unique = true))
-@SQLDelete(sql = "UPDATE superficie SET estado=true WHERE id_superficie=?")
+@Table(name = "superficies", indexes = @Index(name = "idx_sup_uuid", columnList = "uuid", unique = true))
+@SQLDelete(sql = "UPDATE superficies SET estado=true WHERE id_superficie=?")
 @Where(clause = "estado = false")
 public class Superficie {
 

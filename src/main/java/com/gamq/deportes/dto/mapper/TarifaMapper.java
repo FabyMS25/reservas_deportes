@@ -1,12 +1,12 @@
 package com.gamq.deportes.dto.mapper;
 
 import com.gamq.deportes.dto.TarifaDto;
-import com.gamq.deportes.model.Tarifas;
+import com.gamq.deportes.model.Tarifa;
 import java.util.stream.Collectors;
 
 public class TarifaMapper {
 
-    public static TarifaDto toDto(Tarifas tarifa, boolean op)
+    public static TarifaDto toDto(Tarifa tarifa, boolean op)
     {
         TarifaDto tarifaDto = new TarifaDto();
         tarifaDto.setUuid(tarifa.getUuid());
@@ -16,7 +16,7 @@ public class TarifaMapper {
         tarifaDto.setCosto(tarifa.getCosto());
         tarifaDto.setEstado(tarifa.isEstado());
         if (op) {
-            tarifaDto.setCanchasDto(canchasMapper.toDto(tarifa.getCancha(),true));
+            tarifaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(tarifa.getCampoDeportivo(),true));
         }
 
         tarifaDto.setCategoriaDtoList(
@@ -27,9 +27,9 @@ public class TarifaMapper {
         return tarifaDto;
     }
 
-    public static Tarifas toEntity (TarifaDto tarifaDto)
+    public static Tarifa toEntity (TarifaDto tarifaDto)
     {
-        Tarifas tarifas = new Tarifas();
+        Tarifa tarifas = new Tarifa();
         tarifas.setUuid(tarifaDto.getUuid());
         tarifas.setDescripcion(tarifaDto.getDescripcion());
         tarifas.setDesde(tarifaDto.getDesde());

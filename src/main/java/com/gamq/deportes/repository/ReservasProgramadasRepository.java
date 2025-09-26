@@ -2,7 +2,6 @@ package com.gamq.deportes.repository;
 
 
 import com.gamq.deportes.model.ReservasProgramadas;
-import com.gamq.deportes.model.canchas;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

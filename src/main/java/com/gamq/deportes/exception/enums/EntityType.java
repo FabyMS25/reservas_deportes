@@ -8,7 +8,10 @@ public enum EntityType {
     CONTRIBUYENTE,
     PAGOS,
     RESERVAS,
-    HORARIO,
+
+    HORARIOFIJO,
+
+    HORARIOEXCEPCION,
     TARIFA,
     TARIFACATEGORIA,
     SUPERFICIE,

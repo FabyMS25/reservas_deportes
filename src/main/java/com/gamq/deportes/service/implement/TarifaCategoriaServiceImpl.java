@@ -7,7 +7,7 @@ import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Categoria;
 import com.gamq.deportes.model.TarifaCategoria;
-import com.gamq.deportes.model.Tarifas;
+import com.gamq.deportes.model.Tarifa;
 import com.gamq.deportes.repository.CategoriaRepository;
 import com.gamq.deportes.repository.TarifasRepository;
 import com.gamq.deportes.service.TarifaCategoriaService;
@@ -60,7 +60,7 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
         if (TarifaCategoriaDto != null) {
             TarifaCategoria newTarifaCategorias = TarifaCategoriaMapper.toEntity(TarifaCategoriaDto);
             Categoria catgegoria = obtenerCategoria(TarifaCategoriaDto.getCategoriaDto().getUuid());
-            Tarifas tarifa = obtenerTarifa(TarifaCategoriaDto.getTarifaDto().getUuid());
+            Tarifa tarifa = obtenerTarifa(TarifaCategoriaDto.getTarifaDto().getUuid());
             newTarifaCategorias.setCategoria(catgegoria);
             newTarifaCategorias.setTarifa(tarifa);
             newTarifaCategorias =tarifaCategoriaRepository.save(newTarifaCategorias);
@@ -90,7 +90,7 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
         return categoriaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CATEGORIA, uuid));
     }
-    public Tarifas obtenerTarifa(String uuid){
+    public Tarifa obtenerTarifa(String uuid){
         return tarifasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }

@@ -71,8 +71,8 @@ public class pagoServiceImpl implements pagoService {
         if (pagosDto != null) {
 
             pagos newPago = pagosMapper.toEntity(pagosDto);
-            reservas reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
-            newPago.setReservas(reservas);
+            Reserva reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
+            newPago.setReserva(reservas);
             return pagosMapper.toDto(pagosRepository.save(newPago), true);
         } else {
             throw new NullReferenceException(PAGOS);
@@ -86,8 +86,8 @@ public class pagoServiceImpl implements pagoService {
             if (pagosOptional.isPresent()) {
                 pagos pagosModificado = pagosMapper.toEntity(pagosDto);
                 pagosModificado.setIdPago(pagosOptional.get().getIdPago());
-                reservas reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
-                pagosModificado.setReservas(reservas);
+                Reserva reservas= obtenerReserva(pagosDto.getReservasDto().getUuid());
+                pagosModificado.setReserva(reservas);
 
                 return pagosMapper.toDto(pagosRepository.save(pagosModificado),true);
             } else {
@@ -106,7 +106,7 @@ public class pagoServiceImpl implements pagoService {
         return "Eliminacion exitosa";
     }
 
-    public reservas obtenerReserva(String uuid){
+    public Reserva obtenerReserva(String uuid){
         return reservasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVAS, uuid));
     }

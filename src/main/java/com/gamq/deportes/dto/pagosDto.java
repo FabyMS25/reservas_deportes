@@ -42,8 +42,8 @@ public class pagosDto {
 
     private boolean estado;
 
-    private reservasDto reservasDto;
+    private ReservaDto reservasDto;
     //@OneToMany(mappedBy = "pago", cascade = CascadeType.ALL)
-    //public List<reservas> reservasList = new ArrayList<>();
+    //public List<Reserva> reservasList = new ArrayList<>();
 
 }

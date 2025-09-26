@@ -63,6 +63,6 @@ public class contribuyenteDto {
 
 
     /*@OneToMany(mappedBy = "contribuyente", cascade = CascadeType.ALL)
-    public List<reservas> reservasList = new ArrayList<>();*/
+    public List<Reserva> reservasList = new ArrayList<>();*/
 
 }

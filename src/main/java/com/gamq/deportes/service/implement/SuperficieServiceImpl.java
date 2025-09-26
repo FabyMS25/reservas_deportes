@@ -6,9 +6,9 @@ import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Superficie;
-import com.gamq.deportes.model.canchas;
+import com.gamq.deportes.model.CampoDeportivo;
 import com.gamq.deportes.repository.SuperficieRepository;
-import com.gamq.deportes.repository.canchasRepository;
+import com.gamq.deportes.repository.CampoDeportivoRepository;
 
 import com.gamq.deportes.service.SuperficieService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +21,13 @@ import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.SUPERFICIE;
 
-
 @Component
 public class SuperficieServiceImpl implements SuperficieService {
     @Autowired
     SuperficieRepository superficieRepository;
 
     @Autowired
-    canchasRepository canchaRepository;
+    CampoDeportivoRepository canchaRepository;
 
     public SuperficieDto findByUuid(String uuid){
         Optional<Superficie> SuperficieOptional = superficieRepository.findByUuid(uuid);
@@ -87,12 +86,12 @@ public class SuperficieServiceImpl implements SuperficieService {
         if (item.isPresent()) {
             Superficie surface = item.get();
 
-            List<canchas> canchasAsociadas = canchaRepository.findBySuperficie(surface.getUuid());
+            List<CampoDeportivo> canchasAsociadas = canchaRepository.findBySuperficieUuid(surface.getUuid());
             if (!canchasAsociadas.isEmpty()) {
-                return "No se pudo eliminar la SUPERFICIE porque existen canchas asociadas a esta misma";
+                return "No se pudo eliminar la SUPERFICIE porque existen campoDeportivo asociadas a esta misma";
             }
-//            // Soft delete associated canchas
-//            for (canchas cancha : canchasAsociadas) {
+//            // Soft delete associated campoDeportivo
+//            for (campoDeportivo cancha : canchasAsociadas) {
 //                canchaRepository.delete(cancha);
 //            }
 

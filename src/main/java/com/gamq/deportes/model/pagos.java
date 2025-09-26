@@ -49,7 +49,7 @@ public class pagos {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_reserva")
-    public reservas reservas;
+    public Reserva reserva;
 
     public pagos(String uuid) {
         this.uuid = uuid;

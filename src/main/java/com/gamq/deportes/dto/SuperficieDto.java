@@ -17,11 +17,12 @@ import lombok.experimental.Accessors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SuperficieDto {
 
+    private Long idSuperficie;
 
     private String uuid;
 
-    private String descripcion;
-
     private boolean estado;
+
+    private String descripcion;
 
 }

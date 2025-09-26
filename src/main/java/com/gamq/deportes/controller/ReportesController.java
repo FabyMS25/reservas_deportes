@@ -52,7 +52,7 @@ public class ReportesController {
             System.out.println(e.getLocalizedMessage());
         }
     }
-    @RequestMapping(value="/lista-reservas",method= RequestMethod.GET)
+    @RequestMapping(value="/lista-Reserva",method= RequestMethod.GET)
     @ResponseBody
     public void reporteListaReserva (
             @RequestParam(name = "fecha_ini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
@@ -73,8 +73,8 @@ public class ReportesController {
             parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
             try {
                 generadorReporte.generarSqlReportePdf(
-                        "reservas",
-                        "classpath:reportes/reservas.jrxml",
+                        "Reserva",
+                        "classpath:reportes/Reserva.jrxml",
                         parametros,
                         response
                 );

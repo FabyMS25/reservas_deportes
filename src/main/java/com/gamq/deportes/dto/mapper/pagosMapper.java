@@ -16,7 +16,7 @@ public class pagosMapper {
         pagosDto.setObservacion(pagos.getObservacion());
 
         if(op){
-        pagosDto.setReservasDto(reservasMapper.toDto(pagos.getReservas()));}
+        pagosDto.setReservasDto(reservasMapper.toDto(pagos.getReserva()));}
         return pagosDto;
     }
 

@@ -1,12 +1,12 @@
 package com.gamq.deportes.service.implement;
 
+import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.mapper.reservasMapper;
-import com.gamq.deportes.dto.reservasDto;
+import com.gamq.deportes.model.Reserva;
+import com.gamq.deportes.model.CampoDeportivo;
 import com.gamq.deportes.model.contribuyentes;
-import com.gamq.deportes.model.canchas;
 import com.gamq.deportes.model.pagos;
-import com.gamq.deportes.model.reservas;
-import com.gamq.deportes.repository.canchasRepository;
+import com.gamq.deportes.repository.CampoDeportivoRepository;
 import com.gamq.deportes.repository.contribuyentesRepository;
 import com.gamq.deportes.repository.pagosRepository;
 import com.gamq.deportes.repository.reservasRepository;
@@ -28,15 +28,15 @@ public class reservasServiceImpl implements reservasService {
     @Autowired
     reservasRepository reservasRepository;
     @Autowired
-    canchasRepository canchasRepository;
+    CampoDeportivoRepository canchasRepository;
     @Autowired
     contribuyentesRepository contribuyentesRepository;
     @Autowired
     pagosRepository pagosRepository;
     @Override
-    public reservasDto findByUuid(String uuid){
+    public ReservaDto findByUuid(String uuid){
 
-        Optional<reservas> reservasOptional = reservasRepository.findByUuid(uuid);
+        Optional<Reserva> reservasOptional = reservasRepository.findByUuid(uuid);
         if (reservasOptional.isPresent()) {
             return reservasMapper.toDto(reservasOptional.get());
         } else {
@@ -45,9 +45,9 @@ public class reservasServiceImpl implements reservasService {
 
     }
     @Override
-    public List<reservasDto> obtenerReservas(){
+    public List<ReservaDto> obtenerReservas(){
 
-        List<reservas> reservas = reservasRepository.findAll();
+        List<Reserva> reservas = reservasRepository.findAll();
 
         if (!reservas.isEmpty()) {
             return reservas.stream().map(reserva -> {
@@ -58,9 +58,9 @@ public class reservasServiceImpl implements reservasService {
         }
     }
     @Override
-    public List<reservasDto> buscarPorFechaPago(Date fechaIni, Date fechaFin){
+    public List<ReservaDto> buscarPorFechaPago(Date fechaIni, Date fechaFin){
 
-        List<reservas> reservas = reservasRepository.findByFechaReserva(fechaIni, fechaFin);
+        List<Reserva> reservas = reservasRepository.findByFechaReserva(fechaIni, fechaFin);
 
         if (!reservas.isEmpty()) {
             return reservas.stream().map(reserva -> {
@@ -71,38 +71,38 @@ public class reservasServiceImpl implements reservasService {
         }
     }
 
-//    public List<reservasDto> findReservaByCancha(String uuidCancha){
-//        List<reservas> reservas = reservasRepository.findReservasByCancha(uuidCancha);
-//        if (!reservas.isEmpty()) {
-//            return reservas.stream().map(reserva -> {
+//    public List<ReservaDto> findReservaByCancha(String uuidCancha){
+//        List<Reserva> Reserva = reservasRepository.findReservasByCancha(uuidCancha);
+//        if (!Reserva.isEmpty()) {
+//            return Reserva.stream().map(reserva -> {
 //                return reservasMapper.toDto(reserva);
 //            }).collect(Collectors.toList());
 //        } else {
 //            throw new NoResultException(RESERVAS);
 //        }
 //    }
-    public List<reservasDto> findReservaByCancha(String uuidCancha) {
+    public List<ReservaDto> findReservaByCancha(String uuidCancha) {
         try {
-            List<reservas> reservas = reservasRepository.findReservasByCancha(uuidCancha);
+            List<Reserva> reservas = reservasRepository.findReservasByCancha(uuidCancha);
 
             return reservas.stream()
                     .map(reserva -> reservasMapper.toDto(reserva))
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            throw new RuntimeException("Error retrieving reservas for cancha: " + uuidCancha, e);
+            throw new RuntimeException("Error retrieving Reserva for cancha: " + uuidCancha, e);
         }
     }
     @Override
-    public reservasDto crearReserva(reservasDto reservasDto){
+    public ReservaDto crearReserva(ReservaDto reservasDto){
 
         if (reservasDto != null) {
-            canchas cancha = getCancha(reservasDto.getCanchasDto().getUuid());
+            CampoDeportivo cancha = getCancha(reservasDto.getCampoDeportivoDto().getUuid());
             contribuyentes contri= getContri(reservasDto.getContribuyenteDto().getUuid());
 
 
-            reservas newReserva = reservasMapper.toEntity(reservasDto);
-            newReserva.setCancha(cancha);
+            Reserva newReserva = reservasMapper.toEntity(reservasDto);
+            newReserva.setCampoDeportivo(cancha);
             newReserva.setContribuyente(contri);
 
             return reservasMapper.toDto(reservasRepository.save(newReserva));
@@ -111,21 +111,21 @@ public class reservasServiceImpl implements reservasService {
         }
     }
     @Override
-    public reservasDto actualizarReserva(reservasDto reservasDto){
+    public ReservaDto actualizarReserva(ReservaDto reservasDto){
 
         if (reservasDto != null) {
-            Optional<reservas> reservasOptional = reservasRepository.findByUuid(reservasDto.getUuid());
+            Optional<Reserva> reservasOptional = reservasRepository.findByUuid(reservasDto.getUuid());
 
             if (reservasOptional.isPresent()) {
 
-                canchas cancha = getCancha(reservasDto.getCanchasDto().getUuid());
+                CampoDeportivo cancha = getCancha(reservasDto.getCampoDeportivoDto().getUuid());
                 contribuyentes contri= getContri(reservasDto.getContribuyenteDto().getUuid());
-                //pagos pago=getPago(reservasDto.getPagosDto().getUuid());
+                //pagos pago=getPago(ReservaDto.getPagosDto().getUuid());
 
-                reservas reservasModificado = reservasMapper.toEntity(reservasDto);
+                Reserva reservasModificado = reservasMapper.toEntity(reservasDto);
                 reservasModificado.setIdReserva(reservasOptional.get().getIdReserva());
 
-                reservasModificado.setCancha(cancha);
+                reservasModificado.setCampoDeportivo(cancha);
                 reservasModificado.setContribuyente(contri);
                 //reservasModificado.setPago(pago);
                 return reservasMapper.toDto(reservasRepository.save(reservasModificado));
@@ -141,7 +141,7 @@ public class reservasServiceImpl implements reservasService {
 
         return null;
     }
-    private canchas getCancha(String Uuid) {
+    private CampoDeportivo getCancha(String Uuid) {
         return canchasRepository.findByUuid(Uuid)
                 .orElseThrow(() -> new NotFoundException(CANCHAS, Uuid));
     }

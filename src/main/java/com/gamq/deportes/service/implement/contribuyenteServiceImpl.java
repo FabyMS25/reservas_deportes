@@ -2,10 +2,8 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.mapper.contribuyentesMapper;
 import com.gamq.deportes.dto.contribuyenteDto;
-import com.gamq.deportes.model.canchas;
-import com.gamq.deportes.model.complejo;
+import com.gamq.deportes.model.ComplejoDeportivo;
 import com.gamq.deportes.model.contribuyentes;
-import com.gamq.deportes.model.horario;
 import com.gamq.deportes.model.login.login;
 import com.gamq.deportes.repository.contribuyentesRepository;
 import com.gamq.deportes.service.contribuyenteService;
@@ -13,7 +11,6 @@ import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -115,8 +112,8 @@ public class contribuyenteServiceImpl implements contribuyenteService {
         Optional<contribuyentes> found = contribuyentesRepository.findByUuid(uuid);
         if (found.isPresent()) {
             contribuyentes contribuyente = found.get();
-//            horario.setEstado(true);
-//            horarioRepository.save(horario);
+//            HorarioFijo.setEstado(true);
+//            HorarioFijoRepository.save(HorarioFijo);
             contribuyentesRepository.delete(contribuyente);
 
             return "Eliminacion exitosa";

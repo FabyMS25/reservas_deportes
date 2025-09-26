@@ -32,7 +32,7 @@ public class ReservasProgramadasDto {
     private String estadoReserva;
     private boolean estado;
 
-    public canchasDto canchasDto;
+    public CampoDeportivoDto campoDeportivoDto;
 
     public contribuyenteDto contribuyenteDto;
 

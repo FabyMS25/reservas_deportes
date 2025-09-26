@@ -1,7 +1,7 @@
 package com.gamq.deportes.controller;
 
 
-import com.gamq.deportes.dto.reservasDto;
+import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.reservasService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reservas")
+@RequestMapping("/api/Reserva")
 public class reservasController {
 
     @Autowired
@@ -23,7 +23,7 @@ public class reservasController {
     @GetMapping()
     public Response obtenerCanchas() {
         try{
-            List<reservasDto> reservasDtos =  reservasService.obtenerReservas();
+            List<ReservaDto> reservasDtos =  reservasService.obtenerReservas();
             return Response.ok().setPayload(reservasDtos);
         } catch(Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
@@ -33,7 +33,7 @@ public class reservasController {
     @GetMapping("/{uuid}")
     public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
-            reservasDto reservasDto = reservasService.findByUuid(uuidCanchas);
+            ReservaDto reservasDto = reservasService.findByUuid(uuidCanchas);
             return Response.ok().setPayload(reservasDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
@@ -44,20 +44,20 @@ public class reservasController {
     public Response buscarPagoPorFechaReserva( @RequestParam(name = "fechaIni") @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaIni,
                                             @RequestParam(name = "fechaFin") @DateTimeFormat(pattern = "dd/MM/yyyy") Date fechaFin) {
         try{
-            List<reservasDto> reservasDtos = reservasService.buscarPorFechaPago(fechaIni, fechaFin);
+            List<ReservaDto> reservasDtos = reservasService.buscarPorFechaPago(fechaIni, fechaFin);
             return Response.ok().setPayload(reservasDtos);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-    @Operation(summary = "Busca reservas por su Uuid de cancha")
+    @Operation(summary = "Busca Reserva por su Uuid de cancha")
     @GetMapping("/cancha/{uuid}")
     public Response buscarReservasPorCancha(@Parameter(description = "Uuid de Cancha para busqueda")
                                              @PathVariable("uuid") String uuidCancha) {
         return Response.ok().setPayload(reservasService.findReservaByCancha(uuidCancha));
     }
     @PostMapping()
-    public Response crearConstruccion(@RequestBody reservasDto reservasDto) {
+    public Response crearConstruccion(@RequestBody ReservaDto reservasDto) {
         try{
             return Response.ok().setPayload(reservasService.crearReserva(reservasDto));
         } catch (Exception ex) {
@@ -66,7 +66,7 @@ public class reservasController {
     }
 
     @PutMapping()
-    public Response actualizarConstruccion(@RequestBody reservasDto reservasDto) {
+    public Response actualizarConstruccion(@RequestBody ReservaDto reservasDto) {
         try{
             return Response.ok().setPayload(reservasService.actualizarReserva(reservasDto));
         } catch (Exception ex) {

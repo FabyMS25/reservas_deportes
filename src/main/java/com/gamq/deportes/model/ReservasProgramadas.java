@@ -10,8 +10,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -54,15 +52,15 @@ public class ReservasProgramadas {
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_cancha")
-    public canchas cancha;
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name="id_campo")
+    public CampoDeportivo campoDeportivo;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade ={CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_contribuyente")
     public contribuyentes contribuyente;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_tablero")
     public Tablero tablero;
 
