@@ -9,6 +9,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -33,6 +35,9 @@ public class Superficie {
 
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
+
+    @OneToMany(mappedBy = "superficie", cascade = CascadeType.ALL)
+    private List<canchas> canchaList = new ArrayList<>();
 
     @PrePersist
     public void initializeUuid() {

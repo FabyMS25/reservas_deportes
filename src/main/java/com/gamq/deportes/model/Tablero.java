@@ -39,6 +39,7 @@ public class Tablero {
     private String[][] horario;
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
+
     @OneToOne(mappedBy = "tablero")
     private ReservasProgramadas reservasProgramadas;
 
