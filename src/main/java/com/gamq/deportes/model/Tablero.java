@@ -4,7 +4,6 @@ import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import com.gamq.deportes.Converter.StringArray2DConverter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,18 +32,18 @@ public class Tablero {
     private Long idTablero;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
+    private boolean estado;
+
     @Type(type = "jsonb")
     @Column(name = "HorarioFijo", columnDefinition = "jsonb")
     //@Convert(converter = StringArray2DConverter.class)
     private String[][] horario;
-    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
-    private boolean estado;
     @OneToOne(mappedBy = "tablero")
-    private ReservasProgramadas reservasProgramadas;
+    private ReservaRecurrente reservasProgramadas;
 
     @PrePersist
     public void initializeUuid() {
         this.setUuid(UUID.randomUUID().toString());
     }
-
 }

@@ -19,10 +19,8 @@ import lombok.experimental.Accessors;
 
 public class TarifaCategoriaDto {
     private String uuid;
-
     private boolean estado;
 
     public TarifaDto tarifaDto;
-
-    public CategoriaDto categoriaDto;
+    public CategoriaDeportivaDto categoriaDto;
 }

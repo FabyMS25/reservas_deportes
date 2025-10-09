@@ -1,8 +1,8 @@
 package com.gamq.deportes.controller;
 
 
+import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.dto.PassDto;
-import com.gamq.deportes.dto.contribuyenteDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.PassResetsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class PassResetsController {
     @GetMapping("/validate-token-get-user/{token}")
     public Response buscarUserPorToken( @PathVariable("token") String token) {
         try{
-            contribuyenteDto contribuyenteDto = passResetsService.findUserByToken(token);
+            ContribuyenteDto contribuyenteDto = passResetsService.findUserByToken(token);
             return Response.ok().setPayload(contribuyenteDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());

@@ -47,11 +47,11 @@ public class ComplejoDeportivo {
     @Column(name = "tipo_estructura", nullable = false, length = 20)
     private String tipoEstructura; // techado, abierto, cerrado
     @Column(name = "tiene_iluminacion", columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean tieneIluminacion = false;
+    private boolean tieneIluminacion;
     @Column(name = "tiene_vestuarios", columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean tieneVestuarios = false;
+    private boolean tieneVestuarios;
     @Column(name = "tiene_graderias", columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean tieneGraderias = false;
+    private boolean tieneGraderias;
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 

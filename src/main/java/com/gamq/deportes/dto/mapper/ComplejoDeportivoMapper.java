@@ -21,18 +21,14 @@ public class ComplejoDeportivoMapper {
         complejoDto.setTelefonoPrincipal(complejo.getTelefonoPrincipal());
         complejoDto.setTipoEstructura(complejo.getTipoEstructura());
         complejoDto.setEstadoActual(complejo.getEstadoActual());
-        complejoDto.setTieneVestuarios(complejo.getTieneVestuarios());
-        complejoDto.setTieneGraderias(complejo.getTieneGraderias());
-        complejoDto.setTipoEstructura(complejo.getTipoEstructura());
+        complejoDto.setTieneIluminacion(complejo.isTieneIluminacion());
+        complejoDto.setTieneVestuarios(complejo.isTieneVestuarios());
+        complejoDto.setTieneGraderias(complejo.isTieneGraderias());
         complejoDto.setObservaciones(complejo.getObservaciones());
 //        compleDto.setTechado(complejo.getTechado());
         complejoDto.setDistrito(complejo.getDistrito());
         complejoDto.setUbicacion(complejo.getUbicacion());
-//        if (complejo.getGeoUbicacion() != null && !complejo.getGeoUbicacion().isEmpty()) {
-//            Point point = (Point) complejo.getGeoUbicacion();
-//            complejoDto.setLatitud(point.getX());
-//            complejoDto.setLongitud(point.getY());
-//        };
+
         if (complejo.getGeoUbicacion() != null) {
             complejoDto.setLatitud(complejo.getGeoUbicacion().getX());
             complejoDto.setLongitud(complejo.getGeoUbicacion().getY());
@@ -63,10 +59,10 @@ public class ComplejoDeportivoMapper {
         complejo.setDistrito(complejoDto.getDistrito());
         complejo.setUbicacion(complejoDto.getUbicacion());
         complejo.setTipoEstructura(complejoDto.getTipoEstructura());
-        complejo.setTieneVestuarios(complejoDto.getTieneVestuarios());
-        complejo.setTieneGraderias(complejoDto.getTieneGraderias());
-        complejo.setTipoEstructura(complejoDto.getTipoEstructura());
         complejo.setEstadoActual(complejoDto.getEstadoActual());
+        complejo.setTieneIluminacion(complejoDto.isTieneIluminacion());
+        complejo.setTieneVestuarios(complejoDto.isTieneVestuarios());
+        complejo.setTieneGraderias(complejoDto.isTieneGraderias());
         complejo.setObservaciones(complejoDto.getObservaciones());
 
         // Convert lat/long to geometry
@@ -83,15 +79,17 @@ public class ComplejoDeportivoMapper {
     public static ComplejoDeportivo updateEntityFromDto(ComplejoDeportivoDto complejoDto, ComplejoDeportivo complejo) {
         complejo.setNombre(complejoDto.getNombre());
         complejo.setTelefonoPrincipal(complejoDto.getTelefonoPrincipal());
+        complejo.setDistrito(complejoDto.getDistrito());
         complejo.setUbicacion(complejoDto.getUbicacion());
         complejo.setTipoEstructura(complejoDto.getTipoEstructura());
         complejo.setEstadoActual(complejoDto.getEstadoActual());
+        complejo.setTieneIluminacion(complejoDto.isTieneIluminacion());
+        complejo.setTieneGraderias(complejoDto.isTieneGraderias());
+        complejo.setTieneVestuarios(complejoDto.isTieneVestuarios());
         complejo.setObservaciones(complejoDto.getObservaciones());
-
         if (!complejoDto.getLatitud().isNaN() && !complejoDto.getLatitud().isNaN()) {
             complejo.setGeoUbicacion(setLatLgtCoordinates(complejoDto.getLatitud(), complejoDto.getLongitud()));
         }
-
         return complejo;
     }
     public static ComplejoDeportivoDto toSimpleDto(ComplejoDeportivo complejo) {
@@ -103,13 +101,15 @@ public class ComplejoDeportivoMapper {
         dto.setUbicacion(complejo.getUbicacion());
         dto.setTipoEstructura(complejo.getTipoEstructura());
         dto.setEstadoActual(complejo.getEstadoActual());
-
+        complejo.setTieneIluminacion(complejo.isTieneIluminacion());
+        complejo.setTieneGraderias(complejo.isTieneGraderias());
+        complejo.setTieneVestuarios(complejo.isTieneVestuarios());
+        complejo.setObservaciones(complejo.getObservaciones());
         if (complejo.getGeoUbicacion() != null && !complejo.getGeoUbicacion().isEmpty()) {
             Point point = (Point) complejo.getGeoUbicacion();
             dto.setLatitud(point.getX());
             dto.setLongitud(point.getY());
         }
-
         return dto;
     }
     private static Point setLatLgtCoordinates(Double pointX, Double pointY) {

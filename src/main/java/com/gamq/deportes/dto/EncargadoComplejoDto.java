@@ -20,16 +20,15 @@ import java.time.LocalTime;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EncargadoComplejoDto {
-
     private Long idEncargadoComplejo;
     private String uuid;
     private boolean estado;
     private LocalDateTime fechaCreacion;
 
     private String userUuid;
+    private String avatar;
     private String nombre;
     private String telefono;
-    private String avatar;
     private Boolean activo = true;
     private LocalDate fechaAsignacion;
     private LocalDate fechaFinAsignacion;

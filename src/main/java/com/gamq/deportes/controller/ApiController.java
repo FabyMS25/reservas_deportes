@@ -1,10 +1,9 @@
 package com.gamq.deportes.controller;
 
-
 import com.gamq.deportes.model.AnularTasa.AnularTasaResponse;
 import com.gamq.deportes.model.AnularTasa.AnularTasaToken;
-import com.gamq.deportes.model.Contribuyente.ContribuyenteResponse;
-import com.gamq.deportes.model.Contribuyente.ContribuyenteToken;
+import com.gamq.deportes.model.Contribuyentes.ContribuyenteResponse;
+import com.gamq.deportes.model.Contribuyentes.ContribuyenteToken;
 import com.gamq.deportes.model.Pagos.PagoResponse;
 import com.gamq.deportes.model.Pagos.PagoToken;
 import com.gamq.deportes.model.Registro.RegistroResponse;
@@ -30,7 +29,6 @@ public class ApiController {
     @PostMapping("/buscar")
     public Response Buscar(@RequestBody ContribuyenteToken contribuyenteToken) {
         try{
-
             ContribuyenteResponse contribuyenteResponse=this.apiService.buscarContribuyente(contribuyenteToken);
             return Response.ok().setPayload(contribuyenteResponse);
         } catch(Exception ex) {
@@ -51,9 +49,7 @@ public class ApiController {
 
     @PostMapping("/anulartasa")
     public Response Anular(@RequestBody AnularTasaToken anularTasaToken) {
-
         try{
-
             AnularTasaResponse anularTasaResponse= this.apiService.anularTasa(anularTasaToken);
             return Response.ok().setPayload(anularTasaResponse);
         } catch(Exception ex) {

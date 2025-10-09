@@ -1,0 +1,252 @@
+package com.gamq.deportes.service.implement;
+
+import com.gamq.deportes.dto.ReservaDto;
+import com.gamq.deportes.dto.ReservaPuntualDto;
+import com.gamq.deportes.dto.mapper.ReservaMapper;
+import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
+import com.gamq.deportes.model.Reserva;
+import com.gamq.deportes.model.ReservaPuntual;
+import com.gamq.deportes.repository.ReservaPuntualRepository;
+import com.gamq.deportes.repository.ReservaRepository;
+import com.gamq.deportes.service.ReservaPuntualService;
+import com.gamq.deportes.exception.NotFoundException;
+import com.gamq.deportes.exception.NullReferenceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.gamq.deportes.exception.enums.EntityType.*;
+
+@Service
+@Transactional
+public class ReservaPuntualServiceImpl implements ReservaPuntualService {
+
+    @Autowired
+    private ReservaPuntualRepository reservaPuntualRepository;
+
+    @Autowired
+    private ReservaRepository reservaRepository;
+
+    @Override
+    public List<ReservaPuntualDto> obtenerReservas() {
+        List<ReservaPuntual> reservas = reservaPuntualRepository.findAll();
+
+        if (reservas.isEmpty()) {
+            return List.of();
+        }
+
+        return reservas.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true))
+                .collect(Collectors.toList());
+    }
+
+    public Page<ReservaPuntualDto> obtenerReservas(Pageable pageable) {
+        return reservaPuntualRepository.findAll(pageable)
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReservaPuntualDto findByUuid(String uuid) {
+        Optional<ReservaPuntual> reservaPuntualOptional = reservaPuntualRepository.findByUuid(uuid);
+        if (reservaPuntualOptional.isPresent()) {
+            return ReservaPuntualMapper.toDto(reservaPuntualOptional.get(), true);
+        } else {
+            throw new NotFoundException(RESERVA_PUNTUAL, uuid);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReservaPuntualDto findByReservaUuid(String reservaUuid) {
+        Optional<ReservaPuntual> reserva =  reservaPuntualRepository.findByReservaUuid(reservaUuid);
+        if (reserva.isPresent()) {
+            return ReservaPuntualMapper.toDto(reserva.get(), false);
+        } else {
+            throw new NotFoundException(RESERVA_PUNTUAL, reservaUuid);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findByFechaUso(LocalDate fechaUso) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findByFechaUso(fechaUso);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findByFechaUsoBetween(LocalDate fechaInicio, LocalDate fechaFin) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findByFechaUsoBetween(fechaInicio, fechaFin);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findByCampoDeportivoAndFechaUso(String campoUuid, LocalDate fechaUso) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findByCampoDeportivoAndFechaUso(campoUuid, fechaUso);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findReservasActivasPorCampoYFecha(String campoUuid, LocalDate fechaUso) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findReservasActivasPorCampoYFecha(campoUuid, fechaUso);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findReservasConflictivas(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
+        List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
+                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
+
+        return reservasConflictivas.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+    @Transactional(readOnly = true)
+    public boolean existeReservaConflictiva(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
+        List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
+                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
+        return !reservasConflictivas.isEmpty();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReservaPuntualDto> findByCampoDeportivoUuid(String campoUuid, Pageable pageable) {
+        return reservaPuntualRepository.findByCampoDeportivoUuid(campoUuid, pageable)
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false));
+    }
+
+    @Transactional(readOnly = true)
+    public Long countByCampoDeportivoAndFechaUso(String campoUuid, LocalDate fechaUso) {
+        return reservaPuntualRepository.countByCampoDeportivoAndFechaUso(campoUuid, fechaUso);
+    }
+
+    @Override
+    @Transactional
+    public ReservaPuntualDto crearReservaPuntual(ReservaPuntualDto reservaPuntualDto) {
+        if (reservaPuntualDto == null) {
+            throw new NullReferenceException(RESERVA_PUNTUAL);
+        }
+        Reserva reserva = getReserva(reservaPuntualDto.getReservaDto().getUuid());
+
+        ReservaPuntual nuevaReservaPuntual = ReservaPuntualMapper.toEntity(reservaPuntualDto, true);
+        nuevaReservaPuntual.setReserva(reserva);
+        if (nuevaReservaPuntual.getDuracionHoras() == null &&
+                nuevaReservaPuntual.getHoraInicio() != null &&
+                nuevaReservaPuntual.getHoraFin() != null) {
+            int duracion = nuevaReservaPuntual.getHoraFin().getHour() - nuevaReservaPuntual.getHoraInicio().getHour();
+            nuevaReservaPuntual.setDuracionHoras(Math.max(duracion, 1));
+        }
+
+        ReservaPuntual reservaPuntualGuardada = reservaPuntualRepository.save(nuevaReservaPuntual);
+        return ReservaPuntualMapper.toDto(reservaPuntualGuardada, true);
+    }
+
+    @Override
+    @Transactional
+    public ReservaPuntualDto actualizarReservaPuntual(ReservaPuntualDto reservaPuntualDto) {
+        if (reservaPuntualDto == null) {
+            throw new NullReferenceException(RESERVA_PUNTUAL);
+        }
+
+        Optional<ReservaPuntual> reservaPuntualOptional = reservaPuntualRepository.findByUuid(reservaPuntualDto.getUuid());
+
+        if (reservaPuntualOptional.isPresent()) {
+            ReservaPuntual reservaPuntualExistente = reservaPuntualOptional.get();
+
+            // Update fields
+            ReservaPuntualMapper.updateEntityFromDto(reservaPuntualDto, reservaPuntualExistente);
+
+            // Update parent reservation if provided
+            if (reservaPuntualDto.getReservaDto() != null) {
+                Reserva reserva = getReserva(reservaPuntualDto.getReservaDto().getUuid());
+                reservaPuntualExistente.setReserva(reserva);
+            }
+
+            // Recalculate duration if times changed
+            if (reservaPuntualDto.getHoraInicio() != null && reservaPuntualDto.getHoraFin() != null) {
+                int duracion = reservaPuntualDto.getHoraFin().getHour() - reservaPuntualDto.getHoraInicio().getHour();
+                reservaPuntualExistente.setDuracionHoras(Math.max(duracion, 1));
+            }
+
+            ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntualExistente);
+            return ReservaPuntualMapper.toDto(reservaPuntualActualizada, true);
+        } else {
+            throw new NotFoundException(RESERVA_PUNTUAL, reservaPuntualDto.getUuid());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ReservaPuntualDto registrarUsoReal(String uuid, LocalDateTime fechaUsoReal) {
+        ReservaPuntual reservaPuntual = reservaPuntualRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA_PUNTUAL, uuid));
+
+        reservaPuntual.setFechaUsoReal(fechaUsoReal);
+
+        ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntual);
+        return ReservaPuntualMapper.toDto(reservaPuntualActualizada, true);
+    }
+
+    @Override
+    @Transactional
+    public String eliminarReserva(String uuid) {
+        try {
+            ReservaPuntual reserva = reservaPuntualRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA_PUNTUAL, uuid));
+
+            reservaPuntualRepository.delete(reserva);
+
+            return "Desactivación exitosa del RESERVA";
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Error al intentar desactivar el RESERVA. Por favor, inténtelo de nuevo más tarde.", e);
+        }
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findByCategoria(String categoria) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findByCategoria(categoria);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findByCantidadPersonasBetween(Integer cantidadMin, Integer cantidadMax) {
+        List<ReservaPuntual> reservasPuntuales = reservaPuntualRepository.findByCantidadPersonasBetween(cantidadMin, cantidadMax);
+
+        return reservasPuntuales.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+                .collect(Collectors.toList());
+    }
+
+    private Reserva getReserva(String uuid) {
+        return reservaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+    }
+}

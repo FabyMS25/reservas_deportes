@@ -1,6 +1,7 @@
 package com.gamq.deportes.repository;
 
 import com.gamq.deportes.model.CampoDeportivo;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,8 +23,13 @@ public interface CampoDeportivoRepository extends JpaRepository<CampoDeportivo, 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.superficie.uuid = :superficieUuid AND c.estado = false")
     List<CampoDeportivo> findBySuperficieUuid( String superficieUuid);
 
-    @Query("SELECT c FROM CampoDeportivo c WHERE c.estado = false")
-    List<CampoDeportivo> findAllActivos();
+    // In CampoDeportivoRepository
+//    @EntityGraph(attributePaths = {"complejo", "superficie", "tarifasList",
+//            "horariosFijosList", "horariosExcepcionesList"})
+//    Optional<CampoDeportivo> findByUuidWithRelations(String uuid);
+
+//    @Query("SELECT c FROM CampoDeportivo c WHERE c.estado = false")
+//    List<CampoDeportivo> findAllActivos();
 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.estadoActual = :estadoActual AND c.estado = false")
     List<CampoDeportivo> findByEstadoActual(@Param("estadoActual") String estadoActual);

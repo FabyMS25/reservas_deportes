@@ -24,19 +24,25 @@ public class CampoDeportivoDto {
     private boolean estado;
     private LocalDateTime fechaCreacion;
 
-
-//    private String Tipo;
-
+    private String estadoActual;
     private String nombre;
     private String codigo;
+    private String categoria;
     //    private String tipoEstructura;
     private String dimensiones;
     private Integer capacidadPersonas = 0;
     private Boolean tieneIluminacion = false;
 //    private Boolean tieneVestuarios = false;
 //    private Boolean tieneGraderias = false;
-    private String estadoActual;
+    private Boolean accesoLibre = false;
     private String observaciones;
+
+
+    private Boolean requiereAprobacion = false;
+    private Integer horasMinimaAprobacion;
+    private Integer maxDuracionAutoAprobacion;
+    private Integer maxPersonasAutoAprobacion;
+
 
     private ComplejoDeportivoDto complejoDto;
     private SuperficieDto superficieDto;
@@ -49,6 +55,37 @@ public class CampoDeportivoDto {
     public boolean isActivo() {
         return "activo".equals(estadoActual) && !estado;
     }
-    //public List<ReservasProgramadasDto> reservasProgramadasDtosListDto = new ArrayList<>();
 
+
+    public boolean requiereAprobacionReserva(ReservaDto reservaDto) {
+        if (!this.requiereAprobacion) {
+            return false;
+        }
+        if (esReservaAutoAprobable(reservaDto)) {
+            return false;
+        }
+        return true;
+    }
+    public boolean esReservaAutoAprobable(ReservaDto reservaDto) {
+        if (horasMinimaAprobacion != null) {
+            LocalDateTime ahora = LocalDateTime.now();
+            long horasHastaReserva = java.time.Duration.between(ahora, reservaDto.getFechaReserva()).toHours();
+            if (horasHastaReserva >= horasMinimaAprobacion) {
+                return true;
+            }
+        }
+        if (maxPersonasAutoAprobacion != null && reservaDto.getReservaPuntualDto() != null) {
+            Integer cantidadPersonas = reservaDto.getReservaPuntualDto().getCantidadPersonas();
+            if (cantidadPersonas != null && cantidadPersonas <= maxPersonasAutoAprobacion) {
+                return true;
+            }
+        }
+        if (maxDuracionAutoAprobacion != null && reservaDto.getReservaPuntualDto() != null) {
+            Integer duracion = reservaDto.getReservaPuntualDto().getDuracionHoras();
+            if (duracion != null && duracion <= maxDuracionAutoAprobacion) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

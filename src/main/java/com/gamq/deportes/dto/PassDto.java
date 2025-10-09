@@ -18,15 +18,12 @@ import java.time.LocalDateTime;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PassDto {
-
+    private Long idPass;
     private String uuid;
+    private boolean estado;
+    private LocalDateTime fechaCreacion;
 
     private String email;
-
     private String token;
-
     private LocalDateTime expiresAt;
-
-    private boolean estado;
-
 }

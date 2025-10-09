@@ -20,7 +20,6 @@ import java.util.List;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ComplejoDeportivoDto {
-
     private Long idComplejo;
     private String uuid;
     private boolean estado;
@@ -30,11 +29,10 @@ public class ComplejoDeportivoDto {
     private String nombre;
     private String telefonoPrincipal;
     private String tipoEstructura; // techado, abierto, cerrado
-    private Boolean tieneIluminacion = false;
-    private Boolean tieneVestuarios = false;
-    private Boolean tieneGraderias = false;
+    private boolean tieneIluminacion;
+    private boolean tieneVestuarios;
+    private boolean tieneGraderias;
     private String observaciones;
-//    private String techado;
 
     private String distrito;
     private String ubicacion;

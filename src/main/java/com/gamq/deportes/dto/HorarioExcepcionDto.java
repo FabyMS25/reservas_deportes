@@ -20,7 +20,6 @@ import java.time.LocalTime;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HorarioExcepcionDto {
-
     private Long idHorarioExcepcion;
     private String uuid;
     private boolean estado;

@@ -35,18 +35,20 @@ public class CampoDeportivo {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "codigo", nullable = false, length = 50)
+    @Column(name = "estado_actual", length = 20)
+    private String estadoActual;// activo, mantenimiento, cerrado
+    @Column(name = "codigo", length = 50)
     private String codigo;
     @Column(name = "nombre", nullable = false, length = 250)
     private String nombre;
+
+    @Column(name = "categoria", length = 10)
+    private String categoria; // 'A', 'B', 'ELITE'
 //    @Column(name = "tipo", nullable = false, length = 50)
 //    private String tipo;
 //    @Column(name = "tipo_estructura", length = 20)
 //    private String tipoEstructura; // techado, abierto, cerrado
-
-    @Column(name = "estado_actual", length = 20)
-    private String estadoActual; // activo, mantenimiento, cerrado
-
+    
     @Column(name = "dimensiones", length = 100)
     private String dimensiones;
     @Column(name = "capacidad_personas")
@@ -59,6 +61,18 @@ public class CampoDeportivo {
 //    private Boolean tieneGraderias = false;
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
+
+
+    @Column(name = "acceso_libre", columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean accesoLibre = false;
+    @Column(name = "requiere_aprobacion", columnDefinition = "BOOLEAN DEFAULT true")
+    private Boolean requiereAprobacion = false;
+    @Column(name = "horas_minima_aprobacion")
+    private Integer horasMinimaAprobacion;
+    @Column(name = "max_duracion_auto_aprobacion")
+    private Integer maxDuracionAutoAprobacion;
+    @Column(name = "max_personas_auto_aprobacion")
+    private Integer maxPersonasAutoAprobacion;
 
 //    @ManyToOne(cascade = CascadeType.ALL)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,7 +92,7 @@ public class CampoDeportivo {
     @OneToMany(mappedBy = "campoDeportivo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reserva> reservasList = new ArrayList<>();
 //    @OneToMany(mappedBy = "campo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private List<Categoria> categorias = new ArrayList<>();
+//    private List<CategoriaDeportiva> categorias = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
 //    public List<Tarifas> tarifasList = new ArrayList<>();
@@ -87,7 +101,7 @@ public class CampoDeportivo {
 //    @OneToMany(mappedBy = "cancha", cascade = CascadeType.ALL)
 //    public List<Reserva> reservasList = new ArrayList<>();
 //    @OneToMany(mappedBy = "campo", cascade = CascadeType.ALL)
-//    public List<ReservasProgramadas> reservasProgramadasList = new ArrayList<>();
+//    public List<ReservaRecurrente> reservasProgramadasList = new ArrayList<>();
 
     public CampoDeportivo(String uuid) {
         this.uuid = uuid;
@@ -96,7 +110,6 @@ public class CampoDeportivo {
 //    public void initializeUuid() {
 //        this.setUuid(UUID.randomUUID().toString());
 //    }
-
     @PrePersist
     public void prePersist() {
         if (this.uuid == null) {
@@ -108,5 +121,35 @@ public class CampoDeportivo {
         if (this.estadoActual == null) {
             this.estadoActual = "activo";
         }
+    }
+
+    public boolean requiereAprobacionReserva(Reserva reserva) {
+        if (!Boolean.TRUE.equals(this.requiereAprobacion)) {
+            return false;
+        }
+        return !esReservaAutoAprobable(reserva);
+    }
+
+    public boolean esReservaAutoAprobable(Reserva reserva) {
+        if (horasMinimaAprobacion != null) {
+            LocalDateTime ahora = LocalDateTime.now();
+            long horasHastaReserva = java.time.Duration.between(ahora, reserva.getFechaReserva()).toHours();
+            if (horasHastaReserva >= horasMinimaAprobacion) {
+                return true;
+            }
+        }
+        if (maxPersonasAutoAprobacion != null && reserva.getReservaPuntual() != null) {
+            Integer cantidadPersonas = reserva.getReservaPuntual().getCantidadPersonas();
+            if (cantidadPersonas != null && cantidadPersonas <= maxPersonasAutoAprobacion) {
+                return true;
+            }
+        }
+        if (maxDuracionAutoAprobacion != null && reserva.getReservaPuntual() != null) {
+            Integer duracion = reserva.getReservaPuntual().getDuracionHoras();
+            if (duracion != null && duracion <= maxDuracionAutoAprobacion) {
+                return true;
+            }
+        }
+        return false;
     }
 }

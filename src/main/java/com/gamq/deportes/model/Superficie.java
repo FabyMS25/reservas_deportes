@@ -9,6 +9,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -21,18 +23,20 @@ import java.util.UUID;
 @SQLDelete(sql = "UPDATE superficies SET estado=true WHERE id_superficie=?")
 @Where(clause = "estado = false")
 public class Superficie {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_superficie")
     private Long idSuperficie;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
+    private boolean estado;
+
     @Column(name = "descripcion", nullable = false, length = 100)
     private String descripcion;
 
-    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
-    private boolean estado;
+    @OneToMany(mappedBy = "superficie", cascade = CascadeType.ALL)
+    private List<CampoDeportivo> campoDeportivoList = new ArrayList<>();
 
     @PrePersist
     public void initializeUuid() {

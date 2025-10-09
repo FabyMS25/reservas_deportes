@@ -16,20 +16,22 @@ public class CampoDeportivoMapper {
 
         dto.setNombre(campo.getNombre());
         dto.setCodigo(campo.getCodigo());
+        dto.setCategoria(campo.getCategoria());
         dto.setDimensiones(campo.getDimensiones());
         dto.setCapacidadPersonas(campo.getCapacidadPersonas());
         dto.setTieneIluminacion(campo.getTieneIluminacion());
         dto.setEstadoActual(campo.getEstadoActual());
         dto.setObservaciones(campo.getObservaciones());
+        dto.setAccesoLibre(campo.getAccesoLibre());
+        dto.setRequiereAprobacion(campo.getRequiereAprobacion());
+        dto.setHorasMinimaAprobacion(campo.getHorasMinimaAprobacion());
+        dto.setMaxDuracionAutoAprobacion(campo.getMaxDuracionAutoAprobacion());
+        dto.setMaxPersonasAutoAprobacion(campo.getMaxPersonasAutoAprobacion());
 
         dto.setSuperficieDto(SuperficieMapper.toDto(campo.getSuperficie()));
         if (includeDetails) {
-//            if (campo.getComplejo() != null) {
-                dto.setComplejoDto(ComplejoDeportivoMapper.toSimpleDto(campo.getComplejo()));
-//            }
-//            if (campo.getSuperficie() != null) {
-//                dto.setSuperficieDto(SuperficieMapper.toDto(campo.getSuperficie()));
-//            }
+            dto.setComplejoDto(ComplejoDeportivoMapper.toSimpleDto(campo.getComplejo()));
+        }
             if (campo.getTarifasList() != null) {
                 dto.setTarifasDtoList(
                         campo.getTarifasList().stream()
@@ -51,16 +53,6 @@ public class CampoDeportivoMapper {
                                 .collect(Collectors.toList())
                 );
             }
-
-//            if (campo.getCategorias() != null) {
-//                dto.setCategoriasDtoList(
-//                        campo.getCategorias().stream()
-//                                .map(CategoriasMapper::toDto)
-//                                .map(CategoriasMapper::toDto)
-//                                .collect(Collectors.toList())
-//                );
-//            }
-        }
         return dto;
     }
     public static CampoDeportivoDto toSimpleDto(CampoDeportivo campo) {
@@ -69,20 +61,26 @@ public class CampoDeportivoMapper {
 
     public static CampoDeportivo toEntity(CampoDeportivoDto dto) {
         CampoDeportivo campo = new CampoDeportivo();
+        campo.setUuid(dto.getUuid());
+        campo.setEstado(dto.isEstado());
+        campo.setFechaCreacion(dto.getFechaCreacion());
         return updateEntityFromDto(dto, campo);
     }
 
     public static CampoDeportivo updateEntityFromDto(CampoDeportivoDto dto, CampoDeportivo campo) {
-//    public static CampoDeportivo toEntity(CampoDeportivoDto dto){
-//        CampoDeportivo campo =new campoDeportivo();
-
         campo.setNombre(dto.getNombre());
         campo.setCodigo(dto.getCodigo());
+        campo.setCategoria(dto.getCategoria());
         campo.setDimensiones(dto.getDimensiones());
         campo.setCapacidadPersonas(dto.getCapacidadPersonas());
         campo.setTieneIluminacion(dto.getTieneIluminacion());
         campo.setEstadoActual(dto.getEstadoActual());
         campo.setObservaciones(dto.getObservaciones());
+        campo.setAccesoLibre(dto.getAccesoLibre());
+        campo.setRequiereAprobacion(dto.getRequiereAprobacion());
+        campo.setHorasMinimaAprobacion(dto.getHorasMinimaAprobacion());
+        campo.setMaxDuracionAutoAprobacion(dto.getMaxDuracionAutoAprobacion());
+        campo.setMaxPersonasAutoAprobacion(dto.getMaxPersonasAutoAprobacion());
 
         return campo;
     }

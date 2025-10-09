@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,13 +18,11 @@ import lombok.experimental.Accessors;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SuperficieDto {
-
     private Long idSuperficie;
-
     private String uuid;
-
     private boolean estado;
 
     private String descripcion;
 
+    private List<CampoDeportivoDto> campoDeportivosDtoList;
 }

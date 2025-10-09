@@ -1,11 +1,11 @@
 package com.gamq.deportes.service.implement;
 
-import com.gamq.deportes.dto.CategoriaDto;
+import com.gamq.deportes.dto.CategoriaDeportivaDto;
 import com.gamq.deportes.dto.mapper.CategoriaMapper;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
-import com.gamq.deportes.model.Categoria;
+import com.gamq.deportes.model.CategoriaDeportiva;
 import com.gamq.deportes.model.TarifaCategoria;
 import com.gamq.deportes.repository.CategoriaRepository;
 import com.gamq.deportes.repository.TarifaCategoriaRepository;
@@ -29,8 +29,8 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Autowired
     TarifaCategoriaRepository tarifaCategoriaRepository;
 
-    public CategoriaDto findByUuid(String uuid){
-        Optional<Categoria> CategoriaOptional = categoriaRepository.findByUuid(uuid);
+    public CategoriaDeportivaDto findByUuid(String uuid){
+        Optional<CategoriaDeportiva> CategoriaOptional = categoriaRepository.findByUuid(uuid);
         if (CategoriaOptional.isPresent()) {
             return CategoriaMapper.toDto(CategoriaOptional.get());
         } else {
@@ -39,8 +39,8 @@ public class CategoriaServiceImpl implements CategoriaService {
 
 
     }
-    public List<CategoriaDto> obtenerCategorias(){
-        List<Categoria> Categorias = categoriaRepository.findAll();
+    public List<CategoriaDeportivaDto> obtenerCategorias(){
+        List<CategoriaDeportiva> Categorias = categoriaRepository.findAll();
 
         if (!Categorias.isEmpty()) {
             return Categorias.stream().map(Categoria -> {
@@ -51,11 +51,11 @@ public class CategoriaServiceImpl implements CategoriaService {
         }
 
     }
-    public CategoriaDto crearCategoria(CategoriaDto CategoriaDto){
+    public CategoriaDeportivaDto crearCategoria(CategoriaDeportivaDto CategoriaDto){
 
         if (CategoriaDto != null) {
 
-            Categoria newCategoria = CategoriaMapper.toEntity(CategoriaDto);
+            CategoriaDeportiva newCategoria = CategoriaMapper.toEntity(CategoriaDto);
             newCategoria =categoriaRepository.save(newCategoria);
             return CategoriaMapper.toDto(newCategoria);
         } else {
@@ -63,12 +63,12 @@ public class CategoriaServiceImpl implements CategoriaService {
         }
     }
 
-    public CategoriaDto actualizarCategoria(CategoriaDto CategoriaDto){
+    public CategoriaDeportivaDto actualizarCategoria(CategoriaDeportivaDto CategoriaDto){
         if (CategoriaDto != null) {
-            Optional<Categoria> CategoriaOptional = categoriaRepository.findByUuid(CategoriaDto.getUuid());
+            Optional<CategoriaDeportiva> CategoriaOptional = categoriaRepository.findByUuid(CategoriaDto.getUuid());
 
             if (CategoriaOptional.isPresent()) {
-                Categoria CategoriaModificado = CategoriaMapper.toEntity(CategoriaDto);
+                CategoriaDeportiva CategoriaModificado = CategoriaMapper.toEntity(CategoriaDto);
                 CategoriaModificado.setIdCategoria(CategoriaOptional.get().getIdCategoria());
 
                 return CategoriaMapper.toDto(categoriaRepository.save(CategoriaModificado));
@@ -82,9 +82,9 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     @Override
     public String delete(String uuid) {
-        Optional<Categoria> item = categoriaRepository.findByUuid(uuid);
+        Optional<CategoriaDeportiva> item = categoriaRepository.findByUuid(uuid);
         if (item.isPresent()) {
-            Categoria category = item.get();
+            CategoriaDeportiva category = item.get();
 
             List<TarifaCategoria> canchasAsociadas = tarifaCategoriaRepository.findByCategory(category.getUuid());
             if (!canchasAsociadas.isEmpty()) {

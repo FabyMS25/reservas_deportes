@@ -10,6 +10,7 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,8 +23,11 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "reservas", indexes = @Index(name = "idx_res_uuid", columnList = "uuid", unique = true))
-@SQLDelete(sql = "UPDATE Reserva SET estado=true WHERE id_reserva=?")
+@Table(name = "reservas", indexes = {
+        @Index(name = "idx_res_uuid", columnList = "uuid", unique = true),
+        @Index(name = "idx_res_numero", columnList = "numero_reserva", unique = true)
+})
+@SQLDelete(sql = "UPDATE reservas SET estado = true WHERE id_reserva = ?")
 @Where(clause = "estado = false")
 public class Reserva {
     @Id
@@ -32,53 +36,92 @@ public class Reserva {
     private Long idReserva;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Column(name = "fecha_created", nullable = false)
-    private Date fechaCreated;
-
-    @Column(name = "fecha_reserva", nullable = false)
-    private Date fechaReserva;
-    @Column(name = "hora_entrada", nullable = false)
-    private LocalTime horaEntrada;
-    @Column(name = "hora_salida", nullable = false)
-    private LocalTime horaSalida;
-    @Column(name = "total_pago", nullable = false)
-    private BigDecimal totalPago;
-    @Column(name = "categoria", nullable = false)
-    private String categoria;
-    @Column(name = "superficie", nullable = false)
-    private String superficie;
-
-
-    @Column(name = "total_personas", nullable = false)
-    private int totalPersonas;
-
-    @Column(name = "numero_tasa", nullable = false)
-    private String numeroTasa;
-
-    @Column(name = "estado_reserva", nullable = false)
-    private String estadoReserva;
-
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_campo")
-    public CampoDeportivo campoDeportivo;
+    @Column(name = "fecha_reserva", nullable = false)
+    private LocalDateTime fechaReserva;
+    @Column(name = "fecha_aprobacion")
+    private LocalDateTime fechaAprobacion;
+    @Column(name = "fecha_rechazo")
+    private LocalDateTime fechaRechazo;
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
+    @Column(name = "aprobado_por", length = 36)
+    private String aprobadoPor;
+    @Column(name = "estado_validacion", length = 20)
+    private String estadoValidacion;
+    @Column(name = "estado_reserva", nullable = false, length = 20)
+    private String estadoReserva = "borrador";
+    @Column(name = "tipo_reserva", nullable = false, length = 20)
+    private String tipoReserva;
+    @Column(name = "numero_reserva", unique = true, nullable = false, length = 50)
+    private String numeroReserva;
+    @Column(name = "numero_tasa", length = 50)
+    private String numeroTasa;
+    @Column(name = "monto_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal montoTotal;
+    @Column(name = "clasificador_ruat_id", nullable = false)
+    private String clasificadorRuatId;
+//    @Column(name = "categoria", nullable = false)
+//    private String categoria;
+//    @Column(name = "superficie", nullable = false)
+//    private String superficie;
+//    @Column(name = "total_personas", nullable = false)
+//    private int totalPersonas;
+//    @Column(name = "hora_entrada", nullable = false)
+//    private LocalTime horaEntrada;
+//    @Column(name = "hora_salida", nullable = false)
+//    private LocalTime horaSalida;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_contribuyente")
-    public contribuyentes contribuyente;
+//    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_campo", nullable = false)
+    private CampoDeportivo campoDeportivo;
 
-    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL)
-    public List<pagos> pagosList = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_contribuyente", nullable = false)
+    private Contribuyente contribuyente;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizacion")
+    private Organizacion organizacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tarifa", nullable = false)
+    private Tarifa tarifa;
+
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ReservaPuntual reservaPuntual;
+
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ReservaRecurrente reservaRecurrente;
+
+
+    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pago> pagosList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ReservaAuditoria> auditoriasList = new ArrayList<>();
 
     public Reserva(String uuid) {
         this.uuid = uuid;
     }
 
     @PrePersist
-    public void initializeUuid() {
-        this.setUuid(UUID.randomUUID().toString());
+    public void initializeUuidAndDates() {
+        if (this.uuid == null) {
+            this.setUuid(UUID.randomUUID().toString());
+        }
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
+        if (this.estadoReserva == null) {
+            this.estadoReserva = "borrador";
+        }
     }
 }

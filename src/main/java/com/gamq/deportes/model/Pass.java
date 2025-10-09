@@ -26,9 +26,10 @@ public class Pass {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_pass")
     private Long idPass;
-
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
+    private boolean estado;
 
     @Column(name = "email", nullable = false, length = 75)
     private String email;
@@ -38,9 +39,6 @@ public class Pass {
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-
-    @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
-    private boolean estado;
 
     @PrePersist
     public void initializeUuid() {

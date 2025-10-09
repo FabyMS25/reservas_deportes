@@ -39,12 +39,12 @@ public class EncargadoComplejo {
 
     @Column(name = "user_uuid", nullable = false, length = 50)
     private String userUuid;
+    @Column(name = "avatar", nullable = false, length = 250)
+    private String avatar;
     @Column(name = "activo", columnDefinition = "BOOLEAN DEFAULT true")
     private Boolean activo = true;
     @Column(name = "nombre", nullable = false, length = 250)
     private String nombre;
-    @Column(name = "avatar", nullable = false, length = 250)
-    private String avatar;
     @Column(name = "telefono", length = 20)
     private String telefono;
     @Column(name = "fecha_asignacion")

@@ -19,7 +19,6 @@ import java.time.LocalTime;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HorarioFijoDto {
-
     private Long idHorarioFijo;
     private String uuid;
     private boolean estado;
