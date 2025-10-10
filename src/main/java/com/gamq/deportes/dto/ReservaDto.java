@@ -50,7 +50,7 @@ public class ReservaDto {
             // "SUSPENDIDA" - Temporarily suspended
             // "ANULADA" - Administrative cancellation (similar to Anexo F)
 
-    private String tipoReserva; //puntual / recurente
+    private String tipoReserva; //puntual / recurrente
     private String numeroReserva;
     private String numeroTasa;
     private BigDecimal montoTotal;
