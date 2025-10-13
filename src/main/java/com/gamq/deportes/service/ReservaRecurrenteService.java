@@ -23,7 +23,7 @@ public interface ReservaRecurrenteService {
 
     List<ReservaRecurrenteDto> findActivasEnFechaPorCampo(String campoUuid, LocalDate fecha);
     List<ReservaRecurrenteDto> findActivasVigentes();
-    List<ReservaRecurrenteDto> findActivasPorDiaSemana(Integer diaSemana, LocalDate fecha);
+    List<ReservaRecurrenteDto> findActivasPorDiaSemana(String diaSemana, LocalDate fecha);
     List<ReservaRecurrenteDto> findPorVencer(LocalDate fechaLimite);
     List<ReservaRecurrenteDto> findByCategoria(String categoria);
     Page<ReservaRecurrenteDto> findByCampoDeportivoUuid(String campoUuid, Pageable pageable);

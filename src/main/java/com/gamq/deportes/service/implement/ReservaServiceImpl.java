@@ -52,6 +52,9 @@ public class ReservaServiceImpl implements ReservaService {
     @Autowired
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
 
+    @Autowired
+    private TableroRepository tableroRepository;
+
     @Override
     @Transactional(readOnly = true)
     public ReservaDto findByUuid(String uuid) {
@@ -247,6 +250,13 @@ public class ReservaServiceImpl implements ReservaService {
 
         if ("recurrente".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaRecurrenteDto() != null) {
             ReservaRecurrente recurrente = ReservaRecurrenteMapper.toEntity(reservaDto.getReservaRecurrenteDto(), false);
+
+            // Handle Tablero - save it first if it's new
+            if (recurrente.getTablero() != null && recurrente.getTablero().getIdTablero() == null) {
+                Tablero tableroGuardado = tableroRepository.save(recurrente.getTablero());
+                recurrente.setTablero(tableroGuardado);
+            }
+
             recurrente.setReserva(nuevaReserva);
             nuevaReserva.setReservaRecurrente(recurrente);
         }

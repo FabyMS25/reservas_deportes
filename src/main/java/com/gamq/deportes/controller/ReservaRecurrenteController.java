@@ -140,7 +140,7 @@ public class ReservaRecurrenteController {
     @GetMapping("/activas/dia-semana/{diaSemana}")
     public Response buscarActivasPorDiaSemana(
             @Parameter(description = "Día de la semana (1-7, donde 1=Lunes)")
-            @PathVariable("diaSemana") Integer diaSemana,
+            @PathVariable("diaSemana") String diaSemana,
             @Parameter(description = "Fecha específica (formato: yyyy-MM-dd)")
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fecha) {
         try {

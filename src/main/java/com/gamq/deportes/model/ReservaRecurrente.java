@@ -45,7 +45,7 @@ public class ReservaRecurrente {
     @Column(name = "cantidad_personas")
     private Integer cantidadPersonas;
     @Column(name = "dias_semana")
-    private Integer diasSemana;
+    private String diasSemana;
     @Column(name = "cantidad_sesiones")
     private Integer cantidadSesiones;
     @Column(name = "duracion_sesuib_horas")
@@ -63,10 +63,9 @@ public class ReservaRecurrente {
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
-
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name="id_tablero")
-    public Tablero tablero;
+    private Tablero tablero;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_reserva", nullable = false)

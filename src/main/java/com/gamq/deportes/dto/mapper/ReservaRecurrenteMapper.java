@@ -86,14 +86,16 @@ public class ReservaRecurrenteMapper {
         entity.setFechaFin(reservaRecurrenteDto.getFechaFin());
         entity.setCantidadPersonas(reservaRecurrenteDto.getCantidadPersonas());
 
+        entity.setDiasSemana(reservaRecurrenteDto.getDiasSemana());
+
         // Convert String to Integer for diasSemana in entity
-        if (reservaRecurrenteDto.getDiasSemana() != null && !reservaRecurrenteDto.getDiasSemana().isEmpty()) {
-            try {
-                entity.setDiasSemana(Integer.parseInt(reservaRecurrenteDto.getDiasSemana()));
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid diasSemana format: " + reservaRecurrenteDto.getDiasSemana());
-            }
-        }
+//        if (reservaRecurrenteDto.getDiasSemana() != null && !reservaRecurrenteDto.getDiasSemana().isEmpty()) {
+//            try {
+//                entity.setDiasSemana(Integer.parseInt(reservaRecurrenteDto.getDiasSemana()));
+//            } catch (NumberFormatException e) {
+//                throw new IllegalArgumentException("Invalid diasSemana format: " + reservaRecurrenteDto.getDiasSemana());
+//            }
+//        }
 
         entity.setCantidadSesiones(reservaRecurrenteDto.getCantidadSesiones());
         entity.setDuracionSesionHoras(reservaRecurrenteDto.getDuracionSesionHoras());
@@ -133,16 +135,18 @@ public class ReservaRecurrenteMapper {
         entity.setFechaFin(dto.getFechaFin());
         entity.setCantidadPersonas(dto.getCantidadPersonas());
 
+        entity.setDiasSemana(dto.getDiasSemana());
+
         // Convert String to Integer for diasSemana
-        if (dto.getDiasSemana() != null && !dto.getDiasSemana().isEmpty()) {
-            try {
-                entity.setDiasSemana(Integer.parseInt(dto.getDiasSemana()));
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid diasSemana format: " + dto.getDiasSemana());
-            }
-        } else {
-            entity.setDiasSemana(null);
-        }
+//        if (dto.getDiasSemana() != null && !dto.getDiasSemana().isEmpty()) {
+//            try {
+//                entity.setDiasSemana(Integer.parseInt(dto.getDiasSemana()));
+//            } catch (NumberFormatException e) {
+//                throw new IllegalArgumentException("Invalid diasSemana format: " + dto.getDiasSemana());
+//            }
+//        } else {
+//            entity.setDiasSemana(null);
+//        }
 
         entity.setCantidadSesiones(dto.getCantidadSesiones());
         entity.setDuracionSesionHoras(dto.getDuracionSesionHoras());

@@ -134,18 +134,24 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReservaRecurrenteDto> findActivasPorDiaSemana(Integer diaSemana, LocalDate fecha) {
+    public List<ReservaRecurrenteDto> findActivasPorDiaSemana(String diaSemana, LocalDate fecha) {
         // First get all active reservations for the date
         List<ReservaRecurrente> reservasActivas = reservaRecurrenteRepository.findActivasEnFecha(fecha);
 
         // Then filter by day of week using Java
         return reservasActivas.stream()
                 .filter(reserva -> {
-                    Integer diasSemana = reserva.getDiasSemana();
-                    if (diasSemana == null) return false;
+                    String diasSemana = reserva.getDiasSemana();
+                    if (diasSemana == null || diasSemana.isEmpty()) return false;
 
-                    // Simple bitmask check in Java
-                    return (diasSemana & diaSemana) != 0;
+                    // Check if the day exists in the comma-separated string
+                    String[] diasArray = diasSemana.split(",");
+                    for (String dia : diasArray) {
+                        if (dia.trim().equalsIgnoreCase(diaSemana.trim())) {
+                            return true;
+                        }
+                    }
+                    return false;
                 })
                 .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, false))
                 .collect(Collectors.toList());
