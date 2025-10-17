@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -32,6 +33,7 @@ public class Organizacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_organizacion")
     private Long idOrganizacion;
+
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
@@ -70,6 +72,9 @@ public class Organizacion {
 
     @PrePersist
     public void prePersist() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID().toString();
+        }
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();
         }
