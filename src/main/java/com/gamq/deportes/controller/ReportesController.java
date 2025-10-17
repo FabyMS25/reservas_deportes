@@ -18,8 +18,8 @@ import java.util.Map;
 public class ReportesController {
     @Autowired
     private GeneradorReporte generadorReporte;
-
-    @RequestMapping(value="/ticket-reserva",method= RequestMethod.GET)
+    ///////////////reserva puntual por hora/////////////////
+    @RequestMapping(value="/ticket-reservap",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketReserve (
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
@@ -38,7 +38,7 @@ public class ReportesController {
             try {
                 generadorReporte.generarSqlReportePdf(
                         "ticket",
-                        "classpath:reportes/ticket.jrxml",
+                        "classpath:reportes/ticketPuntual.jrxml",
                         parametros,
                         response
                 );
@@ -52,11 +52,11 @@ public class ReportesController {
             System.out.println(e.getLocalizedMessage());
         }
     }
-    @RequestMapping(value="/lista-Reserva",method= RequestMethod.GET)
+    ///////////////reserva puntual por persona/////////////////
+    @RequestMapping(value="/ticket-reser-per",method= RequestMethod.GET)
     @ResponseBody
-    public void reporteListaReserva (
-            @RequestParam(name = "fecha_ini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
-            @RequestParam(name = "fecha_fin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+    public void reporteTicketReservePersona (
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
@@ -65,16 +65,14 @@ public class ReportesController {
             //String usuario = headers.getOrDefault("usuario", "Default");
             //ingreso almacen
             HashMap<String, Object> parametros = new HashMap<String,Object>();
-            parametros.put("fecha_ini",fecha_ini);
-            parametros.put("fecha_fin",fecha_fin);
-
+            parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
             parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
             try {
                 generadorReporte.generarSqlReportePdf(
-                        "Reserva",
-                        "classpath:reportes/Reserva.jrxml",
+                        "ticket",
+                        "classpath:reportes/ticketPuntualperson.jrxml",
                         parametros,
                         response
                 );
@@ -88,7 +86,98 @@ public class ReportesController {
             System.out.println(e.getLocalizedMessage());
         }
     }
-    @RequestMapping(value="/lista-pagos",method= RequestMethod.GET)
+
+    ///////////////reserva puntual por persona/////////////////
+    ///////////////reserva puntual por evento/////////////////
+    @RequestMapping(value="/ticket-reser-ev",method= RequestMethod.GET)
+    @ResponseBody
+    public void reporteTicketReservaEvento (
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("uuid", uuid);
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "ticket",
+                        "classpath:reportes/ticketPuntualEven.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    ///////////////reserva puntual por persona/////////////////
+    @RequestMapping(value="/lista-Reservas",method= RequestMethod.GET)
+    @ResponseBody
+    public void reporteListaReserva (
+            @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
+            @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+            @RequestParam(name = "tipocobro",required = false) String tipocobro,
+            @RequestParam(name = "estado",required = false) String estado,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            if (tipocobro.equals("TODO")){
+                tipocobro="%";
+            }else
+            {
+                tipocobro="%"+tipocobro+"%";
+            }
+            if (estado.equals("TODO")){
+                estado="%";
+            }else
+            {
+                estado="%"+estado+"%";
+            }
+
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("fechaini",fecha_ini);
+            parametros.put("fechafin",fecha_fin);
+            parametros.put("tipocobro",tipocobro);
+            parametros.put("estado",estado);
+
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "Reserva",
+                        "classpath:reportes/Listado.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+    @RequestMapping(value="/lista-Pagos",method= RequestMethod.GET)
     @ResponseBody
     public void reporteListaPagos (
             @RequestParam(name = "fecha_ini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
