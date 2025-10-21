@@ -75,17 +75,12 @@ public class EncargadoComplejoServiceImpl implements EncargadoComplejoService {
     }
 
     public EncargadoComplejoDto actualizarEncargadoComplejo(EncargadoComplejoDto encargadoComplejoDto){
-
         if (encargadoComplejoDto != null) {
             Optional<EncargadoComplejo> ENCARGADOCOMPLEJOOptional = encargadoComplejoRepository.findByUuid(encargadoComplejoDto.getUuid());
-
             if (ENCARGADOCOMPLEJOOptional.isPresent()) {
-
                 ComplejoDeportivo complejo = getComplejo(encargadoComplejoDto.getComplejoDto().getUuid());
-
                 EncargadoComplejo encargadoComplejoModificado = EncargadoComplejoMapper.toEntity(encargadoComplejoDto);
                 encargadoComplejoModificado.setIdEncargadoComplejo(ENCARGADOCOMPLEJOOptional.get().getIdEncargadoComplejo());
-
                 encargadoComplejoModificado.setComplejo(complejo);
                 return EncargadoComplejoMapper.toDto(encargadoComplejoRepository.save(encargadoComplejoModificado),true);
             } else {
