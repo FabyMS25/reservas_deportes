@@ -177,6 +177,167 @@ public class ReportesController {
             System.out.println(e.getLocalizedMessage());
         }
     }
+    ////////////////////////Listado Recurrentes//////////////////////////////
+    @RequestMapping(value="/lista-Recurrentes",method= RequestMethod.GET)
+    @ResponseBody
+    public void TicketReservaRecuPorSesion (
+            @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
+            @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+            @RequestParam(name = "tipocobro",required = false) String tipocobro,
+            @RequestParam(name = "estado",required = false) String estado,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            if (tipocobro.equals("TODO")){
+                tipocobro="%";
+            }else
+            {
+                tipocobro="%"+tipocobro+"%";
+            }
+            if (estado.equals("TODO")){
+                estado="%";
+            }else
+            {
+                estado="%"+estado+"%";
+            }
+
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("fechaini",fecha_ini);
+            parametros.put("fechafin",fecha_fin);
+            parametros.put("tipocobro",tipocobro);
+            parametros.put("estado",estado);
+
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "ReservaRecuerrente",
+                        "classpath:reportes/ListadoRecu.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    ////////////////////////RECURRENTES POR Sesion//////////////////////////////
+    @RequestMapping(value="/ticket-recuses",method= RequestMethod.GET)
+    @ResponseBody
+    public void TicketRecuSesion (
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("uuid", uuid);
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "Recurrente",
+                        "classpath:reportes/ticketRecu.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    ////////////////////////RECURRENTES POR PERSONA//////////////////////////////
+    @RequestMapping(value="/ticket-recuper",method= RequestMethod.GET)
+    @ResponseBody
+    public void ticketRecuPer (
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("uuid", uuid);
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "Recurrente",
+                        "classpath:reportes/ticketRecuPer.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
+    @RequestMapping(value="/ticket-recumes",method= RequestMethod.GET)
+    @ResponseBody
+    public void ticketRecuMes (
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            //usuario
+            //String usuario = headers.getOrDefault("usuario", "Default");
+            //ingreso almacen
+            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            parametros.put("uuid", uuid);
+            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            try {
+                generadorReporte.generarSqlReportePdf(
+                        "Recurrente",
+                        "classpath:reportes/ticketRecumen.jrxml",
+                        parametros,
+                        response
+                );
+            } catch (SQLException ex) {
+                response.setStatus(500);
+                throw new RuntimeException(ex);
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
     @RequestMapping(value="/lista-Pagos",method= RequestMethod.GET)
     @ResponseBody
     public void reporteListaPagos (
