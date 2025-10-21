@@ -3,6 +3,7 @@ package com.gamq.deportes.service.implement;
 import com.gamq.deportes.dto.mapper.HorarioFijoMapper;
 import com.gamq.deportes.dto.HorarioFijoDto;
 import com.gamq.deportes.model.CampoDeportivo;
+import com.gamq.deportes.model.ComplejoDeportivo;
 import com.gamq.deportes.model.HorarioFijo;
 import com.gamq.deportes.repository.CampoDeportivoRepository;
 import com.gamq.deportes.repository.HorarioFijoRepository;
@@ -52,7 +53,6 @@ public class horarioFijoServiceImpl implements horarioFijoService {
         }
     }
     @Override
-
     public HorarioFijoDto crearHorario(HorarioFijoDto horarioDto){
         if (horarioDto != null) {
             HorarioFijo newHorario = HorarioFijoMapper.toEntity(horarioDto);
@@ -70,11 +70,13 @@ public class horarioFijoServiceImpl implements horarioFijoService {
         if (horarioDto != null) {
             Optional<HorarioFijo> horarioOptional = horarioRepository.findByUuid(horarioDto.getUuid());
             if (horarioOptional.isPresent()) {
+                CampoDeportivo campo = canchasRepository.findByUuid(horarioDto.getCampoDeportivoDto().getUuid())
+                        .orElseThrow(() -> new NotFoundException(COMPLEJO, horarioDto.getCampoDeportivoDto().getUuid()));
                 HorarioFijo horarioModificado = HorarioFijoMapper.toEntity(horarioDto);
-//                horarioModificado.setIdHorario(horarioOptional.get().getIdHorario());
-                Optional<CampoDeportivo> cancha=canchasRepository.findByUuid(horarioDto.getCampoDeportivoDto().getUuid());
-                if (cancha.isPresent())
-                    horarioModificado.setCampoDeportivo(cancha.get());
+                horarioModificado.setIdHorarioFijo(horarioOptional.get().getIdHorarioFijo());
+//                Optional<CampoDeportivo> cancha=canchasRepository.findByUuid(horarioDto.getCampoDeportivoDto().getUuid());
+//                if (cancha.isPresent())
+                horarioModificado.setCampoDeportivo(campo);
                 return HorarioFijoMapper.toDto(horarioRepository.save(horarioModificado),true);
             } else {
                 throw new NotFoundException(HORARIOFIJO, horarioDto.getUuid());

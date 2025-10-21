@@ -76,14 +76,14 @@ public class OrganizacionServiceImpl implements OrganizacionService {
         }
 
         return organizaciones.stream()
-                .map(organizacion -> OrganizacionMapper.toDto(organizacion, false))
+                .map(organizacion -> OrganizacionMapper.toDto(organizacion, true))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public Page<OrganizacionDto> obtenerOrganizaciones(Pageable pageable) {
         return organizacionRepository.findAll(pageable)
-                .map(organizacion -> OrganizacionMapper.toDto(organizacion, false));
+                .map(organizacion -> OrganizacionMapper.toDto(organizacion, true));
     }
 
     @Override

@@ -66,11 +66,11 @@ public class Contribuyente {
 
     @Column(name = "nombre", nullable = false, length = 250)
     private String nombre;
-    @Column(name = "primer_apellido", nullable = false, length = 250)
+    @Column(name = "primer_apellido", nullable = false, length = 100)
     private String primerApellido;
-    @Column(name = "segundo_apellido", length = 250)
+    @Column(name = "segundo_apellido", length = 100)
     private String segundoApellido;
-    @Column(name = "apellido_esposo", length = 250)
+    @Column(name = "apellido_esposo", length = 100)
     private String apellidoEsposo;
     @Column(name = "estado_civil", length = 5)
     private String estadoCivil; // SO, CA, VI, DI
@@ -83,7 +83,7 @@ public class Contribuyente {
     private String telefono;
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
-    @Column(name = "direccion",  length = 100)
+    @Column(name = "direccion",  length = 250)
     private String direccion;
 
     // RUAT Status

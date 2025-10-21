@@ -74,6 +74,7 @@ public class horarioExcepcionServiceImpl implements horarioExcepcionService {
                 HorarioExcepcion horarioModificado = HorarioExcepcionMapper.toEntity(horarioDto);
                 Optional<CampoDeportivo> cancha=canchasRepository.findByUuid(horarioDto.getCampoDeportivoDto().getUuid());
                 if (cancha.isPresent())
+                    horarioModificado.setIdHorarioExcepcion(horarioOptional.get().getIdHorarioExcepcion());
                     horarioModificado.setCampoDeportivo(cancha.get());
 
 
