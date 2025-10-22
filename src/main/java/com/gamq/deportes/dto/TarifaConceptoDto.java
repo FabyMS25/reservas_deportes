@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -26,7 +27,9 @@ public class TarifaConceptoDto {
     private LocalDateTime fechaCreacion;
 
     private String concepto;
-    private String tipo; // porcentaje, fijo
+    private String tipo; // porcentaje, fijo, por_hora
+    private LocalTime desde;
+    private LocalTime hasta;
     private BigDecimal valor;
     private Boolean activo = true;
 

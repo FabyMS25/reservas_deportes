@@ -24,14 +24,14 @@ public class TarifaMapper {
         tarifaDto.setTipoCobro(tarifa.getTipoCobro());
         tarifaDto.setFrecuencia(tarifa.getFrecuencia());
         tarifaDto.setSesionesIncluidas(tarifa.getSesionesIncluidas());
-
+        if (tarifa.getConceptos() != null) {
+            tarifaDto.setConceptosDtos(tarifa.getConceptos().stream()
+                    .map(TarifaConceptoMapper::toDto)
+                    .collect(Collectors.toList()));
+        }
         if (includeRelations) {
             tarifaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(tarifa.getCampoDeportivo(), true));
-            if (tarifa.getConceptos() != null) {
-                tarifaDto.setConceptosDtos(tarifa.getConceptos().stream()
-                        .map(TarifaConceptoMapper::toDto)
-                        .collect(Collectors.toList()));
-            }
+
         }
         if (tarifa.getClasificadorRuat() != null) {
             tarifaDto.setClasificadorRuatDto(ClasificadorRuatMapper.toDto(tarifa.getClasificadorRuat()));

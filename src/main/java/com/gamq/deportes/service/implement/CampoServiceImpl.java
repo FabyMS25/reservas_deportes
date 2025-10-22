@@ -429,17 +429,50 @@ public class CampoServiceImpl implements CampoService {
     }
 
     private void actualizarTarifaConceptos(Tarifa tarifa, List<TarifaConceptoDto> conceptosDtoList) {
-        // Soft delete all existing conceptos
-        if (tarifa.getConceptos() != null) {
-            for (TarifaConcepto concepto : tarifa.getConceptos()) {
-                concepto.setEstado(true);
-                tarifaConceptoRepository.save(concepto);
+        if (conceptosDtoList == null) {
+            return;
+        }
+
+        // Build map of incoming concepto UUIDs
+        Map<String, TarifaConceptoDto> conceptosDtoMap = new HashMap<>();
+        for (TarifaConceptoDto dto : conceptosDtoList) {
+            if (dto.getUuid() != null && !dto.getUuid().isEmpty()) {
+                conceptosDtoMap.put(dto.getUuid(), dto);
             }
         }
 
-        // Create new conceptos
-        if (conceptosDtoList != null && !conceptosDtoList.isEmpty()) {
-            crearTarifaConceptos(tarifa, conceptosDtoList);
+        // Process existing conceptos
+        List<TarifaConcepto> conceptosToDelete = new ArrayList<>();
+        if (tarifa.getConceptos() != null) {
+            for (TarifaConcepto conceptoExistente : tarifa.getConceptos()) {
+                if (conceptosDtoMap.containsKey(conceptoExistente.getUuid())) {
+                    // UPDATE existing concepto
+                    TarifaConceptoDto dto = conceptosDtoMap.get(conceptoExistente.getUuid());
+                    TarifaConceptoMapper.updateEntityFromDto(dto, conceptoExistente);
+                    tarifaConceptoRepository.save(conceptoExistente);
+                    conceptosDtoMap.remove(conceptoExistente.getUuid()); // Remove from map
+                } else {
+                    // Mark for soft delete (not in the incoming list)
+                    conceptosToDelete.add(conceptoExistente);
+                }
+            }
+        }
+
+        // Soft delete conceptos not in the incoming list
+        for (TarifaConcepto concepto : conceptosToDelete) {
+            concepto.setEstado(true);
+            tarifaConceptoRepository.save(concepto);
+        }
+
+        // CREATE new conceptos (remaining in map are new)
+        List<TarifaConceptoDto> nuevosConceptos = new ArrayList<>();
+        for (TarifaConceptoDto dto : conceptosDtoList) {
+            if (dto.getUuid() == null || dto.getUuid().isEmpty() || conceptosDtoMap.containsKey(dto.getUuid())) {
+                nuevosConceptos.add(dto);
+            }
+        }
+        if (!nuevosConceptos.isEmpty()) {
+            crearTarifaConceptos(tarifa, nuevosConceptos);
         }
     }
 

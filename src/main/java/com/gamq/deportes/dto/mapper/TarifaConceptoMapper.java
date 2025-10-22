@@ -15,6 +15,8 @@ public class TarifaConceptoMapper {
 
         dto.setConcepto(tarifaConcepto.getConcepto());
         dto.setTipo(tarifaConcepto.getTipo());
+        dto.setDesde(tarifaConcepto.getDesde());
+        dto.setHasta(tarifaConcepto.getHasta());
         dto.setValor(tarifaConcepto.getValor());
         dto.setActivo(tarifaConcepto.getActivo());
 
@@ -29,12 +31,7 @@ public class TarifaConceptoMapper {
         tarifaConcepto.setEstado(dto.isEstado());
         tarifaConcepto.setFechaCreacion(dto.getFechaCreacion());
 
-        tarifaConcepto.setConcepto(dto.getConcepto());
-        tarifaConcepto.setTipo(dto.getTipo());
-        tarifaConcepto.setValor(dto.getValor());
-        tarifaConcepto.setActivo(dto.getActivo());
-
-        return tarifaConcepto;
+        return updateEntityFromDto(dto, tarifaConcepto);
     }
 
     public static TarifaConcepto updateEntityFromDto(TarifaConceptoDto dto, TarifaConcepto tarifaConcepto) {
@@ -42,6 +39,8 @@ public class TarifaConceptoMapper {
 
         tarifaConcepto.setConcepto(dto.getConcepto());
         tarifaConcepto.setTipo(dto.getTipo());
+        tarifaConcepto.setDesde(dto.getDesde());
+        tarifaConcepto.setHasta(dto.getHasta());
         tarifaConcepto.setValor(dto.getValor());
         tarifaConcepto.setActivo(dto.getActivo());
 

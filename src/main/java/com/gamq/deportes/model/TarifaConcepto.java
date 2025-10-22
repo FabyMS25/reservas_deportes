@@ -41,7 +41,11 @@ public class TarifaConcepto {
     @Column(name = "concepto", nullable = false, length = 50)
     private String concepto; // energia, limpieza, recargo_nocturno, recargo_fin_semana
     @Column(name = "tipo", nullable = false, length = 20)
-    private String tipo; // porcentaje, fijo
+    private String tipo; // porcentaje, fijo , por_hora
+    @Column(name = "desde")
+    private LocalTime desde;
+    @Column(name = "hasta")
+    private LocalTime hasta;
     @Column(name = "valor", nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
     @Column(name = "activo", columnDefinition = "BOOLEAN DEFAULT true")
