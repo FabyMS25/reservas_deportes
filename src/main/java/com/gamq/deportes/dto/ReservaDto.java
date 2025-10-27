@@ -22,7 +22,7 @@ import java.util.List;
 @ToString
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ReservaDto {
+public class    ReservaDto {
     private Long idReserva;
     private String uuid;
     private boolean estado;

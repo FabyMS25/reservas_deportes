@@ -232,12 +232,9 @@ public class ReservaServiceImpl implements ReservaService {
             Organizacion organizacion = getOrganizacion(reservaDto.getOrganizacionDto().getUuid());
             nuevaReserva.setOrganizacion(organizacion);
         }
-
-        // Set default values
         nuevaReserva.setFechaCreacion(LocalDateTime.now());
         nuevaReserva.setFechaActualizacion(LocalDateTime.now());
 
-        // Generate reservation number if not provided
         if (nuevaReserva.getNumeroReserva() == null) {
             nuevaReserva.setNumeroReserva(generarNumeroReserva());
         }
@@ -251,7 +248,6 @@ public class ReservaServiceImpl implements ReservaService {
         if ("recurrente".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaRecurrenteDto() != null) {
             ReservaRecurrente recurrente = ReservaRecurrenteMapper.toEntity(reservaDto.getReservaRecurrenteDto(), false);
 
-            // Handle Tablero - save it first if it's new
             if (recurrente.getTablero() != null && recurrente.getTablero().getIdTablero() == null) {
                 Tablero tableroGuardado = tableroRepository.save(recurrente.getTablero());
                 recurrente.setTablero(tableroGuardado);
@@ -299,7 +295,6 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaExistente.setOrganizacion(organizacion);
             }
 
-            // Update timestamp
             reservaExistente.setFechaActualizacion(LocalDateTime.now());
 
             Reserva reservaActualizada = reservaRepository.save(reservaExistente);
@@ -315,7 +310,7 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
 
-        reserva.setEstadoReserva("APROBADA");
+        reserva.setEstadoReserva("PENDIENTE");
         reserva.setEstadoValidacion("APROBADA");
         reserva.setAprobadoPor(aprobadoPor);
         reserva.setFechaAprobacion(LocalDateTime.now());
@@ -331,7 +326,7 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
 
-        reserva.setEstadoReserva("RECHAZADA");
+//        reserva.setEstadoReserva("RECHAZADA");
         reserva.setEstadoValidacion("RECHAZADA");
         reserva.setMotivoRechazo(motivoRechazo);
         reserva.setAprobadoPor(aprobadoPor);
