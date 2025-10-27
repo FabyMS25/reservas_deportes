@@ -11,27 +11,57 @@
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<parameter name="fechaini" class="java.util.Date"/>
 	<parameter name="fechafin" class="java.sql.Date"/>
 	<parameter name="tipocobro" class="java.lang.String"/>
 	<parameter name="estado" class="java.lang.String"/>
-	<parameter name="logo64" class="java.lang.String">
+	<parameter name="logo64" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
 	</parameter>
+	<parameter name="cancha" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[select  RE.uuid,tipo_reserva,rp.categoria,re.fecha_creacion,fecha_reserva,fecha_uso,hora_inicio,estado_reserva, telefono_principal as tel,
-		hora_fin,numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp, TA.descripcion, TA.precio_base,
-		TA.tipo_cobro , estado_reserva,
-		RP.cantidad_personas as per,	(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, con.numero_documento as ci, Com.nombre as cancha,ubicacion
-		from reservas as RE
-		join campos_deportivos as ca on ca.id_campo = re.id_campo
-		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
-		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
-		join reservas_puntuales as RP on rp.id_reserva = re.id_reserva 
-		join tarifas as TA on Ta.id_tarifa= re.id_tarifa
-		where fecha_uso between $P{fechaini} and $P{fechafin}
-		and TA.tipo_cobro LIKE $P{tipocobro} 
-		and estado_reserva like $P{estado}]]>
+		<![CDATA[SELECT RE.uuid,
+	RE.tipo_reserva,
+	RP.categoria,
+	RE.fecha_creacion,
+	RE.fecha_reserva,
+	RP.fecha_uso,
+	RP.hora_inicio,
+	RE.estado_reserva,
+	COM.telefono_principal AS tel,
+	RP.hora_fin,
+	RE.numero_tasa,
+	RE.monto_total,
+	RE.numero_reserva,
+	ca.codigo,
+	RE.tipo_reserva,
+	COM.nombre || ' ' || ca.nombre AS comp,
+	TA.descripcion,
+	TA.precio_base,
+	TA.tipo_cobro,
+	RE.estado_reserva,
+	RP.cantidad_personas AS per,
+	CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido AS contri,
+	CON.numero_documento AS ci,
+	COM.nombre AS cancha,
+	COM.ubicacion
+FROM reservas AS RE
+	join campos_deportivos AS ca ON 
+	 ca.id_campo = RE.id_campo 
+	join complejos_deportivos AS COM ON 
+	 COM.id_complejo = ca.id_complejo 
+	join contribuyentes AS CON ON 
+	 CON.id_contribuyente = RE.id_contribuyente 
+	join reservas_puntuales AS RP ON 
+	 RP.id_reserva = RE.id_reserva 
+	join tarifas AS TA ON 
+	 TA.id_tarifa = RE.id_tarifa 
+WHERE 
+	 RP.fecha_uso BETWEEN $P{fechaini} AND $P{fechafin} 
+	 AND TA.tipo_cobro LIKE $P{tipocobro} 
+	 AND RE.estado_reserva LIKE $P{estado}
+	 AND COM.nombre LIKE  $P{cancha} ]]>
 	</queryString>
 	<field name="fecha_uso" class="java.sql.Date"/>
 	<field name="hora_inicio" class="java.sql.Time"/>
@@ -76,7 +106,7 @@
 						<bottomPen lineWidth="0.75"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="8" isBold="true"/>
+						<font size="10" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$V{Subtotal_Group}]]></textFieldExpression>
 				</textField>
@@ -399,25 +429,25 @@
 	</pageFooter>
 	<summary>
 		<band height="59" splitType="Stretch">
-			<textField>
-				<reportElement x="515" y="10" width="55" height="20" uuid="01d3bb71-39d7-41be-a5d4-63544bfb1ffc"/>
+			<textField pattern="#,###.###;(#,###.###-)">
+				<reportElement x="515" y="10" width="63" height="20" uuid="01d3bb71-39d7-41be-a5d4-63544bfb1ffc"/>
 				<box>
 					<pen lineWidth="1.5" lineStyle="Solid"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{monto_total1}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="460" y="10" width="55" height="20" uuid="393544f1-60ca-4e83-8ba6-8f0da632b95d"/>
+				<reportElement x="445" y="10" width="70" height="20" uuid="393544f1-60ca-4e83-8ba6-8f0da632b95d"/>
 				<box>
 					<pen lineWidth="1.5" lineStyle="Solid"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12" isBold="true"/>
 				</textElement>
-				<text><![CDATA[TOTAL]]></text>
+				<text><![CDATA[TOTAL Bs.]]></text>
 			</staticText>
 		</band>
 	</summary>

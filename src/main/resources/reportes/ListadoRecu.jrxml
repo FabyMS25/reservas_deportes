@@ -11,6 +11,7 @@
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<parameter name="fechaini" class="java.sql.Date"/>
 	<parameter name="fechafin" class="java.sql.Date"/>
 	<parameter name="tipocobro" class="java.lang.String"/>
@@ -18,6 +19,7 @@
 	<parameter name="logo64" class="java.lang.String">
 		<defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
 	</parameter>
+	<parameter name="cancha" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select  RE.uuid,tipo_reserva,rp.categoria,re.fecha_creacion,fecha_reserva,  fecha_aprobacion,rp.fecha_inicio, estado_reserva, telefono_principal as tel,
 		Rp.fecha_fin,numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp, TA.descripcion, TA.precio_base,
@@ -32,7 +34,8 @@
 		join tarifas as TA on Ta.id_tarifa= re.id_tarifa
 		where fecha_reserva between $P{fechaini} and $P{fechafin}
 		and TA.tipo_cobro LIKE $P{tipocobro} 
-		and estado_reserva like $P{estado}]]>
+		and estado_reserva like $P{estado}
+		and  COM.nombre like  $P{cancha}]]>
 	</queryString>
 	<field name="fecha_reserva" class="java.sql.Date"/>
 	<field name="fecha_creacion" class="java.sql.Date"/>
@@ -401,25 +404,25 @@
 	</pageFooter>
 	<summary>
 		<band height="59" splitType="Stretch">
-			<textField>
-				<reportElement x="515" y="10" width="55" height="20" uuid="01d3bb71-39d7-41be-a5d4-63544bfb1ffc"/>
+			<textField pattern="#,###.###;(#,###.###-)">
+				<reportElement x="515" y="10" width="65" height="20" uuid="01d3bb71-39d7-41be-a5d4-63544bfb1ffc"/>
 				<box>
 					<pen lineWidth="1.5" lineStyle="Solid"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="11" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{monto_total1}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="460" y="10" width="55" height="20" uuid="393544f1-60ca-4e83-8ba6-8f0da632b95d"/>
+				<reportElement x="450" y="10" width="65" height="20" uuid="393544f1-60ca-4e83-8ba6-8f0da632b95d"/>
 				<box>
 					<pen lineWidth="1.5" lineStyle="Solid"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12" isBold="true"/>
 				</textElement>
-				<text><![CDATA[TOTAL]]></text>
+				<text><![CDATA[TOTAL Bs.]]></text>
 			</staticText>
 		</band>
 	</summary>

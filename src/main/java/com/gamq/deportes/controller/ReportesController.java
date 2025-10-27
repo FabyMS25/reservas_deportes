@@ -131,6 +131,7 @@ public class ReportesController {
             @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
             @RequestParam(name = "tipocobro",required = false) String tipocobro,
             @RequestParam(name = "estado",required = false) String estado,
+            @RequestParam(name = "cancha",required = false) String cancha,
             @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
@@ -150,13 +151,19 @@ public class ReportesController {
             {
                 estado="%"+estado+"%";
             }
+            if (cancha.equals("TODO")){
+                cancha="%";
+            }else
+            {
+                cancha="%"+cancha+"%";
+            }
 
             HashMap<String, Object> parametros = new HashMap<String,Object>();
             parametros.put("fechaini",fecha_ini);
             parametros.put("fechafin",fecha_fin);
             parametros.put("tipocobro",tipocobro);
             parametros.put("estado",estado);
-
+            parametros.put("cancha",cancha);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
             parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
@@ -185,6 +192,7 @@ public class ReportesController {
             @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
             @RequestParam(name = "tipocobro",required = false) String tipocobro,
             @RequestParam(name = "estado",required = false) String estado,
+            @RequestParam(name = "cancha",required = false) String cancha,
             @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
@@ -204,13 +212,19 @@ public class ReportesController {
             {
                 estado="%"+estado+"%";
             }
+            if (cancha.equals("TODO")){
+                cancha="%";
+            }else
+            {
+                cancha="%"+cancha+"%";
+            }
 
             HashMap<String, Object> parametros = new HashMap<String,Object>();
             parametros.put("fechaini",fecha_ini);
             parametros.put("fechafin",fecha_fin);
             parametros.put("tipocobro",tipocobro);
             parametros.put("estado",estado);
-
+            parametros.put("cancha",cancha);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
             parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
@@ -359,8 +373,8 @@ public class ReportesController {
             parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
             try {
                 generadorReporte.generarSqlReportePdf(
-                        "pago",
-                        "classpath:reportes/pago.jrxml",
+                        "Pagos",
+                        "classpath:reportes/listpago.jrxml",
                         parametros,
                         response
                 );
