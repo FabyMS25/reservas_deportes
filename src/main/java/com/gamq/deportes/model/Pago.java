@@ -47,7 +47,7 @@ public class Pago {
     @Column(name = "forma_pago", length = 150)
     private String formaPago;
     @Column(name = "fecha_pago", length = 50) // DD/MM/YYYY from RUAT
-    private String fechaPago;
+    private Date fechaPago;
     @Column(name = "entidad_financiera", length = 250)
     private String entidadFinanciera;
     @Column(name = "monto_pagado", precision = 10, scale = 2)

@@ -30,7 +30,7 @@ public class PagoDto {
     private String tipoTasa = "TO";
     private String folio;
     private String formaPago;
-    private String fechaPago; // DD/MM/YYYY format
+    private Date fechaPago; // DD/MM/YYYY format
     private String entidadFinanciera;
     private BigDecimal montoPagado;
     private String observaciones;
