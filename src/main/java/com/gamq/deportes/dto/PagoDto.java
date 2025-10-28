@@ -38,5 +38,4 @@ public class PagoDto {
     private LocalDateTime ultimaConsulta;
     private String respuestaCompletaRuat;
     private ReservaDto reservaDto;
-
 }

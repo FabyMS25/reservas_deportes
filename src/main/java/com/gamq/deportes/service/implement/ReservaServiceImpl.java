@@ -55,6 +55,9 @@ public class ReservaServiceImpl implements ReservaService {
     @Autowired
     private TableroRepository tableroRepository;
 
+    @Autowired
+    private ReservationNumberService reservationNumberService;
+
     @Override
     @Transactional(readOnly = true)
     public ReservaDto findByUuid(String uuid) {
@@ -210,6 +213,12 @@ public class ReservaServiceImpl implements ReservaService {
                 .collect(Collectors.toList());
     }
 
+    private String generarNumeroReserva() {
+//        return "RES-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
+        return reservationNumberService.findNextAvailableReservationNumber();
+    }
+
+
     @Override
     @Transactional
     public ReservaDto crearReserva(ReservaDto reservaDto) {
@@ -217,17 +226,42 @@ public class ReservaServiceImpl implements ReservaService {
             throw new NullReferenceException(RESERVA);
         }
 
-        // Validate and get related entities
         CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
         Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
         Tarifa tarifa = getTarifa(reservaDto.getTarifaDto().getUuid());
+
+        // Handle reservation number - NOW IT'S REQUIRED FROM FRONTEND
+        String numeroReserva = reservaDto.getNumeroReserva();
+        boolean isUserProvided = false;
+
+        if (numeroReserva != null && !numeroReserva.trim().isEmpty()) {
+            // Validate user-provided number format
+            if (!reservationNumberService.isReservationNumberValid(numeroReserva)) {
+                throw new IllegalArgumentException("Formato de número de reserva inválido. Debe ser: 0010/25");
+            }
+
+            // Check if number is available
+            if (!reservationNumberService.isReservationNumberAvailable(numeroReserva)) {
+                throw new IllegalArgumentException("El número de reserva ya está en uso: " + numeroReserva);
+            }
+
+            isUserProvided = true;
+        } else {
+            // Generate automatic number if not provided
+            // But ideally frontend should pre-generate it
+            numeroReserva = reservationNumberService.findNextAvailableReservationNumber();
+            isUserProvided = false;
+        }
 
         Reserva nuevaReserva = ReservaMapper.toEntity(reservaDto);
         nuevaReserva.setCampoDeportivo(campoDeportivo);
         nuevaReserva.setContribuyente(contribuyente);
         nuevaReserva.setTarifa(tarifa);
+        nuevaReserva.setNumeroReserva(numeroReserva);
+        // Add this field to track if it was user-provided or auto-generated
+//        nuevaReserva.setNumeroReservaAutomatico(!isUserProvided);
 
-        // Set organizacion if provided
+
         if (reservaDto.getOrganizacionDto() != null && reservaDto.getOrganizacionDto().getUuid() != null) {
             Organizacion organizacion = getOrganizacion(reservaDto.getOrganizacionDto().getUuid());
             nuevaReserva.setOrganizacion(organizacion);
@@ -404,9 +438,4 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }
 
-    private String generarNumeroReserva() {
-        // Implement your reservation number generation logic
-        // Example: "RES-" + timestamp + random digits
-        return "RES-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
-    }
 }

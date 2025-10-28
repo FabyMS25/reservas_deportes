@@ -228,4 +228,11 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r WHERE r.estadoReserva = 'PENDIENTE' AND r.estadoValidacion = 'PENDIENTE'")
     List<Reserva> findPendientesDeAprobacion();
+
+    // Add these methods to your ReservaRepository
+    @Query("SELECT r.numeroReserva FROM Reserva r WHERE r.numeroReserva LIKE :yearPattern ORDER BY r.numeroReserva DESC")
+    List<String> findLatestReservationNumbersByYear(@Param("yearPattern") String yearPattern);
+
+    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 1, 4) AS long)) FROM Reserva r WHERE r.numeroReserva LIKE :yearPattern")
+    Optional<Long> findMaxReservationNumberByYear(@Param("yearPattern") String yearPattern);
 }

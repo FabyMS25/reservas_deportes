@@ -66,12 +66,32 @@ public class PagoServiceImpl implements PagoService {
             throw new NoResultException(PAGOS);
         }
     }
+//    public PagoDto crearPago(PagoDto pagosDto){
+//
+//        if (pagosDto != null) {
+//
+//            Pago newPago = PagoMapper.toEntity(pagosDto);
+//            Reserva reservas= obtenerReserva(pagosDto.getReservaDto().getUuid());
+//            newPago.setReserva(reservas);
+//            return PagoMapper.toDto(pagosRepository.save(newPago), true);
+//        } else {
+//            throw new NullReferenceException(PAGOS);
+//        }
+//    }
     public PagoDto crearPago(PagoDto pagosDto){
-
         if (pagosDto != null) {
-
+            String reservaUuid = pagosDto.getReservaDto().getUuid();
+            String folio = pagosDto.getFolio();
+            String numeroTasa = pagosDto.getNumeroTasa();
+            Optional<Pago> existingPago = pagosRepository.findByFolioAndReservaUuid(folio, reservaUuid);
+            if (existingPago.isEmpty()) {
+                existingPago = pagosRepository.findByFolioAndNumeroTasa(folio, numeroTasa);
+            }
+            if (existingPago.isPresent()) {
+                return PagoMapper.toDto(existingPago.get(), true);
+            }
             Pago newPago = PagoMapper.toEntity(pagosDto);
-            Reserva reservas= obtenerReserva(pagosDto.getReservaDto().getUuid());
+            Reserva reservas = obtenerReserva(reservaUuid);
             newPago.setReserva(reservas);
             return PagoMapper.toDto(pagosRepository.save(newPago), true);
         } else {

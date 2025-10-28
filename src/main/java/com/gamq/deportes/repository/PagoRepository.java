@@ -19,4 +19,10 @@ public interface PagoRepository extends JpaRepository<Pago,Long> {
     @Query("SELECT pa FROM Pago pa WHERE pa.fechaPago BETWEEN :fechaIni AND :fechaFin")
     List<Pago> findByFechaPago(@Param("fechaIni") Date fechaIni, @Param("fechaFin") Date fechaFin);
 
+    @Query("SELECT p FROM Pago p WHERE p.folio = :folio AND p.reserva.uuid = :reservaUuid")
+    Optional<Pago> findByFolioAndReservaUuid(@Param("folio") String folio, @Param("reservaUuid") String reservaUuid);
+
+    // Find by folio and numeroTasa
+    @Query("SELECT p FROM Pago p WHERE p.folio = :folio AND p.numeroTasa = :numeroTasa")
+    Optional<Pago> findByFolioAndNumeroTasa(@Param("folio") String folio, @Param("numeroTasa") String numeroTasa);
 }

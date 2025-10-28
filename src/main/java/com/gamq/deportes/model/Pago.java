@@ -44,11 +44,11 @@ public class Pago {
 
     @Column(name = "folio", length = 50)
     private String folio;
-    @Column(name = "forma_pago", length = 100)
+    @Column(name = "forma_pago", length = 150)
     private String formaPago;
-    @Column(name = "fecha_pago", length = 20) // DD/MM/YYYY from RUAT
+    @Column(name = "fecha_pago", length = 50) // DD/MM/YYYY from RUAT
     private String fechaPago;
-    @Column(name = "entidad_financiera", length = 255)
+    @Column(name = "entidad_financiera", length = 250)
     private String entidadFinanciera;
     @Column(name = "monto_pagado", precision = 10, scale = 2)
     private BigDecimal montoPagado;
@@ -59,7 +59,7 @@ public class Pago {
 
     @Column(name = "ultima_consulta")
     private LocalDateTime ultimaConsulta;
-    @Column(name = "respuesta_completa_ruat", columnDefinition = "JSON")
+    @Column(name = "respuesta_completa_ruat", columnDefinition = "TEXT")
     private String respuestaCompletaRuat;
 
     //    @ManyToOne(cascade = CascadeType.ALL)

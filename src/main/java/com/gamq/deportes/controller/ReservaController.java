@@ -4,6 +4,7 @@ package com.gamq.deportes.controller;
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ReservaService;
+import com.gamq.deportes.service.implement.ReservationNumberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -22,6 +25,9 @@ public class ReservaController {
 
     @Autowired
     ReservaService reservaService;
+
+    @Autowired
+    ReservationNumberService reservationNumberService;
 
 //    @GetMapping()
 //    public Response obtenerTodasLasReservas() {
@@ -165,6 +171,80 @@ public class ReservaController {
             return Response.ok().setPayload(reservasDtos);
         } catch (Exception ex) {
             return Response.notFound().setPayload("Error al buscar reservas activas: " + ex.getMessage());
+        }
+    }
+
+
+    @Operation(summary = "Previsualizar próximo número de reserva")
+    @GetMapping("/numero-reserva/preview")
+    public Response previsualizarNumeroReserva() {
+        try {
+            String numeroReserva = reservationNumberService.previewNextReservationNumber();
+            return Response.ok().setPayload(numeroReserva);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al previsualizar número de reserva: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Generar próximo número de reserva disponible")
+    @GetMapping("/numero-reserva/generar")
+    public Response generarNumeroReserva() {
+        try {
+            String numeroReserva = reservationNumberService.findNextAvailableReservationNumber();
+            return Response.ok().setPayload(numeroReserva);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al generar número de reserva: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Validar número de reserva personalizado")
+    @PostMapping("/numero-reserva/validar")
+    public Response validarNumeroReservaPersonalizado(
+            @Parameter(description = "Número de reserva a validar")
+            @RequestBody String numeroReserva) {
+        try {
+            // Check format
+            if (!reservationNumberService.isReservationNumberValid(numeroReserva)) {
+                return Response.badRequest().setPayload("Formato inválido. Debe ser: 0010/25");
+            }
+
+            // Check if available
+            if (!reservationNumberService.isReservationNumberAvailable(numeroReserva)) {
+                return Response.unauthorized().setPayload("El número de reserva ya está en uso");
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", true);
+            response.put("message", "Número de reserva válido y disponible");
+            response.put("numeroReserva", numeroReserva);
+
+            return Response.ok().setPayload(response);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al validar número de reserva: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Verificar disponibilidad de número de reserva")
+    @GetMapping("/numero-reserva/verificar/{numeroReserva}")
+    public Response verificarDisponibilidadNumeroReserva(
+            @Parameter(description = "Número de reserva a verificar")
+            @PathVariable String numeroReserva) {
+        try {
+            boolean disponible = reservationNumberService.isReservationNumberAvailable(numeroReserva);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("disponible", disponible);
+            response.put("numeroReserva", numeroReserva);
+
+            if (!disponible) {
+                response.put("mensaje", "El número de reserva no está disponible");
+            } else {
+                response.put("mensaje", "El número de reserva está disponible");
+            }
+
+            return Response.ok().setPayload(response);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al verificar disponibilidad: " + ex.getMessage());
         }
     }
 
