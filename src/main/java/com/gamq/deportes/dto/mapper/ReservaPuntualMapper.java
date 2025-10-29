@@ -29,6 +29,7 @@ public class ReservaPuntualMapper {
         dto.setCantidadPersonas(reservaPuntual.getCantidadPersonas());
         dto.setCategoria(reservaPuntual.getCategoria());
         dto.setSuperficie(reservaPuntual.getSuperficie());
+        dto.setMes(reservaPuntual.getMes());
         dto.setObservaciones(reservaPuntual.getObservaciones());
 
         // Map parent reservation if requested and available
@@ -69,6 +70,7 @@ public class ReservaPuntualMapper {
         entity.setCantidadPersonas(reservaPuntualDto.getCantidadPersonas());
         entity.setCategoria(reservaPuntualDto.getCategoria());
         entity.setSuperficie(reservaPuntualDto.getSuperficie());
+        entity.setMes(reservaPuntualDto.getMes());
         entity.setObservaciones(reservaPuntualDto.getObservaciones());
 
         // Map parent reservation if requested and available

@@ -38,11 +38,11 @@ public class ReservaPuntual {
     private LocalDateTime fechaCreacion;
 
 
-    @Column(name = "fecha_uso", nullable = false)
+    @Column(name = "fecha_uso")
     private LocalDate fechaUso;
     @Column(name = "fecha_uso_real")
     private LocalDateTime fechaUsoReal;
-    @Column(name = "hora_inicio", nullable = false)
+    @Column(name = "hora_inicio")
     private LocalTime horaInicio;
     @Column(name = "hora_fin")
     private LocalTime horaFin;
@@ -56,7 +56,8 @@ public class ReservaPuntual {
     private String superficie;
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
-
+    @Column(name = "mes")
+    private String mes;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_reserva", nullable = false)
     private Reserva reserva;

@@ -34,7 +34,7 @@ public class ReportesController {
                 parametros.put("uuid", uuid);
                 //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-                parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "ticket",
@@ -68,7 +68,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "ticket",
@@ -104,7 +104,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "ticket",
@@ -166,7 +166,7 @@ public class ReportesController {
             parametros.put("cancha",cancha);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "Reserva",
@@ -227,7 +227,7 @@ public class ReportesController {
             parametros.put("cancha",cancha);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "ReservaRecuerrente",
@@ -262,7 +262,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "Recurrente",
@@ -297,7 +297,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "Recurrente",
@@ -332,7 +332,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "Recurrente",
@@ -370,7 +370,7 @@ public class ReportesController {
 
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
                         "Pagos",
@@ -388,8 +388,70 @@ public class ReportesController {
             System.out.println(e.getLocalizedMessage());
         }
     }
+/////////////////////Listado Ticket Mensual ///////////////////////////////////////////////////
+@RequestMapping(value="/lista-mensuales",method= RequestMethod.GET)
+@ResponseBody
+public void reporteListaMensuales (
+        @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
+        @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+        @RequestParam(name = "tipocobro",required = false) String tipocobro,
+        @RequestParam(name = "estado",required = false) String estado,
+        @RequestParam(name = "cancha",required = false) String cancha,
+        @RequestHeader Map<String, String> headers,
+        HttpServletResponse response
+) {
+    try {
+        //usuario
+        //String usuario = headers.getOrDefault("usuario", "Default");
+        //ingreso almacen
+        if (tipocobro.equals("TODO")){
+            tipocobro="%";
+        }else
+        {
+            tipocobro="%"+tipocobro+"%";
+        }
+        if (estado.equals("TODO")){
+            estado="%";
+        }else
+        {
+            estado="%"+estado+"%";
+        }
+        if (cancha.equals("TODO")){
+            cancha="%";
+        }else
+        {
+            cancha="%"+cancha+"%";
+        }
 
-    @RequestMapping(value="/ticket-pago",method= RequestMethod.GET)
+        HashMap<String, Object> parametros = new HashMap<String,Object>();
+        parametros.put("fechaini",fecha_ini);
+        parametros.put("fechafin",fecha_fin);
+        parametros.put("tipocobro",tipocobro);
+        parametros.put("estado",estado);
+        parametros.put("cancha",cancha);
+        //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+        //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+        parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+        try {
+            generadorReporte.generarSqlReportePdf(
+                    "Reservasmensuales",
+                    "classpath:reportes/ListadoMensual.jrxml",
+                    parametros,
+                    response
+            );
+        } catch (SQLException ex) {
+            response.setStatus(500);
+            throw new RuntimeException(ex);
+
+        }
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+        System.out.println(e.getLocalizedMessage());
+    }
+}
+////////////////////Ticket Mensual///////////////////////////////////////
+    @RequestMapping(value="/ticket-mensual",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketPago (
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
@@ -404,11 +466,11 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
-            parametros.put(JRParameter.REPORT_LOCALE, Locale.ENGLISH);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
-                        "ticketpago",
-                        "classpath:reportes/ticketpago.jrxml",
+                        "ticketmensual",
+                        "classpath:reportes/ticketmensual.jrxml",
                         parametros,
                         response
                 );
