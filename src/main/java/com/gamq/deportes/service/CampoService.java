@@ -11,7 +11,7 @@ public interface CampoService {
     CampoDeportivoDto findByUuid(String uuid);
     List<CampoDeportivoDto> findCampoByComplejo(String uuidComplejo);
     List<CampoDeportivoDto> obtenerCampos();
-    CampoDeportivoDto crearCampo(CampoDeportivoDto canchasDto);
+    CampoDeportivoDto crearCampo(CampoDeportivoDto campoDto);
     CampoDeportivoDto actualizarCampo(CampoDeportivoDto canchasDto);
     String eliminarCampos(String uuid);
 }

@@ -37,7 +37,7 @@ public class ReservaPuntualDto {
     private String categoria; //saved to identify later
     private String superficie; //saved to identify later
     private String observaciones;
-    private String mes;
+    private String periodo;
 
     private ReservaDto reservaDto;
 }

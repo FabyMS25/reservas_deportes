@@ -17,6 +17,12 @@ import java.util.Optional;
 @Repository
 public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,Long> {
 
+    @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.fechaCreacion < :expirationThreshold " +
+            "AND rp.reserva.estadoReserva = :estadoReserva")
+    List<ReservaPuntual> findExpiredPendingReservations(
+            @Param("expirationThreshold") LocalDateTime expirationThreshold,
+            @Param("estadoReserva") String estadoReserva);
+
     @Query("SELECT c FROM ReservaPuntual c WHERE c.uuid = ?1")
     Optional<ReservaPuntual> findByUuid(String uuid);
 

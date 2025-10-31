@@ -25,6 +25,18 @@ public class ReservaRecurrenteController {
     @Autowired
     private ReservaRecurrenteService reservaRecurrenteService;
 
+    @Operation(summary = "Verificar y actualizar reservas expiradas")
+    @PostMapping("/verificar-expiradas")
+    public Response verificarReservasExpiradas(
+            @Parameter(description = "Horas de timeout para expiración") @RequestParam int horasTimeout) {
+        try {
+            List<ReservaRecurrenteDto> updatedReservas = reservaRecurrenteService.checkAndUpdateExpiredReservations(horasTimeout);
+            return Response.ok().setPayload(updatedReservas);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
+        }
+    }
+
     @Operation(summary = "Obtener todas las reservas")
     @GetMapping()
     public Response obtenerReservas(

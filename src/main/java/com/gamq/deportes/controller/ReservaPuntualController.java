@@ -3,7 +3,9 @@ package com.gamq.deportes.controller;
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.service.ApiService;
 import com.gamq.deportes.service.ReservaPuntualService;
+import com.gamq.deportes.service.ReservaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +28,25 @@ public class ReservaPuntualController {
 
     @Autowired
     private ReservaPuntualService reservaPuntualService;
+
+    @Autowired
+    private ApiService ruatService;
+
+    @Autowired
+    private ReservaService reservaService;
+
+    @Operation(summary = "Verificar y actualizar reservas expiradas")
+    @PostMapping("/verificar-expiradas")
+    public Response verificarReservasExpiradas(
+            @Parameter(description = "Horas de timeout para expiración") @RequestParam int horasTimeout) {
+        try {
+
+            List<ReservaPuntualDto> updatedReservas = reservaPuntualService.checkAndUpdateExpiredReservations(horasTimeout);
+            return Response.ok().setPayload(updatedReservas);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
+        }
+    }
 
     @Operation(summary = "Obtener todas las reservas")
     @GetMapping()

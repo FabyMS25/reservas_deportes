@@ -14,6 +14,7 @@ import java.util.List;
 @Service
 public interface ReservaPuntualService {
 
+    List<ReservaPuntualDto> checkAndUpdateExpiredReservations(int horasTimeout);
     List<ReservaPuntualDto> obtenerReservas();
     Page<ReservaPuntualDto> obtenerReservas(Pageable pageable);
     ReservaPuntualDto findByUuid(String uuid);

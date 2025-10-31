@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +37,53 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Autowired
     private ReservaRepository reservaRepository;
+
+    @Override
+    @Transactional
+    public List<ReservaPuntualDto> checkAndUpdateExpiredReservations(int horasTimeout) {
+        LocalDateTime expirationThreshold = LocalDateTime.now().minusHours(horasTimeout);
+
+        System.out.println("=== DEBUG: Checking expired reservations ===");
+        System.out.println("Current time: " + LocalDateTime.now());
+        System.out.println("Expiration threshold: " + expirationThreshold);
+        System.out.println("Looking for reservations with estado: PENDIENTE");
+
+        List<ReservaPuntual> expiredReservas = reservaPuntualRepository
+                .findExpiredPendingReservations(expirationThreshold, "PENDIENTE");
+
+        System.out.println("Found " + expiredReservas.size() + " expired reservations");
+
+        List<ReservaPuntualDto> updatedReservas = new ArrayList<>();
+
+        for (ReservaPuntual reserva : expiredReservas) {
+            try {
+                System.out.println("Processing reservation: " + reserva.getReserva().getNumeroReserva());
+                System.out.println("Created at: " + reserva.getReserva().getFechaCreacion());
+                System.out.println("Current state: " + reserva.getReserva().getEstadoReserva());
+
+                // Store original state for comparison
+                String originalEstado = reserva.getReserva().getEstadoReserva();
+
+                reserva.getReserva().setEstadoReserva("EXPIRADA");
+                reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
+                reserva.getReserva().setFechaRechazo(LocalDateTime.now());
+
+                Reserva updatedReserva = reservaRepository.save(reserva.getReserva());
+                reserva.setReserva(updatedReserva);
+
+                if (!originalEstado.equals("EXPIRADA")) {
+                    updatedReservas.add(ReservaPuntualMapper.toDto(reserva, true));
+                    System.out.println("Successfully updated reservation to EXPIRADA");
+                }
+            } catch (Exception e) {
+                System.err.println("Error updating expired reserva: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("Total updated reservations: " + updatedReservas.size());
+        return updatedReservas;
+    }
 
     @Override
     public List<ReservaPuntualDto> obtenerReservas() {

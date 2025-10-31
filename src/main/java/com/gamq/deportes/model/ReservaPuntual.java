@@ -56,8 +56,8 @@ public class ReservaPuntual {
     private String superficie;
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
-    @Column(name = "mes")
-    private String mes;
+    @Column(name = "periodo")
+    private String periodo;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_reserva", nullable = false)
     private Reserva reserva;

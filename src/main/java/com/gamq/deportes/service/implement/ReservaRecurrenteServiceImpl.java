@@ -7,6 +7,7 @@ import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
 import com.gamq.deportes.model.Reserva;
+import com.gamq.deportes.model.ReservaPuntual;
 import com.gamq.deportes.model.ReservaRecurrente;
 import com.gamq.deportes.model.Tablero;
 import com.gamq.deportes.repository.ReservaRecurrenteRepository;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,6 +44,37 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
     @Autowired
     private TableroRepository tableroRepository;
+    @Override
+    @Transactional
+    public List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout) {
+        LocalDateTime expirationThreshold = LocalDateTime.now().minusHours(horasTimeout);
+
+        List<ReservaRecurrente> expiredReservas = reservaRecurrenteRepository
+                .findExpiredPendingReservations(expirationThreshold, "PENDIENTE");
+
+        List<ReservaRecurrenteDto> updatedReservas = new ArrayList<>();
+
+        for (ReservaRecurrente reserva : expiredReservas) {
+            try {
+                String originalEstado = reserva.getReserva().getEstadoReserva();
+                String contribuyenteUuid = reserva.getReserva().getContribuyente().getUuid();
+
+                reserva.getReserva().setEstadoReserva("EXPIRADA");
+                reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
+                reserva.getReserva().setFechaRechazo(LocalDateTime.now());
+
+                Reserva updatedReserva = reservaRepository.save(reserva.getReserva());
+                reserva.setReserva(updatedReserva);
+
+                if (!originalEstado.equals("EXPIRADA")) {
+                    updatedReservas.add(ReservaRecurrenteMapper.toDto(reserva, true));
+                }
+            } catch (Exception e) {
+                System.err.println("Error updating expired reserva: " + e.getMessage());
+            }
+        }
+        return updatedReservas;
+    }
 
     @Override
     public List<ReservaRecurrenteDto> obtenerReservas() {

@@ -29,7 +29,7 @@ public class ReservaPuntualMapper {
         dto.setCantidadPersonas(reservaPuntual.getCantidadPersonas());
         dto.setCategoria(reservaPuntual.getCategoria());
         dto.setSuperficie(reservaPuntual.getSuperficie());
-        dto.setMes(reservaPuntual.getMes());
+        dto.setPeriodo(reservaPuntual.getPeriodo());
         dto.setObservaciones(reservaPuntual.getObservaciones());
 
         // Map parent reservation if requested and available
@@ -70,10 +70,9 @@ public class ReservaPuntualMapper {
         entity.setCantidadPersonas(reservaPuntualDto.getCantidadPersonas());
         entity.setCategoria(reservaPuntualDto.getCategoria());
         entity.setSuperficie(reservaPuntualDto.getSuperficie());
-        entity.setMes(reservaPuntualDto.getMes());
+        entity.setPeriodo(reservaPuntualDto.getPeriodo());
         entity.setObservaciones(reservaPuntualDto.getObservaciones());
 
-        // Map parent reservation if requested and available
         if (includeReserva && reservaPuntualDto.getReservaDto() != null) {
             entity.setReserva(ReservaMapper.toEntity(reservaPuntualDto.getReservaDto()));
         }
@@ -81,7 +80,6 @@ public class ReservaPuntualMapper {
         return entity;
     }
 
-    // Method to update an existing entity from DTO (for partial updates)
     public static ReservaPuntual updateEntityFromDto(ReservaPuntualDto dto, ReservaPuntual entity) {
         if (dto == null || entity == null) {
             return entity;
@@ -96,6 +94,7 @@ public class ReservaPuntualMapper {
         entity.setCantidadPersonas(dto.getCantidadPersonas());
         entity.setCategoria(dto.getCategoria());
         entity.setSuperficie(dto.getSuperficie());
+        entity.setPeriodo(dto.getPeriodo());
         entity.setObservaciones(dto.getObservaciones());
 
         return entity;

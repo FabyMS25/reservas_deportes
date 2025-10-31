@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Service
 public interface ReservaRecurrenteService {
-
+    List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout);
     List<ReservaRecurrenteDto> obtenerReservas();
     Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable);
     ReservaRecurrenteDto findByUuid(String uuid);
