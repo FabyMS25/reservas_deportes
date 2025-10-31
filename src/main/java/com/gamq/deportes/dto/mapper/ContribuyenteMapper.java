@@ -36,7 +36,8 @@ public class ContribuyenteMapper {
         dto.setEstadoCivil(contribuyente.getEstadoCivil());
         dto.setFechaNacimiento(contribuyente.getFechaNacimiento());
         dto.setGenero(contribuyente.getGenero());
-
+        // Escuela Municipal
+        dto.setMatricula(contribuyente.getMatricula());
         // Contact Information
         dto.setTelefono(contribuyente.getTelefono());
         dto.setEmail(contribuyente.getEmail());
@@ -112,7 +113,8 @@ public class ContribuyenteMapper {
         contribuyente.setEstadoCivil(dto.getEstadoCivil());
         contribuyente.setFechaNacimiento(dto.getFechaNacimiento());
         contribuyente.setGenero(dto.getGenero());
-
+        // Escuela Municipal
+        contribuyente.setMatricula(dto.getMatricula());
         // Contact Information
         contribuyente.setTelefono(dto.getTelefono());
         contribuyente.setEmail(dto.getEmail());
@@ -208,7 +210,10 @@ public class ContribuyenteMapper {
         if (dto.getDescuentoAplicable() != null) {
             existing.setDescuentoAplicable(dto.getDescuentoAplicable());
         }
-
+        //Escuela Municipal
+        if(dto.getMatricula()!=null){
+            existing.setMatricula(dto.getMatricula());
+        }
         // Sanctions
         if (dto.getEstaSancionado() != null) {
             existing.setEstaSancionado(dto.getEstaSancionado());
@@ -237,6 +242,7 @@ public class ContribuyenteMapper {
         dto.setNombreCompleto(contribuyente.getNombreCompleto());
         dto.setNumeroDocumento(contribuyente.getNumeroDocumento());
         dto.setEstadoUsuario(contribuyente.getEstadoUsuario());
+        dto.setMatricula(contribuyente.getMatricula());
 //        dto.setNombreCompleto(contribuyente.getNombreCompleto());
 //        dto.setEstaActivo(contribuyente.estaActivo());
 

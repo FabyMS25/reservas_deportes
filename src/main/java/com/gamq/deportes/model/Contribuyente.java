@@ -79,6 +79,11 @@ public class Contribuyente {
     @Column(name = "genero", length = 5)
     private String genero; // M, F
 
+    ////////////////Escuela Municipal/////////
+    @Column(name = "matricula", length = 20)
+    private String matricula;
+
+
     @Column(name = "telefono", length = 20)
     private String telefono;
     @Column(name = "email", nullable = false, unique = true, length = 255)

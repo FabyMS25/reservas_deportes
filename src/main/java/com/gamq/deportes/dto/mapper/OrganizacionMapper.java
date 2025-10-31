@@ -24,6 +24,10 @@ public class OrganizacionMapper {
         dto.setNroNit(organizacion.getNroNit());
         dto.setActivo(organizacion.getActivo());
 
+        ///////Escuelas Minicpales ////////////
+        dto.setEntrenador(organizacion.getEntrenador());
+        dto.setDisciplina(organizacion.getDisciplina());
+
         if (includeRelations) {
             // Include representante (contribuyente)
             if (organizacion.getRepresentante() != null) {
@@ -59,6 +63,9 @@ public class OrganizacionMapper {
         organizacion.setNroNit(dto.getNroNit());
         organizacion.setActivo(dto.getActivo());
 
+        organizacion.setEntrenador(dto.getEntrenador());
+        organizacion.setDisciplina(dto.getDisciplina());
+
         return organizacion;
     }
 
@@ -74,6 +81,9 @@ public class OrganizacionMapper {
         organizacion.setPersoneriaJuridica(dto.getPersoneriaJuridica());
         organizacion.setNroNit(dto.getNroNit());
         organizacion.setActivo(dto.getActivo());
+
+        organizacion.setEntrenador(dto.getEntrenador());
+        organizacion.setDisciplina(dto.getDisciplina());
 
         return organizacion;
     }

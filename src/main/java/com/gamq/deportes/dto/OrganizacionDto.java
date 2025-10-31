@@ -39,6 +39,10 @@ public class OrganizacionDto {
     private String nroNit;
     private Boolean activo;
 
+
+    private String entrenador;
+    private String disciplina;
+
     private ContribuyenteDto representanteDto;
     private List<ReservaDto> reservasDtoList = new ArrayList<>();
 }

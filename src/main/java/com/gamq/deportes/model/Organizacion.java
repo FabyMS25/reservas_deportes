@@ -57,6 +57,11 @@ public class Organizacion {
     private String nroNit;
     @Column(name = "activo", columnDefinition = "BOOLEAN DEFAULT true")
     private Boolean activo = true;
+    ///////////Escuelas Municipales///////////////////
+    @Column(name = "entrenador", length = 100)
+    private String entrenador;
+    @Column(name = "disciplina", length = 100)
+    private String disciplina;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

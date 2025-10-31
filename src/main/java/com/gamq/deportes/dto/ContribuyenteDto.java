@@ -53,6 +53,10 @@ public class ContribuyenteDto {
     private LocalDate fechaNacimiento;
     private String genero; // M, F
 
+    ////////////Escuela Municipal////////
+    private String matricula;
+
+
     private String telefono;
     private String email;
     private String direccion;
