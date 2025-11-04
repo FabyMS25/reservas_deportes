@@ -3,6 +3,7 @@ package com.gamq.deportes.controller;
 
 import com.gamq.deportes.dto.ClasificadorRuatDto;
 import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.service.ClasificadorRuatService;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +47,19 @@ public class ClasificadorRuatController {
     }
 
     @PutMapping()
-    public Response actualizarClasificadorRuat(@RequestBody ClasificadorRuatDto ClasificadorRuatDto) {
-        try{
-            return Response.ok().setPayload(clasificadorRuatService.actualizarClasificador(ClasificadorRuatDto));
+    public Response actualizarClasificadorRuat(@RequestBody ClasificadorRuatDto clasificadorRuatDto) {
+        try {
+            return Response.ok().setPayload(clasificadorRuatService.actualizarClasificador(clasificadorRuatDto));
+        } catch (NotFoundException ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        } catch (RuntimeException ex) {
+            // Handle duplicate code and other runtime exceptions
+            if (ex.getMessage().contains("Ya existe un clasificador con el código")) {
+                return Response.duplicateEntity().setPayload(ex.getMessage());
+            }
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
         } catch (Exception ex) {
-            return  Response.unprocessableEntity().setPayload(ex.getMessage());
+            return Response.unprocessableEntity().setPayload("Error al actualizar el clasificador: " + ex.getMessage());
         }
     }
     @DeleteMapping("/{uuid}")

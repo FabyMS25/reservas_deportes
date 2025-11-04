@@ -9,6 +9,7 @@ import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,11 +112,27 @@ public class ClasificadorRuatServiceImpl implements ClasificadorRuatService {
         ClasificadorRuat clasificadorExistente = clasificadorRuatRepository.findByUuid(clasificadorDto.getUuid())
                 .orElseThrow(() -> new NotFoundException(CLASIFICADOR_RUAT, clasificadorDto.getUuid()));
 
+        // Only check for duplicate if the code is actually being changed
+        if (!clasificadorExistente.getCodigo().equals(clasificadorDto.getCodigo())) {
+            Optional<ClasificadorRuat> existingWithSameCode = clasificadorRuatRepository.findByCodigo(clasificadorDto.getCodigo());
+            if (existingWithSameCode.isPresent()) {
+                throw new RuntimeException("Ya existe un clasificador con el código: " + clasificadorDto.getCodigo());
+            }
+        }
+
         // Update clasificador information
         ClasificadorRuatMapper.updateEntityFromDto(clasificadorDto, clasificadorExistente);
 
-        ClasificadorRuat clasificadorActualizado = clasificadorRuatRepository.save(clasificadorExistente);
-        return ClasificadorRuatMapper.toDto(clasificadorActualizado);
+        try {
+            ClasificadorRuat clasificadorActualizado = clasificadorRuatRepository.save(clasificadorExistente);
+            return ClasificadorRuatMapper.toDto(clasificadorActualizado);
+        } catch (DataIntegrityViolationException ex) {
+            // Fallback: if our duplicate check failed, catch the database exception
+            if (ex.getMessage().contains("codigo") || ex.getMessage().contains("unique") || ex.getMessage().contains("duplicate")) {
+                throw new RuntimeException("Ya existe un clasificador con el código: " + clasificadorDto.getCodigo());
+            }
+            throw ex;
+        }
     }
 
     @Override
