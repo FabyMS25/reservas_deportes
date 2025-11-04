@@ -119,7 +119,7 @@ public class CampoDeportivo {
             this.fechaCreacion = LocalDateTime.now();
         }
         if (this.estadoActual == null) {
-            this.estadoActual = "activo";
+            this.estadoActual = "ACTIVO";
         }
     }
 

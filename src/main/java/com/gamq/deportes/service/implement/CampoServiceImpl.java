@@ -89,12 +89,18 @@ public class CampoServiceImpl implements CampoService {
             throw new NullReferenceException(CANCHAS);
         }
         validarCampoDto(campoDto);
+
         CampoDeportivo nuevoCampo = CampoDeportivoMapper.toEntity(campoDto);
         ComplejoDeportivo complejo = obtenerComplejo(campoDto.getComplejoDto().getUuid());
         Superficie superficie = obtenerSuperficie(campoDto.getSuperficieDto().getUuid());
+
         nuevoCampo.setComplejo(complejo);
         nuevoCampo.setSuperficie(superficie);
+
+        // Save the campo first
         CampoDeportivo campoGuardado = campoRepository.save(nuevoCampo);
+
+        // Create related entities
         if (campoDto.getTarifasDtoList() != null && !campoDto.getTarifasDtoList().isEmpty()) {
             crearTarifasParaCampo(campoGuardado, campoDto.getTarifasDtoList());
         }
@@ -104,9 +110,12 @@ public class CampoServiceImpl implements CampoService {
         if (campoDto.getHorariosExcepcionesDtoList() != null && !campoDto.getHorariosExcepcionesDtoList().isEmpty()) {
             crearHorariosExcepcionesParaCampo(campoGuardado, campoDto.getHorariosExcepcionesDtoList());
         }
-        CampoDeportivo campoCompleto = campoRepository.findByUuid(campoGuardado.getUuid())
-                .orElseThrow(() -> new NotFoundException(CANCHAS, campoGuardado.getUuid()));
-        return CampoDeportivoMapper.toDto(campoCompleto, true);
+
+        // Refresh the entity to get all relationships
+//        campoGuardado = campoRepository.findById(campoGuardado.getIdCampo())
+//                .orElseThrow(() -> new NotFoundException(CANCHAS, campoGuardado.getIdCampo()));
+
+        return CampoDeportivoMapper.toDto(campoGuardado, true);
     }
 
     @Transactional
