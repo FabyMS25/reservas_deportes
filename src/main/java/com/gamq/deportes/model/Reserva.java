@@ -11,9 +11,7 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,51 +32,61 @@ public class Reserva {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_reserva")
     private Long idReserva;
+
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
+
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
     @Column(name = "fecha_reserva", nullable = false)
     private LocalDateTime fechaReserva;
+
     @Column(name = "fecha_aprobacion")
     private LocalDateTime fechaAprobacion;
+
     @Column(name = "fecha_rechazo")
     private LocalDateTime fechaRechazo;
+
     @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
     private String motivoRechazo;
+
     @Column(name = "aprobado_por", length = 36)
     private String aprobadoPor;
+
     @Column(name = "estado_validacion", length = 20)
     private String estadoValidacion;
+
     @Column(name = "estado_reserva", nullable = false, length = 20)
     private String estadoReserva = "borrador";
+
     @Column(name = "tipo_reserva", nullable = false, length = 20)
     private String tipoReserva;
+
     @Column(name = "numero_reserva", unique = true, nullable = false, length = 50)
     private String numeroReserva;
+
     @Column(name = "numero_tasa", length = 50)
     private String numeroTasa;
+
     @Column(name = "monto_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal montoTotal;
+
     @Column(name = "clasificador_ruat_id", nullable = false)
     private String clasificadorRuatId;
-//    @Column(name = "categoria", nullable = false)
-//    private String categoria;
-//    @Column(name = "superficie", nullable = false)
-//    private String superficie;
-//    @Column(name = "total_personas", nullable = false)
-//    private int totalPersonas;
-//    @Column(name = "hora_entrada", nullable = false)
-//    private LocalTime horaEntrada;
-//    @Column(name = "hora_salida", nullable = false)
-//    private LocalTime horaSalida;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
+    @Column(name = "es_reserva_gratuita", columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean esReservaGratuita = false;
+
+    @Column(name = "motivo_gratuidad", columnDefinition = "TEXT")
+    private String motivoGratuidad;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_campo", nullable = false)
     private CampoDeportivo campoDeportivo;
@@ -92,7 +100,11 @@ public class Reserva {
     private Organizacion organizacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tarifa", nullable = false)
+    @JoinColumn(name = "id_estudiante_escuela")
+    private EstudianteEscuela estudianteEscuela;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tarifa")
     private Tarifa tarifa;
 
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -101,6 +113,8 @@ public class Reserva {
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ReservaRecurrente reservaRecurrente;
 
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ReservaPeriodo reservaPeriodo;
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Pago> pagosList = new ArrayList<>();
@@ -123,5 +137,13 @@ public class Reserva {
         if (this.estadoReserva == null) {
             this.estadoReserva = "borrador";
         }
+        if (this.esReservaGratuita == null) {
+            this.esReservaGratuita = false;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
     }
 }

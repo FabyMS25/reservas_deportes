@@ -38,43 +38,41 @@ public class ContribuyenteDto {
     private String estadoUsuario;
 
     // RUAT Integration
-    private String codigoContribuyente;
+    private String estadoRuat; // ACTIVO, BAJA from RUAT
+    private Boolean verificadoRuat = false;
+    private LocalDateTime fechaVerificacionRuat;
     private String tipoContribuyente; // NA=Natural, JU=Juridica
+    private String codigoContribuyente;
     private String tipoDocumento; // CI, CE
     private String numeroDocumento;
     private String expedido; // Department code 1-9
-    private String nroNit;
 
+    private String nroNit;
     private String nombre;
     private String primerApellido;
     private String segundoApellido;
     private String apellidoEsposo;
-    private String estadoCivil; // SO, CA, VI, DI
     private LocalDate fechaNacimiento;
+    private String estadoCivil; // SO, CA, VI, DI
     private String genero; // M, F
-
-    ////////////Escuela Municipal////////
-    private String matricula;
-
 
     private String telefono;
     private String email;
     private String direccion;
 
-    private String estadoRuat; // ACTIVO, BAJA from RUAT
-    private Boolean verificadoRuat = false;
-    private LocalDateTime fechaVerificacionRuat;
-//    private boolean forAsociacion;
     private Boolean esDeportistaElite = false;
-    private Boolean perteneceEscuelaMunicipal = false;
     private String registroUnicoDeportivo;
+//    private Double descuentoAplicable = 0.0;
     private LocalDate fechaUltimoUsoGratuito;
     private String observacionesMunicipales;
-    private Double descuentoAplicable = 0.0;
 
     private Boolean estaSancionado = false;
     private LocalDateTime fechaFinSancion;
     private String motivoSancion;
+
+    private String nombreCompleto;
+    private boolean puedeReservarGratis;
+    private Boolean estaActivo;
 
     // Address (from RUAT datosDireccion)
 //    private String area;
@@ -88,11 +86,8 @@ public class ContribuyenteDto {
 //    private String piso;
 //    private String departamento;
 
-    private String nombreCompleto;
-    private boolean puedeReservarGratis;
-    private boolean estaActivo;
-
     private List<ReservaDto> reservasList = new ArrayList<>();
     private List<OrganizacionDto> organizacionesRepresentadas = new ArrayList<>();
+    private List<EstudianteEscuelaDto> estudianteEnEscuelas = new ArrayList<>();
 
 }

@@ -6,6 +6,7 @@ public enum EntityType {
     COMPLEJO,
     ENCARGADOCOMPLEJO,
     CONTRIBUYENTE,
+    ESTUDIANTE_ESCUELA,
     ORGANIZACION,
 
     PAGOS,
@@ -25,6 +26,7 @@ public enum EntityType {
     RESERVA_PUNTUAL,
 
     RESERVA_RECURRENTE,
+    RESERVA_PERIODO,
     RESERVA_AUDITORIA,
     TABLERO
 

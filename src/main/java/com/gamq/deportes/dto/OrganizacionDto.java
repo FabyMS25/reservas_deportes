@@ -30,18 +30,23 @@ public class OrganizacionDto {
     private boolean estado;
     private LocalDateTime fechaCreacion;
 
-    private String tipoOrganizacion; // asociacion_deportiva, club_deportivo, unidad_educativa, empresa_privada, institucion_publica
+    private Boolean activo;
+
+    private String tipoOrganizacion;
+    private String personeriaJuridica;
     private String nombre;
     private String telefono;
     private String email;
     private String direccion;
-    private String personeriaJuridica;
     private String nroNit;
-    private Boolean activo;
-
 
     private String entrenador;
     private String disciplina;
+    private String codigoEscuela;
+
+    private Boolean requierePagoMensualidad;
+    private int tarifaMensual;
+    private Boolean permiteReservasGratuitas;
 
     private ContribuyenteDto representanteDto;
     private List<ReservaDto> reservasDtoList = new ArrayList<>();

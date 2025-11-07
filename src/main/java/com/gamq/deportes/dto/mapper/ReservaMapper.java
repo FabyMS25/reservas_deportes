@@ -6,14 +6,17 @@ import com.gamq.deportes.model.Reserva;
 import java.util.stream.Collectors;
 
 public class ReservaMapper {
-    public static ReservaDto toDto(Reserva reserva){
-        ReservaDto reservaDto=new ReservaDto();
+    public static ReservaDto toDto(Reserva reserva) {
+        ReservaDto reservaDto = new ReservaDto();
 
+        // Basic identification
+        reservaDto.setIdReserva(reserva.getIdReserva());
         reservaDto.setUuid(reserva.getUuid());
         reservaDto.setEstado(reserva.isEstado());
         reservaDto.setFechaCreacion(reserva.getFechaCreacion());
         reservaDto.setFechaActualizacion(reserva.getFechaActualizacion());
 
+        // Reservation details
         reservaDto.setFechaReserva(reserva.getFechaReserva());
         reservaDto.setFechaAprobacion(reserva.getFechaAprobacion());
         reservaDto.setFechaRechazo(reserva.getFechaRechazo());
@@ -21,34 +24,48 @@ public class ReservaMapper {
         reservaDto.setAprobadoPor(reserva.getAprobadoPor());
         reservaDto.setEstadoValidacion(reserva.getEstadoValidacion());
 
+        // Reservation status and type
         reservaDto.setEstadoReserva(reserva.getEstadoReserva());
         reservaDto.setTipoReserva(reserva.getTipoReserva());
         reservaDto.setNumeroReserva(reserva.getNumeroReserva());
         reservaDto.setNumeroTasa(reserva.getNumeroTasa());
         reservaDto.setMontoTotal(reserva.getMontoTotal());
-        reservaDto.setClasificadorRuatId(String.valueOf(reserva.getClasificadorRuatId()));
-//        reservasDto.setHoraEntrada(reservas.getHoraEntrada());
-//        reservasDto.setHoraSalida(reservas.getHoraSalida());
-//        reservasDto.setCategoria(reservas.getCategoria());
-//        reservasDto.setSuperficie(reservas.getSuperficie());
-//        reservasDto.setTotalPersonas(reservas.getTotalPersonas());
+        reservaDto.setClasificadorRuatId(reserva.getClasificadorRuatId());
 
-        reservaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(reserva.getCampoDeportivo(), true));
+        // Free reservation details
+        reservaDto.setEsReservaGratuita(reserva.getEsReservaGratuita());
+        reservaDto.setMotivoGratuidad(reserva.getMotivoGratuidad());
+
+        // Relations
+        reservaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(reserva.getCampoDeportivo(), false));
         reservaDto.setContribuyenteDto(ContribuyenteMapper.toDto(reserva.getContribuyente(), false));
+
         if (reserva.getOrganizacion() != null) {
             reservaDto.setOrganizacionDto(OrganizacionMapper.toDto(reserva.getOrganizacion(), false));
         }
+
+        if (reserva.getEstudianteEscuela() != null) {
+            reservaDto.setEstudianteEscuelaDto(EstudianteEscuelaMapper.toDto(reserva.getEstudianteEscuela(), false));
+        }
+
         if (reserva.getTarifa() != null) {
             reservaDto.setTarifaDto(TarifaMapper.toDto(reserva.getTarifa(), false));
         }
 
+        // Specific reservation types
         if (reserva.getReservaPuntual() != null) {
-            reservaDto.setReservaPuntualDto(ReservaPuntualMapper.toDto(reserva.getReservaPuntual(), false));
-        }
-        if (reserva.getReservaRecurrente() != null) {
-            reservaDto.setReservaRecurrenteDto(ReservaRecurrenteMapper.toDto(reserva.getReservaRecurrente(), false));
+            reservaDto.setReservaPuntualDto(ReservaPuntualMapper.toDto(reserva.getReservaPuntual(),false));
         }
 
+        if (reserva.getReservaRecurrente() != null) {
+            reservaDto.setReservaRecurrenteDto(ReservaRecurrenteMapper.toDto(reserva.getReservaRecurrente(),false));
+        }
+
+        if (reserva.getReservaPeriodo() != null) {
+            reservaDto.setReservaPeriodoDto(ReservaPeriodoMapper.toDto(reserva.getReservaPeriodo(),false));
+        }
+
+        // Payments and audits
         if (reserva.getPagosList() != null && !reserva.getPagosList().isEmpty()) {
             reservaDto.setPagosDtoList(
                     reserva.getPagosList().stream()
@@ -56,6 +73,7 @@ public class ReservaMapper {
                             .collect(Collectors.toList())
             );
         }
+
         if (reserva.getAuditoriasList() != null && !reserva.getAuditoriasList().isEmpty()) {
             reservaDto.setAuditoriasDtoList(
                     reserva.getAuditoriasList().stream()
@@ -64,12 +82,12 @@ public class ReservaMapper {
             );
         }
 
-
         return reservaDto;
     }
 
-    public static Reserva toEntity(ReservaDto reservaDto){
-        Reserva reserva=new Reserva();
+    public static Reserva toEntity(ReservaDto reservaDto) {
+        Reserva reserva = new Reserva();
+
         reserva.setUuid(reservaDto.getUuid());
         reserva.setEstado(reservaDto.isEstado());
         reserva.setFechaCreacion(reservaDto.getFechaCreacion());
@@ -88,27 +106,18 @@ public class ReservaMapper {
         reserva.setNumeroTasa(reservaDto.getNumeroTasa());
         reserva.setMontoTotal(reservaDto.getMontoTotal());
         reserva.setClasificadorRuatId(reservaDto.getClasificadorRuatId());
-//        if (reservaDto.getClasificadorRuatId() != null) {
-//            try {
-//                reserva.setClasificadorRuatId(Integer.parseInt(reservaDto.getClasificadorRuatId()));
-//            } catch (NumberFormatException e) {
-//                throw new IllegalArgumentException("Invalid clasificadorRuatId format: " + reservaDto.getClasificadorRuatId());
-//            }
-//        }
-//        reserva.setHoraEntrada(reservaDto.getHoraEntrada());
-//        reserva.setHoraSalida(reservaDto.getHoraSalida());
-//        reserva.setCategoria(reservaDto.getCategoria());
-//        reserva.setSuperficie(reservaDto.getSuperficie());
-//        reserva.setTotalPersonas(reservaDto.getTotalPersonas());
+
+        reserva.setEsReservaGratuita(reservaDto.isEsReservaGratuita());
+        reserva.setMotivoGratuidad(reservaDto.getMotivoGratuidad());
 
         return reserva;
     }
-
 
     public static Reserva updateEntityFromDto(ReservaDto reservaDto, Reserva reserva) {
         if (reservaDto == null || reserva == null) {
             return reserva;
         }
+
         reserva.setFechaActualizacion(reservaDto.getFechaActualizacion());
 
         reserva.setFechaReserva(reservaDto.getFechaReserva());
@@ -125,13 +134,8 @@ public class ReservaMapper {
         reserva.setMontoTotal(reservaDto.getMontoTotal());
         reserva.setClasificadorRuatId(reservaDto.getClasificadorRuatId());
 
-//        if (reservaDto.getClasificadorRuatId() != null) {
-//            try {
-//                reserva.setClasificadorRuatId(Integer.parseInt(reservaDto.getClasificadorRuatId()));
-//            } catch (NumberFormatException e) {
-//                throw new IllegalArgumentException("Invalid clasificadorRuatId format: " + reservaDto.getClasificadorRuatId());
-//            }
-//        }
+        reserva.setEsReservaGratuita(reservaDto.isEsReservaGratuita());
+        reserva.setMotivoGratuidad(reservaDto.getMotivoGratuidad());
 
         return reserva;
     }

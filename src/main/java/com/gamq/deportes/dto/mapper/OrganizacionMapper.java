@@ -10,23 +10,34 @@ public class OrganizacionMapper {
         if (organizacion == null) return null;
 
         OrganizacionDto dto = new OrganizacionDto();
+
+        // Basic identification
+        dto.setIdOrganizacion(organizacion.getIdOrganizacion());
         dto.setUuid(organizacion.getUuid());
         dto.setEstado(organizacion.isEstado());
         dto.setFechaCreacion(organizacion.getFechaCreacion());
 
-        // Core organization fields
+        // Organization status
+        dto.setActivo(organizacion.getActivo());
+
+        // Organization Type and Legal Information
         dto.setTipoOrganizacion(organizacion.getTipoOrganizacion());
+        dto.setPersoneriaJuridica(organizacion.getPersoneriaJuridica());
         dto.setNombre(organizacion.getNombre());
         dto.setTelefono(organizacion.getTelefono());
         dto.setEmail(organizacion.getEmail());
         dto.setDireccion(organizacion.getDireccion());
-        dto.setPersoneriaJuridica(organizacion.getPersoneriaJuridica());
         dto.setNroNit(organizacion.getNroNit());
-        dto.setActivo(organizacion.getActivo());
 
-        ///////Escuelas Minicpales ////////////
+        // Sports School Specific Fields
         dto.setEntrenador(organizacion.getEntrenador());
         dto.setDisciplina(organizacion.getDisciplina());
+        dto.setCodigoEscuela(organizacion.getCodigoEscuela());
+
+        // Payment Configuration
+        dto.setRequierePagoMensualidad(organizacion.getRequierePagoMensualidad());
+        dto.setTarifaMensual(organizacion.getTarifaMensual() != null ? organizacion.getTarifaMensual() : 0);
+        dto.setPermiteReservasGratuitas(organizacion.getPermiteReservasGratuitas());
 
         if (includeRelations) {
             // Include representante (contribuyente)
@@ -34,12 +45,12 @@ public class OrganizacionMapper {
                 dto.setRepresentanteDto(ContribuyenteMapper.toDto(organizacion.getRepresentante(), false));
             }
 
-            // Include reservations if needed (be careful with circular references)
-//            if (organizacion.getReservasList() != null && !organizacion.getReservasList().isEmpty()) {
-//                dto.setReservasDtoList(organizacion.getReservasList().stream()
-//                        .map(reserva -> ReservaMapper.toDto(reserva)) // Assuming you have ReservaMapper
-//                        .collect(Collectors.toList()));
-//            }
+            // Include reservations
+            if (organizacion.getReservasList() != null && !organizacion.getReservasList().isEmpty()) {
+                dto.setReservasDtoList(organizacion.getReservasList().stream()
+                        .map(ReservaMapper::toDto)
+                        .collect(Collectors.toList()));
+            }
         }
 
         return dto;
@@ -49,22 +60,32 @@ public class OrganizacionMapper {
         if (dto == null) return null;
 
         Organizacion organizacion = new Organizacion();
+
         organizacion.setUuid(dto.getUuid());
         organizacion.setEstado(dto.isEstado());
         organizacion.setFechaCreacion(dto.getFechaCreacion());
 
-        // Core organization fields
+        // Organization status
+        organizacion.setActivo(dto.getActivo());
+
+        // Organization Type and Legal Information
         organizacion.setTipoOrganizacion(dto.getTipoOrganizacion());
+        organizacion.setPersoneriaJuridica(dto.getPersoneriaJuridica());
         organizacion.setNombre(dto.getNombre());
         organizacion.setTelefono(dto.getTelefono());
         organizacion.setEmail(dto.getEmail());
         organizacion.setDireccion(dto.getDireccion());
-        organizacion.setPersoneriaJuridica(dto.getPersoneriaJuridica());
         organizacion.setNroNit(dto.getNroNit());
-        organizacion.setActivo(dto.getActivo());
 
+        // Sports School Specific Fields
         organizacion.setEntrenador(dto.getEntrenador());
         organizacion.setDisciplina(dto.getDisciplina());
+        organizacion.setCodigoEscuela(dto.getCodigoEscuela());
+
+        // Payment Configuration
+        organizacion.setRequierePagoMensualidad(dto.getRequierePagoMensualidad());
+        organizacion.setTarifaMensual(dto.getTarifaMensual());
+        organizacion.setPermiteReservasGratuitas(dto.getPermiteReservasGratuitas());
 
         return organizacion;
     }
@@ -73,18 +94,67 @@ public class OrganizacionMapper {
         if (dto == null || organizacion == null) return organizacion;
 
         // Update only mutable fields
-        organizacion.setTipoOrganizacion(dto.getTipoOrganizacion());
-        organizacion.setNombre(dto.getNombre());
-        organizacion.setTelefono(dto.getTelefono());
-        organizacion.setEmail(dto.getEmail());
-        organizacion.setDireccion(dto.getDireccion());
-        organizacion.setPersoneriaJuridica(dto.getPersoneriaJuridica());
-        organizacion.setNroNit(dto.getNroNit());
-        organizacion.setActivo(dto.getActivo());
 
-        organizacion.setEntrenador(dto.getEntrenador());
-        organizacion.setDisciplina(dto.getDisciplina());
+        // Organization status
+        if (dto.getActivo() != null) {
+            organizacion.setActivo(dto.getActivo());
+        }
+
+        // Organization Type and Legal Information
+        if (dto.getTipoOrganizacion() != null) {
+            organizacion.setTipoOrganizacion(dto.getTipoOrganizacion());
+        }
+        if (dto.getPersoneriaJuridica() != null) {
+            organizacion.setPersoneriaJuridica(dto.getPersoneriaJuridica());
+        }
+        if (dto.getNombre() != null) {
+            organizacion.setNombre(dto.getNombre());
+        }
+        if (dto.getTelefono() != null) {
+            organizacion.setTelefono(dto.getTelefono());
+        }
+        if (dto.getEmail() != null) {
+            organizacion.setEmail(dto.getEmail());
+        }
+        if (dto.getDireccion() != null) {
+            organizacion.setDireccion(dto.getDireccion());
+        }
+        if (dto.getNroNit() != null) {
+            organizacion.setNroNit(dto.getNroNit());
+        }
+
+        // Sports School Specific Fields
+        if (dto.getEntrenador() != null) {
+            organizacion.setEntrenador(dto.getEntrenador());
+        }
+        if (dto.getDisciplina() != null) {
+            organizacion.setDisciplina(dto.getDisciplina());
+        }
+        if (dto.getCodigoEscuela() != null) {
+            organizacion.setCodigoEscuela(dto.getCodigoEscuela());
+        }
+
+        // Payment Configuration - these are primitive booleans in DTO, so always update
+        organizacion.setRequierePagoMensualidad(dto.getRequierePagoMensualidad());
+        organizacion.setTarifaMensual(dto.getTarifaMensual());
+        organizacion.setPermiteReservasGratuitas(dto.getPermiteReservasGratuitas());
 
         return organizacion;
+    }
+
+    // Method to convert to simplified DTO (for dropdowns or basic listings)
+    public static OrganizacionDto toSimpleDto(Organizacion organizacion) {
+        if (organizacion == null) return null;
+
+        OrganizacionDto dto = new OrganizacionDto();
+        dto.setIdOrganizacion(organizacion.getIdOrganizacion());
+        dto.setUuid(organizacion.getUuid());
+        dto.setNombre(organizacion.getNombre());
+        dto.setTipoOrganizacion(organizacion.getTipoOrganizacion());
+        dto.setCodigoEscuela(organizacion.getCodigoEscuela());
+        dto.setActivo(organizacion.getActivo());
+        dto.setDisciplina(organizacion.getDisciplina());
+
+        return dto;
     }
 }

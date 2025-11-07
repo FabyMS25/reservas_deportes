@@ -2,14 +2,16 @@ package com.gamq.deportes.dto.mapper;
 
 import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.model.Contribuyente;
+import com.gamq.deportes.model.EstudianteEscuela;
+import com.gamq.deportes.model.Organizacion;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ContribuyenteMapper {
     public static ContribuyenteDto toDto(Contribuyente contribuyente, boolean includeRelations) {
         ContribuyenteDto dto = new ContribuyenteDto();
 
-        // Basic identification
         dto.setUuid(contribuyente.getUuid());
         dto.setEstado(contribuyente.isEstado());
         dto.setFechaCreacion(contribuyente.getFechaCreacion());
@@ -21,8 +23,11 @@ public class ContribuyenteMapper {
         dto.setEstadoUsuario(contribuyente.getEstadoUsuario());
 
         // RUAT Integration
-        dto.setCodigoContribuyente(contribuyente.getCodigoContribuyente());
+        dto.setEstadoRuat(contribuyente.getEstadoRuat());
+        dto.setVerificadoRuat(contribuyente.getVerificadoRuat());
+        dto.setFechaVerificacionRuat(contribuyente.getFechaVerificacionRuat());
         dto.setTipoContribuyente(contribuyente.getTipoContribuyente());
+        dto.setCodigoContribuyente(contribuyente.getCodigoContribuyente());
         dto.setTipoDocumento(contribuyente.getTipoDocumento());
         dto.setNumeroDocumento(contribuyente.getNumeroDocumento());
         dto.setExpedido(contribuyente.getExpedido());
@@ -33,28 +38,19 @@ public class ContribuyenteMapper {
         dto.setPrimerApellido(contribuyente.getPrimerApellido());
         dto.setSegundoApellido(contribuyente.getSegundoApellido());
         dto.setApellidoEsposo(contribuyente.getApellidoEsposo());
-        dto.setEstadoCivil(contribuyente.getEstadoCivil());
         dto.setFechaNacimiento(contribuyente.getFechaNacimiento());
+        dto.setEstadoCivil(contribuyente.getEstadoCivil());
         dto.setGenero(contribuyente.getGenero());
-        // Escuela Municipal
-        dto.setMatricula(contribuyente.getMatricula());
-        // Contact Information
+
         dto.setTelefono(contribuyente.getTelefono());
         dto.setEmail(contribuyente.getEmail());
         dto.setDireccion(contribuyente.getDireccion());
 
-        // RUAT Status
-        dto.setEstadoRuat(contribuyente.getEstadoRuat());
-        dto.setVerificadoRuat(contribuyente.getVerificadoRuat());
-        dto.setFechaVerificacionRuat(contribuyente.getFechaVerificacionRuat());
-
         // Special Categories and Benefits
         dto.setEsDeportistaElite(contribuyente.getEsDeportistaElite());
-        dto.setPerteneceEscuelaMunicipal(contribuyente.getPerteneceEscuelaMunicipal());
         dto.setRegistroUnicoDeportivo(contribuyente.getRegistroUnicoDeportivo());
         dto.setFechaUltimoUsoGratuito(contribuyente.getFechaUltimoUsoGratuito());
         dto.setObservacionesMunicipales(contribuyente.getObservacionesMunicipales());
-        dto.setDescuentoAplicable(contribuyente.getDescuentoAplicable());
 
         // Sanctions
         dto.setEstaSancionado(contribuyente.getEstaSancionado());
@@ -72,6 +68,12 @@ public class ContribuyenteMapper {
                         .collect(Collectors.toList()));
             }
 
+            if (contribuyente.getEstudianteEnEscuelas() != null && !contribuyente.getEstudianteEnEscuelas().isEmpty()) {
+                dto.setEstudianteEnEscuelas(contribuyente.getEstudianteEnEscuelas().stream()
+                        .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
+                        .collect(Collectors.toList()));
+            }
+
             // Include reservations if needed
             if (contribuyente.getReservasList() != null && !contribuyente.getReservasList().isEmpty()) {
                 dto.setReservasList(contribuyente.getReservasList().stream()
@@ -83,11 +85,13 @@ public class ContribuyenteMapper {
     }
 
     public static Contribuyente toEntity(ContribuyenteDto dto) {
-//        if (dto == null) return null;
-
         Contribuyente contribuyente = new Contribuyente();
 
-        contribuyente.setUuid(dto.getUuid());
+        // Only set UUID if it's provided and valid, otherwise let @PrePersist generate it
+        if (dto.getUuid() != null && !dto.getUuid().trim().isEmpty()) {
+            contribuyente.setUuid(dto.getUuid());
+        }
+
         contribuyente.setEstado(dto.isEstado());
         contribuyente.setFechaCreacion(dto.getFechaCreacion());
         contribuyente.setFechaActualizacion(dto.getFechaActualizacion());
@@ -98,8 +102,11 @@ public class ContribuyenteMapper {
         contribuyente.setEstadoUsuario(dto.getEstadoUsuario());
 
         // RUAT Integration
-        contribuyente.setCodigoContribuyente(dto.getCodigoContribuyente());
+        contribuyente.setEstadoRuat(dto.getEstadoRuat());
+        contribuyente.setVerificadoRuat(dto.getVerificadoRuat());
+        contribuyente.setFechaVerificacionRuat(dto.getFechaVerificacionRuat());
         contribuyente.setTipoContribuyente(dto.getTipoContribuyente());
+        contribuyente.setCodigoContribuyente(dto.getCodigoContribuyente());
         contribuyente.setTipoDocumento(dto.getTipoDocumento());
         contribuyente.setNumeroDocumento(dto.getNumeroDocumento());
         contribuyente.setExpedido(dto.getExpedido());
@@ -110,43 +117,71 @@ public class ContribuyenteMapper {
         contribuyente.setPrimerApellido(dto.getPrimerApellido());
         contribuyente.setSegundoApellido(dto.getSegundoApellido());
         contribuyente.setApellidoEsposo(dto.getApellidoEsposo());
-        contribuyente.setEstadoCivil(dto.getEstadoCivil());
         contribuyente.setFechaNacimiento(dto.getFechaNacimiento());
+        contribuyente.setEstadoCivil(dto.getEstadoCivil());
         contribuyente.setGenero(dto.getGenero());
-        // Escuela Municipal
-        contribuyente.setMatricula(dto.getMatricula());
-        // Contact Information
+
         contribuyente.setTelefono(dto.getTelefono());
         contribuyente.setEmail(dto.getEmail());
         contribuyente.setDireccion(dto.getDireccion());
 
-        // RUAT Status
-        contribuyente.setEstadoRuat(dto.getEstadoRuat());
-        contribuyente.setVerificadoRuat(dto.getVerificadoRuat());
-        contribuyente.setFechaVerificacionRuat(dto.getFechaVerificacionRuat());
-
         // Special Categories and Benefits
         contribuyente.setEsDeportistaElite(dto.getEsDeportistaElite());
-        contribuyente.setPerteneceEscuelaMunicipal(dto.getPerteneceEscuelaMunicipal());
         contribuyente.setRegistroUnicoDeportivo(dto.getRegistroUnicoDeportivo());
         contribuyente.setFechaUltimoUsoGratuito(dto.getFechaUltimoUsoGratuito());
         contribuyente.setObservacionesMunicipales(dto.getObservacionesMunicipales());
-        contribuyente.setDescuentoAplicable(dto.getDescuentoAplicable());
 
         // Sanctions
         contribuyente.setEstaSancionado(dto.getEstaSancionado());
         contribuyente.setFechaFinSancion(dto.getFechaFinSancion());
         contribuyente.setMotivoSancion(dto.getMotivoSancion());
 
+        // Handle related entities - Generate UUIDs if null
+        if (dto.getOrganizacionesRepresentadas() != null) {
+            contribuyente.setOrganizacionesRepresentadas(
+                    dto.getOrganizacionesRepresentadas().stream()
+                            .map(orgDto -> {
+                                Organizacion organizacion = OrganizacionMapper.toEntity(orgDto);
+                                // Generate UUID if null
+                                if (organizacion.getUuid() == null || organizacion.getUuid().trim().isEmpty()) {
+                                    organizacion.setUuid(UUID.randomUUID().toString());
+                                }
+                                // Set the relationship
+                                organizacion.setRepresentante(contribuyente);
+                                return organizacion;
+                            })
+                            .collect(Collectors.toList())
+            );
+        }
+
+        if (dto.getEstudianteEnEscuelas() != null) {
+            contribuyente.setEstudianteEnEscuelas(
+                    dto.getEstudianteEnEscuelas().stream()
+                            .map(estDto -> {
+                                EstudianteEscuela estudiante = EstudianteEscuelaMapper.toEntity(estDto);
+                                // Generate UUID if null
+                                if (estudiante.getUuid() == null || estudiante.getUuid().trim().isEmpty()) {
+                                    estudiante.setUuid(UUID.randomUUID().toString());
+                                }
+                                // Set the relationship
+                                estudiante.setContribuyenteDto(contribuyente);
+                                // Note: You might need to set organizacionDto if required
+                                return estudiante;
+                            })
+                            .collect(Collectors.toList())
+            );
+        }
+
         return contribuyente;
     }
-
     public static Contribuyente updateEntityFromDto(ContribuyenteDto dto, Contribuyente existing) {
         if (dto == null || existing == null) {
             return existing;
         }
 
         // Update only non-null fields from DTO
+
+        // Authentication
         if (dto.getUserName() != null) {
             existing.setUserName(dto.getUserName());
         }
@@ -155,6 +190,35 @@ public class ContribuyenteMapper {
         }
         if (dto.getEstadoUsuario() != null) {
             existing.setEstadoUsuario(dto.getEstadoUsuario());
+        }
+
+        // RUAT Integration
+        if (dto.getEstadoRuat() != null) {
+            existing.setEstadoRuat(dto.getEstadoRuat());
+        }
+        if (dto.getVerificadoRuat() != null) {
+            existing.setVerificadoRuat(dto.getVerificadoRuat());
+        }
+        if (dto.getFechaVerificacionRuat() != null) {
+            existing.setFechaVerificacionRuat(dto.getFechaVerificacionRuat());
+        }
+        if (dto.getTipoContribuyente() != null) {
+            existing.setTipoContribuyente(dto.getTipoContribuyente());
+        }
+        if (dto.getCodigoContribuyente() != null) {
+            existing.setCodigoContribuyente(dto.getCodigoContribuyente());
+        }
+        if (dto.getTipoDocumento() != null) {
+            existing.setTipoDocumento(dto.getTipoDocumento());
+        }
+        if (dto.getNumeroDocumento() != null) {
+            existing.setNumeroDocumento(dto.getNumeroDocumento());
+        }
+        if (dto.getExpedido() != null) {
+            existing.setExpedido(dto.getExpedido());
+        }
+        if (dto.getNroNit() != null) {
+            existing.setNroNit(dto.getNroNit());
         }
 
         // Personal Information
@@ -170,11 +234,11 @@ public class ContribuyenteMapper {
         if (dto.getApellidoEsposo() != null) {
             existing.setApellidoEsposo(dto.getApellidoEsposo());
         }
-        if (dto.getEstadoCivil() != null) {
-            existing.setEstadoCivil(dto.getEstadoCivil());
-        }
         if (dto.getFechaNacimiento() != null) {
             existing.setFechaNacimiento(dto.getFechaNacimiento());
+        }
+        if (dto.getEstadoCivil() != null) {
+            existing.setEstadoCivil(dto.getEstadoCivil());
         }
         if (dto.getGenero() != null) {
             existing.setGenero(dto.getGenero());
@@ -191,14 +255,11 @@ public class ContribuyenteMapper {
             existing.setDireccion(dto.getDireccion());
         }
 
-        // Special Categories (Boolean fields can be explicitly set to null)
+        // Special Categories and Benefits
         if (dto.getEsDeportistaElite() != null) {
             existing.setEsDeportistaElite(dto.getEsDeportistaElite());
         }
-        if (dto.getPerteneceEscuelaMunicipal() != null) {
-            existing.setPerteneceEscuelaMunicipal(dto.getPerteneceEscuelaMunicipal());
-        }
-        if (dto.getRegistroUnicoDeportivo() != null) {
+        if (dto.getRegistroUnicoDeportivo() !=null){
             existing.setRegistroUnicoDeportivo(dto.getRegistroUnicoDeportivo());
         }
         if (dto.getFechaUltimoUsoGratuito() != null) {
@@ -207,13 +268,7 @@ public class ContribuyenteMapper {
         if (dto.getObservacionesMunicipales() != null) {
             existing.setObservacionesMunicipales(dto.getObservacionesMunicipales());
         }
-        if (dto.getDescuentoAplicable() != null) {
-            existing.setDescuentoAplicable(dto.getDescuentoAplicable());
-        }
-        //Escuela Municipal
-        if(dto.getMatricula()!=null){
-            existing.setMatricula(dto.getMatricula());
-        }
+
         // Sanctions
         if (dto.getEstaSancionado() != null) {
             existing.setEstaSancionado(dto.getEstaSancionado());
@@ -228,23 +283,20 @@ public class ContribuyenteMapper {
         return existing;
     }
 
-    // Method to convert to simplified DTO (for dropdowns or basic listings)
     public static ContribuyenteDto toSimpleDto(Contribuyente contribuyente) {
-//        if (contribuyente == null) {return null;}
-
         ContribuyenteDto dto = new ContribuyenteDto();
+
+        dto.setIdContribuyente(contribuyente.getIdContribuyente());
         dto.setUuid(contribuyente.getUuid());
         dto.setNombre(contribuyente.getNombre());
         dto.setPrimerApellido(contribuyente.getPrimerApellido());
         dto.setSegundoApellido(contribuyente.getSegundoApellido());
         dto.setEmail(contribuyente.getEmail());
         dto.setTelefono(contribuyente.getTelefono());
-        dto.setNombreCompleto(contribuyente.getNombreCompleto());
         dto.setNumeroDocumento(contribuyente.getNumeroDocumento());
         dto.setEstadoUsuario(contribuyente.getEstadoUsuario());
-        dto.setMatricula(contribuyente.getMatricula());
-//        dto.setNombreCompleto(contribuyente.getNombreCompleto());
-//        dto.setEstaActivo(contribuyente.estaActivo());
+        dto.setNombreCompleto(contribuyente.getNombreCompleto());
+        dto.setEstaActivo(contribuyente.estaActivo());
 
         return dto;
     }

@@ -2,6 +2,7 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.mapper.ReservaMapper;
+import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
 import com.gamq.deportes.model.*;
@@ -43,8 +44,10 @@ public class ReservaServiceImpl implements ReservaService {
     private TarifaRepository tarifaRepository;
 
     @Autowired
-    private PagoRepository pagoRepository;
+    private EstudianteEscuelaRepository estudianteEscuelaRepository;
 
+    @Autowired
+    private PagoRepository pagoRepository;
 
     @Autowired
     private ReservaPuntualRepository reservaPuntualRepository;
@@ -53,10 +56,16 @@ public class ReservaServiceImpl implements ReservaService {
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
 
     @Autowired
+    private ReservaPeriodoRepository reservaPeriodoRepository;
+
+    @Autowired
     private TableroRepository tableroRepository;
 
     @Autowired
     private ReservationNumberService reservationNumberService;
+
+    @Autowired
+    private ReservaPeriodoMapper reservaPeriodoMapper; // Add this
 
     @Override
     @Transactional(readOnly = true)
@@ -111,6 +120,7 @@ public class ReservaServiceImpl implements ReservaService {
                 .map(ReservaMapper::toDto)
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public Page<ReservaDto> buscarPorFechaReserva(LocalDateTime fechaIni, LocalDateTime fechaFin, Pageable pageable) {
         return reservaRepository.findByFechaReservaBetween(fechaIni, fechaFin, pageable)
@@ -121,7 +131,6 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public List<ReservaDto> findReservasByCampoDeportivo(String uuidCampo) {
         try {
-
             Optional<CampoDeportivo> optional =  campoDeportivoRepository.findByUuid(uuidCampo);
             if (!optional.isPresent()) {
                 return List.of();
@@ -134,8 +143,6 @@ public class ReservaServiceImpl implements ReservaService {
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            // Log the error but return empty list to avoid 404
-            // logger.error("Error retrieving reservations for campo: " + uuidCampo, e);
             return List.of();
         }
     }
@@ -144,7 +151,6 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public List<ReservaDto> findReservasByContribuyente(String uuidContribuyente) {
         try {
-
             Optional<Contribuyente> optional =  contribuyenteRepository.findByUuid(uuidContribuyente);
             if (optional.isPresent()) {
                 return List.of();
@@ -157,7 +163,6 @@ public class ReservaServiceImpl implements ReservaService {
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            // logger.error("Error retrieving reservations for contribuyente: " + uuidContribuyente, e);
             return List.of();
         }
     }
@@ -214,10 +219,8 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private String generarNumeroReserva() {
-//        return "RES-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
         return reservationNumberService.findNextAvailableReservationNumber();
     }
-
 
     @Override
     @Transactional
@@ -228,27 +231,23 @@ public class ReservaServiceImpl implements ReservaService {
 
         CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
         Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
-        Tarifa tarifa = getTarifa(reservaDto.getTarifaDto().getUuid());
 
-        // Handle reservation number - NOW IT'S REQUIRED FROM FRONTEND
+        // Handle tarifa - can be null for periodo reservations
+        Tarifa tarifa = null;
+        if (reservaDto.getTarifaDto() != null && reservaDto.getTarifaDto().getUuid() != null) {
+            tarifa = getTarifa(reservaDto.getTarifaDto().getUuid());
+        }
+
+        // Handle reservation number
         String numeroReserva = reservaDto.getNumeroReserva();
         boolean isUserProvided = false;
 
         if (numeroReserva != null && !numeroReserva.trim().isEmpty()) {
-            // Validate user-provided number format
-            if (!reservationNumberService.isReservationNumberValid(numeroReserva)) {
-                throw new IllegalArgumentException("Formato de número de reserva inválido. Debe ser: 0010/25");
-            }
-
-            // Check if number is available
             if (!reservationNumberService.isReservationNumberAvailable(numeroReserva)) {
                 throw new IllegalArgumentException("El número de reserva ya está en uso: " + numeroReserva);
             }
-
             isUserProvided = true;
         } else {
-            // Generate automatic number if not provided
-            // But ideally frontend should pre-generate it
             numeroReserva = reservationNumberService.findNextAvailableReservationNumber();
             isUserProvided = false;
         }
@@ -256,16 +255,20 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva nuevaReserva = ReservaMapper.toEntity(reservaDto);
         nuevaReserva.setCampoDeportivo(campoDeportivo);
         nuevaReserva.setContribuyente(contribuyente);
-        nuevaReserva.setTarifa(tarifa);
+        nuevaReserva.setTarifa(tarifa); // This can be null
         nuevaReserva.setNumeroReserva(numeroReserva);
-        // Add this field to track if it was user-provided or auto-generated
-//        nuevaReserva.setNumeroReservaAutomatico(!isUserProvided);
-
 
         if (reservaDto.getOrganizacionDto() != null && reservaDto.getOrganizacionDto().getUuid() != null) {
             Organizacion organizacion = getOrganizacion(reservaDto.getOrganizacionDto().getUuid());
             nuevaReserva.setOrganizacion(organizacion);
         }
+
+        // Handle estudiante escuela for periodo reservations
+        if (reservaDto.getEstudianteEscuelaDto() != null && reservaDto.getEstudianteEscuelaDto().getUuid() != null) {
+            EstudianteEscuela estudianteEscuela = getEstudianteEscuela(reservaDto.getEstudianteEscuelaDto().getUuid());
+            nuevaReserva.setEstudianteEscuela(estudianteEscuela);
+        }
+
         nuevaReserva.setFechaCreacion(LocalDateTime.now());
         nuevaReserva.setFechaActualizacion(LocalDateTime.now());
 
@@ -291,10 +294,16 @@ public class ReservaServiceImpl implements ReservaService {
             nuevaReserva.setReservaRecurrente(recurrente);
         }
 
+        // Add periodo handling
+        if ("periodo".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaPeriodoDto() != null) {
+            ReservaPeriodo periodo = reservaPeriodoMapper.toEntity(reservaDto.getReservaPeriodoDto());
+            periodo.setReserva(nuevaReserva);
+            nuevaReserva.setReservaPeriodo(periodo);
+        }
+
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
         return ReservaMapper.toDto(reservaGuardada);
     }
-
 
     @Override
     public ReservaDto actualizarReserva(ReservaDto reservaDto) {
@@ -329,6 +338,11 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaExistente.setOrganizacion(organizacion);
             }
 
+            if (reservaDto.getEstudianteEscuelaDto() != null) {
+                EstudianteEscuela estudianteEscuela = getEstudianteEscuela(reservaDto.getEstudianteEscuelaDto().getUuid());
+                reservaExistente.setEstudianteEscuela(estudianteEscuela);
+            }
+
             reservaExistente.setFechaActualizacion(LocalDateTime.now());
 
             Reserva reservaActualizada = reservaRepository.save(reservaExistente);
@@ -360,7 +374,6 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
 
-//        reserva.setEstadoReserva("RECHAZADA");
         reserva.setEstadoValidacion("RECHAZADA");
         reserva.setMotivoRechazo(motivoRechazo);
         reserva.setAprobadoPor(aprobadoPor);
@@ -392,8 +405,6 @@ public class ReservaServiceImpl implements ReservaService {
             Reserva reserva = reservaRepository.findByUuid(uuid)
                     .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
 
-            // Soft delete the reserva
-//            reserva.setEstado(true);
             reservaRepository.delete(reserva);
 
             return "Desactivación exitosa del RESERVA";
@@ -407,16 +418,16 @@ public class ReservaServiceImpl implements ReservaService {
         List<Reserva> reservasConflictivas = reservaRepository.findReservasConflictivas(uuidCampo, fechaIni, fechaFin, excludeReservaUuid);
         return !reservasConflictivas.isEmpty();
     }
+
     @Transactional(readOnly = true)
     public Long contarPorEstadoReserva(String estadoReserva) {
         return reservaRepository.countByEstadoReserva(estadoReserva);
     }
+
     @Transactional(readOnly = true)
     public Long contarPorCampoDeportivoYEstado(String uuidCampo, String estadoReserva) {
         return reservaRepository.countByCampoDeportivoAndEstadoReserva(uuidCampo, estadoReserva);
     }
-
-
 
     private CampoDeportivo getCampoDeportivo(String uuid) {
         return campoDeportivoRepository.findByUuid(uuid)
@@ -438,4 +449,8 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }
 
+    private EstudianteEscuela getEstudianteEscuela(String uuid) {
+        return estudianteEscuelaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(ESTUDIANTE_ESCUELA, uuid));
+    }
 }

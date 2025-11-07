@@ -37,18 +37,6 @@ public class    ReservaDto {
     private String estadoValidacion; // "PENDIENTE", "APROBADA", "RECHAZADA"
 
     private String estadoReserva;
-            // Possible values:
-            // "BORRADOR" - Draft/being created
-            // "PENDIENTE" - Submitted, awaiting approval
-            // "APROBADA" - Approved by administrator
-            // "RECHAZADA" - Rejected (with motivoRechazo)
-            // "CONFIRMADA" - Payment completed, reservation confirmed
-            // "ACTIVA" - Currently in use
-            // "COMPLETADA" - Reservation period ended successfully
-            // "CANCELADA" - Cancelled by user or system
-            // "NO_SHOW" - User didn't show up
-            // "SUSPENDIDA" - Temporarily suspended
-            // "ANULADA" - Administrative cancellation (similar to Anexo F)
 
     private String tipoReserva; //puntual / recurrente
     private String numeroReserva;
@@ -61,13 +49,18 @@ public class    ReservaDto {
 //    private LocalTime horaEntrada;
 //    private LocalTime horaSalida;
 
-    private CampoDeportivoDto campoDeportivoDto;
-    private ContribuyenteDto contribuyenteDto;
+    private boolean esReservaGratuita;
+    private String motivoGratuidad;
+
     private OrganizacionDto organizacionDto;
+    private EstudianteEscuelaDto estudianteEscuelaDto;
+    private ContribuyenteDto contribuyenteDto;
+    private CampoDeportivoDto campoDeportivoDto;
     private TarifaDto tarifaDto;
 
     private ReservaPuntualDto reservaPuntualDto;
     private ReservaRecurrenteDto reservaRecurrenteDto;
+    private ReservaPeriodoDto reservaPeriodoDto;
 
     public List<PagoDto> pagosDtoList = new ArrayList<>();
     public List<ReservaAuditoriaDto> auditoriasDtoList = new ArrayList<>();

@@ -1,5 +1,6 @@
 package com.gamq.deportes.model;
 
+import com.gamq.deportes.dto.EstudianteEscuelaDto;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,122 +36,127 @@ public class Contribuyente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_contribuyente")
     private Long idContribuyente;
+
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
+
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
+
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
+    // Authentication
     @Column(name = "user_name", nullable = false, length = 150)
     private String userName;
+
     @Column(name = "password", nullable = false, length = 150)
     private String password;
-    @Column(name = "estado_usuario", nullable = false,  length = 30)
+
+    @Column(name = "estado_usuario", nullable = false, length = 30)
     private String estadoUsuario;
 
-    @Column(name = "codigo_contribuyente",  length = 30)
-    private String codigoContribuyente;
-    @Column(name = "tipo_contribuyente", nullable = false,  length = 30)
-    private String tipoContribuyente;
-    @Column(name = "tipo_documento", nullable = false,  length = 30)
-    private String tipoDocumento;
-    @Column(name = "numero_documento", nullable = false, length = 20)
-    private String numeroDocumento;
-    @Column(name = "expedido", length = 20)
-    private String expedido;
-    @Column(name = "nro_nit", length = 20)
-    private String nroNit;
-
-    @Column(name = "nombre", nullable = false, length = 250)
-    private String nombre;
-    @Column(name = "primer_apellido", nullable = false, length = 100)
-    private String primerApellido;
-    @Column(name = "segundo_apellido", length = 100)
-    private String segundoApellido;
-    @Column(name = "apellido_esposo", length = 100)
-    private String apellidoEsposo;
-    @Column(name = "estado_civil", length = 5)
-    private String estadoCivil; // SO, CA, VI, DI
-    @Column(name = "fecha_nacimiento")
-    private LocalDate fechaNacimiento;
-    @Column(name = "genero", length = 5)
-    private String genero; // M, F
-
-    ////////////////Escuela Municipal/////////
-    @Column(name = "matricula", length = 20)
-    private String matricula;
-
-
-    @Column(name = "telefono", length = 20)
-    private String telefono;
-    @Column(name = "email", nullable = false, unique = true, length = 255)
-    private String email;
-    @Column(name = "direccion",  length = 250)
-    private String direccion;
-
-    // RUAT Status
+    // RUAT Integration
     @Column(name = "estado_ruat", length = 20)
     private String estadoRuat; // ACTIVO, BAJA from RUAT
+
     @Column(name = "verificado_ruat", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean verificadoRuat = false;
+
     @Column(name = "fecha_verificacion_ruat")
     private LocalDateTime fechaVerificacionRuat;
 
-    //    @Column(name = "for_asociation")
-//    private boolean forAsociation;
+    @Column(name = "tipo_contribuyente", nullable = false, length = 30)
+    private String tipoContribuyente; // NA=Natural, JU=Juridica
+
+    @Column(name = "codigo_contribuyente", length = 30)
+    private String codigoContribuyente;
+
+    @Column(name = "tipo_documento", nullable = false, length = 30)
+    private String tipoDocumento; // CI, CE
+
+    @Column(name = "numero_documento", nullable = false, length = 20)
+    private String numeroDocumento;
+
+    @Column(name = "expedido", length = 20)
+    private String expedido; // Department code 1-9
+
+    @Column(name = "nro_nit", length = 20)
+    private String nroNit;
+
+    // Personal Information
+    @Column(name = "nombre", nullable = false, length = 250)
+    private String nombre;
+
+    @Column(name = "primer_apellido", nullable = false, length = 100)
+    private String primerApellido;
+
+    @Column(name = "segundo_apellido", length = 100)
+    private String segundoApellido;
+
+    @Column(name = "apellido_esposo", length = 100)
+    private String apellidoEsposo;
+
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
+
+    @Column(name = "estado_civil", length = 5)
+    private String estadoCivil; // SO, CA, VI, DI
+
+    @Column(name = "genero", length = 5)
+    private String genero; // F,M
+
+    // Contact Information
+    @Column(name = "telefono", length = 20)
+    private String telefono;
+
+    @Column(name = "email", nullable = false, unique = true, length = 255)
+    private String email;
+
+    @Column(name = "direccion", length = 250)
+    private String direccion;
+
     // Special categories and benefits
     @Column(name = "es_deportista_elite", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean esDeportistaElite = false;
-    @Column(name = "pertenece_escuela_municipal", columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean perteneceEscuelaMunicipal = false;
-    @Column(name = "registro_unico_deportivo", length = 50)
+    @Column(name = "registro_unico_deportivo", columnDefinition = "TEXT")
     private String registroUnicoDeportivo;
+
     @Column(name = "fecha_ultimo_uso_gratuito")
     private LocalDate fechaUltimoUsoGratuito;
+
     @Column(name = "observaciones_municipales", columnDefinition = "TEXT")
     private String observacionesMunicipales;
-    @Column(name = "descuento_aplicable", precision = 5, scale = 2)
-    private Double descuentoAplicable = 0.0;
 
-    // Sanctions and discounts
+    // Sanctions
     @Column(name = "esta_sancionado", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean estaSancionado = false;
+
     @Column(name = "fecha_fin_sancion")
     private LocalDateTime fechaFinSancion;
+
     @Column(name = "motivo_sancion", columnDefinition = "TEXT")
     private String motivoSancion;
 
-    // Address (from RUAT datosDireccion)
-//    @Column(name = "area", length = 100)
-//    private String area;
-//    @Column(name = "distrito", length = 100)
-//    private String distrito;
-//    @Column(name = "tipo_lugar", length = 100)
-//    private String tipoLugar;
-//    @Column(name = "nombre_lugar", length = 100)
-//    private String nombreLugar;
-//    @Column(name = "numero_puerta", length = 20)
-//    private String numeroPuerta;
-//    @Column(name = "direccion_descriptiva", columnDefinition = "TEXT")
-//    private String direccionDescriptiva;
-//    @Column(name = "nombre_edificio", length = 100)
-//    private String nombreEdificio;
-//    @Column(name = "bloque", length = 50)
-//    private String bloque;
-//    @Column(name = "piso", length = 20)
-//    private String piso;
-//    @Column(name = "departamento", length = 50)
-//    private String departamento;
+    // Computed fields (transient - not persisted in database)
+    @Transient
+    private String nombreCompleto;
 
+    @Transient
+    private Boolean puedeReservarGratis;
+
+    // Relations
     @OneToMany(mappedBy = "contribuyente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reserva> reservasList = new ArrayList<>();
-//    @OneToMany(mappedBy = "contribuyente", cascade = CascadeType.ALL)
-//    public List<ReservaRecurrente> reservasProgramadasList = new ArrayList<>();
+
     @OneToMany(mappedBy = "representante", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Organizacion> organizacionesRepresentadas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contribuyenteDto", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EstudianteEscuela> estudianteEnEscuelas = new ArrayList<>();
 
     public Contribuyente(String uuid) {
         this.uuid = uuid;
@@ -171,6 +177,7 @@ public class Contribuyente {
             this.estadoUsuario = "ACTIVO";
         }
     }
+
     @PreUpdate
     public void preUpdate() {
         this.fechaActualizacion = LocalDateTime.now();
@@ -182,9 +189,11 @@ public class Contribuyente {
                 primerApellido != null ? primerApellido : "",
                 segundoApellido != null ? segundoApellido : "").trim();
     }
+
     public boolean puedeReservarGratis() {
-        return esDeportistaElite || perteneceEscuelaMunicipal;
+        return Boolean.TRUE.equals(esDeportistaElite);
     }
+
     public boolean estaActivo() {
         return !estado && "ACTIVO".equals(estadoUsuario) &&
                 (estadoRuat == null || "ACTIVO".equals(estadoRuat));
