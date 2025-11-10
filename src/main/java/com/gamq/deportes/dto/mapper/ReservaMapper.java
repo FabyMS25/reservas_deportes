@@ -37,7 +37,7 @@ public class ReservaMapper {
         reservaDto.setMotivoGratuidad(reserva.getMotivoGratuidad());
 
         // Relations
-        reservaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(reserva.getCampoDeportivo(), false));
+        reservaDto.setCampoDeportivoDto(CampoDeportivoMapper.toDto(reserva.getCampoDeportivo(), true));
         reservaDto.setContribuyenteDto(ContribuyenteMapper.toDto(reserva.getContribuyente(), false));
 
         if (reserva.getOrganizacion() != null) {
