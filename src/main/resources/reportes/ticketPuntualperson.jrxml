@@ -10,7 +10,8 @@
 	<queryString language="SQL">
 		<![CDATA[select  RE.uuid,tipo_reserva,rp.categoria,re.fecha_creacion,fecha_reserva,fecha_uso,hora_inicio,estado_reserva, telefono_principal as tel,
 		hora_fin,numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp, TA.descripcion, TA.precio_base, 
-		RP.cantidad_personas as per,	(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, con.numero_documento as ci, Com.nombre as cancha,ubicacion
+		RP.cantidad_personas as per,	(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, 
+		con.numero_documento as ci, Com.nombre as cancha,ubicacion, RP.mes
 		from reservas as RE
 		join campos_deportivos as ca on ca.id_campo = re.id_campo
 		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
@@ -39,6 +40,7 @@
 	<field name="estado_reserva" class="java.lang.String"/>
 	<field name="per" class="java.lang.Integer"/>
 	<field name="numero_reserva" class="java.lang.String"/>
+	<field name="mes" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -63,7 +65,7 @@
 				<textElement textAlignment="Center">
 					<font fontName="SansSerif" size="21" isBold="true"/>
 				</textElement>
-				<text><![CDATA[TICKET RESERVAS PUNTUALES]]></text>
+				<text><![CDATA[TICKET ESCUELAS DEPORTIVAS]]></text>
 			</staticText>
 			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="2" y="10" width="150" height="50" uuid="61acbaf7-0df8-453f-8bdf-91662191acab">
@@ -109,7 +111,7 @@
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="336" splitType="Stretch">
+		<band height="272" splitType="Stretch">
 			<staticText>
 				<reportElement positionType="FixRelativeToBottom" x="-1" y="115" width="70" height="18" uuid="c9330882-0c3d-4881-85da-a88bf3b1112c">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="18f03010-d120-4e40-8ffe-4dc0ca8292da"/>
@@ -492,32 +494,6 @@
 				<reportElement x="0" y="170" width="570" height="90" uuid="e703185b-0248-49f8-bdc0-6d4907379e00"/>
 				<text><![CDATA[Mencionar y aclarar que esta autorización puede ser modificada en caso de que ocurra algún evento de improviso o repentino que tenga que cubrir el Gobierno Autónomo Municipal de Quillacollo, la parte solicitante será responsable de cualquier daño o perjuicio ocasiones u ocurran dentro del mismo y debería dejar los ambientes deportivos solicitados en bues estado de limpieza. Ser puntuales en el horario de ingreso, así como también en el horario de salida, se prohíbe terminantemente el cobro del ingreso a dicho escenario deportivo por parte del solicitante según ordenanza municipal N° 128/2013. En todo caso se aplicara el art. 14 del Reglamento para la administración de infraestructura deportivas, el cual es el equivalente al 10% del total recaudado. así mismo la venta de cualquier alimento o producto dentro el campo deportivo.]]></text>
 			</staticText>
-			<staticText>
-				<reportElement x="49" y="301" width="170" height="30" uuid="81090749-aa99-4b37-9f9b-2f287951e485"/>
-				<textElement textAlignment="Center"/>
-				<text><![CDATA[RESPONSABLE DE DEPORTES]]></text>
-			</staticText>
-			<line>
-				<reportElement x="49" y="300" width="169" height="1" uuid="91f063f0-f01f-4349-a4a8-efdbb73bd8e7"/>
-			</line>
-			<staticText>
-				<reportElement x="349" y="302" width="170" height="30" uuid="80826861-45ce-4e9c-b3db-30af39560ca2"/>
-				<textElement textAlignment="Center"/>
-				<text><![CDATA[CONTRIBUYENTE]]></text>
-			</staticText>
-			<line>
-				<reportElement x="350" y="301" width="169" height="1" uuid="7c9673a4-5b60-428e-8e18-b8ca08dd4b6f"/>
-			</line>
-			<textField>
-				<reportElement x="330" y="317" width="200" height="17" uuid="cc65df3e-406c-47a8-918c-4f9aaa0d63a4">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0e03e254-a618-48ad-b8eb-fb43feee43cf"/>
-					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<paragraph firstLineIndent="5"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
-			</textField>
 		</band>
 	</columnHeader>
 	<columnFooter>
