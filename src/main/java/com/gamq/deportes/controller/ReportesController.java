@@ -394,9 +394,7 @@ public class ReportesController {
 public void reporteListaMensuales (
         @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
         @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
-        @RequestParam(name = "tipocobro",required = false) String tipocobro,
         @RequestParam(name = "estado",required = false) String estado,
-        @RequestParam(name = "cancha",required = false) String cancha,
         @RequestHeader Map<String, String> headers,
         HttpServletResponse response
 ) {
@@ -404,31 +402,19 @@ public void reporteListaMensuales (
         //usuario
         //String usuario = headers.getOrDefault("usuario", "Default");
         //ingreso almacen
-        if (tipocobro.equals("TODO")){
-            tipocobro="%";
-        }else
-        {
-            tipocobro="%"+tipocobro+"%";
-        }
+
         if (estado.equals("TODO")){
             estado="%";
         }else
         {
             estado="%"+estado+"%";
         }
-        if (cancha.equals("TODO")){
-            cancha="%";
-        }else
-        {
-            cancha="%"+cancha+"%";
-        }
 
         HashMap<String, Object> parametros = new HashMap<String,Object>();
         parametros.put("fechaini",fecha_ini);
         parametros.put("fechafin",fecha_fin);
-        parametros.put("tipocobro",tipocobro);
         parametros.put("estado",estado);
-        parametros.put("cancha",cancha);
+
         //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
         //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
 
