@@ -6,7 +6,7 @@ import com.gamq.deportes.model.Reserva;
 import java.util.stream.Collectors;
 
 public class ReservaMapper {
-    public static ReservaDto toDto(Reserva reserva) {
+    public static ReservaDto    toDto(Reserva reserva) {
         ReservaDto reservaDto = new ReservaDto();
 
         // Basic identification
