@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.gamq.deportes.DeportesApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-11T12:52:10" hostname="LAPTOP-48M5EHMJ" time="0.127">
+<testsuite name="com.gamq.deportes.DeportesApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-11T13:02:34" hostname="LAPTOP-48M5EHMJ" time="0.137">
   <properties/>
-  <testcase name="contextLoads()" classname="com.gamq.deportes.DeportesApplicationTests" time="0.127"/>
-  <system-out><![CDATA[08:51:57.149 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating CacheAwareContextLoaderDelegate from class [org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate]
-08:51:57.159 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating BootstrapContext using constructor [public org.springframework.test.context.support.DefaultBootstrapContext(java.lang.Class,org.springframework.test.context.CacheAwareContextLoaderDelegate)]
-08:51:57.191 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating TestContextBootstrapper for test class [com.gamq.deportes.DeportesApplicationTests] from class [org.springframework.boot.test.context.SpringBootTestContextBootstrapper]
-08:51:57.199 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Neither @ContextConfiguration nor @ContextHierarchy found for test class [com.gamq.deportes.DeportesApplicationTests], using SpringBootContextLoader
-08:51:57.205 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.gamq.deportes.DeportesApplicationTests]: class path resource [com/gamq/deportes/DeportesApplicationTests-context.xml] does not exist
-08:51:57.207 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.gamq.deportes.DeportesApplicationTests]: class path resource [com/gamq/deportes/DeportesApplicationTestsContext.groovy] does not exist
-08:51:57.207 [Test worker] INFO org.springframework.test.context.support.AbstractContextLoader - Could not detect default resource locations for test class [com.gamq.deportes.DeportesApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
-08:51:57.207 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.gamq.deportes.DeportesApplicationTests]: DeportesApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-08:51:57.244 [Test worker] DEBUG org.springframework.test.context.support.ActiveProfilesUtils - Could not find an 'annotation declaring class' for annotation type [org.springframework.test.context.ActiveProfiles] and class [com.gamq.deportes.DeportesApplicationTests]
-08:51:57.309 [Test worker] DEBUG org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider - Identified candidate component class: file [D:\GAMQ PROJECTS\gamq-deportes\deportes-backend\build\classes\java\main\com\gamq\deportes\DeportesApplication.class]
-08:51:57.309 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.gamq.deportes.DeportesApplication for test class com.gamq.deportes.DeportesApplicationTests
-08:51:57.419 [Test worker] DEBUG org.springframework.boot.test.context.SpringBootTestContextBootstrapper - @TestExecutionListeners is not present for class [com.gamq.deportes.DeportesApplicationTests]: using defaults.
-08:51:57.419 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
-08:51:57.432 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@6b739528, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@622ef26a, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@41de5768, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@5f577419, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@28fa700e, org.springframework.test.context.support.DirtiesContextTestExecutionListener@3d526ad9, org.springframework.test.context.transaction.TransactionalTestExecutionListener@e041f0c, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@6a175569, org.springframework.test.context.event.EventPublishingTestExecutionListener@11963225, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@3f3c966c, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@11ee02f8, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@4102b1b1, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@61a5b4ae, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener@3a71c100, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@5b69fd74]
-08:51:57.439 [Test worker] DEBUG org.springframework.test.context.support.AbstractDirtiesContextTestExecutionListener - Before test class: context [DefaultTestContext@66b72664 testClass = DeportesApplicationTests, testInstance = [null], testMethod = [null], testException = [null], mergedContextConfiguration = [WebMergedContextConfiguration@7a34b7b8 testClass = DeportesApplicationTests, locations = '{}', classes = '{class com.gamq.deportes.DeportesApplication}', contextInitializerClasses = '[]', activeProfiles = '{}', propertySourceLocations = '{}', propertySourceProperties = '{org.springframework.boot.test.context.SpringBootTestContextBootstrapper=true}', contextCustomizers = set[org.springframework.boot.test.autoconfigure.actuate.metrics.MetricsExportContextCustomizerFactory$DisableMetricExportContextCustomizer@590c73d3, org.springframework.boot.test.autoconfigure.properties.PropertyMappingContextCustomizer@0, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverContextCustomizerFactory$Customizer@3b956878, org.springframework.boot.test.context.filter.ExcludeFilterContextCustomizer@2c88b9fc, org.springframework.boot.test.json.DuplicateJsonObjectContextCustomizerFactory$DuplicateJsonObjectContextCustomizer@1dd0e7c4, org.springframework.boot.test.mock.mockito.MockitoContextCustomizer@0, org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer@5b7ea70d, org.springframework.boot.test.context.SpringBootTestArgs@1, org.springframework.boot.test.context.SpringBootTestWebEnvironment@895e367], resourceBasePath = 'src/main/webapp', contextLoader = 'org.springframework.boot.test.context.SpringBootContextLoader', parent = [null]], attributes = map['org.springframework.test.context.web.ServletTestExecutionListener.activateListener' -> true]], class annotated with @DirtiesContext [false] with mode [null].
+  <testcase name="contextLoads()" classname="com.gamq.deportes.DeportesApplicationTests" time="0.137"/>
+  <system-out><![CDATA[09:02:24.270 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating CacheAwareContextLoaderDelegate from class [org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate]
+09:02:24.281 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating BootstrapContext using constructor [public org.springframework.test.context.support.DefaultBootstrapContext(java.lang.Class,org.springframework.test.context.CacheAwareContextLoaderDelegate)]
+09:02:24.319 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating TestContextBootstrapper for test class [com.gamq.deportes.DeportesApplicationTests] from class [org.springframework.boot.test.context.SpringBootTestContextBootstrapper]
+09:02:24.329 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Neither @ContextConfiguration nor @ContextHierarchy found for test class [com.gamq.deportes.DeportesApplicationTests], using SpringBootContextLoader
+09:02:24.339 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.gamq.deportes.DeportesApplicationTests]: class path resource [com/gamq/deportes/DeportesApplicationTests-context.xml] does not exist
+09:02:24.339 [Test worker] DEBUG org.springframework.test.context.support.AbstractContextLoader - Did not detect default resource location for test class [com.gamq.deportes.DeportesApplicationTests]: class path resource [com/gamq/deportes/DeportesApplicationTestsContext.groovy] does not exist
+09:02:24.342 [Test worker] INFO org.springframework.test.context.support.AbstractContextLoader - Could not detect default resource locations for test class [com.gamq.deportes.DeportesApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
+09:02:24.342 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.gamq.deportes.DeportesApplicationTests]: DeportesApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:02:24.385 [Test worker] DEBUG org.springframework.test.context.support.ActiveProfilesUtils - Could not find an 'annotation declaring class' for annotation type [org.springframework.test.context.ActiveProfiles] and class [com.gamq.deportes.DeportesApplicationTests]
+09:02:24.473 [Test worker] DEBUG org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider - Identified candidate component class: file [D:\GAMQ PROJECTS\gamq-deportes\deportes-backend\build\classes\java\main\com\gamq\deportes\DeportesApplication.class]
+09:02:24.479 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.gamq.deportes.DeportesApplication for test class com.gamq.deportes.DeportesApplicationTests
+09:02:24.589 [Test worker] DEBUG org.springframework.boot.test.context.SpringBootTestContextBootstrapper - @TestExecutionListeners is not present for class [com.gamq.deportes.DeportesApplicationTests]: using defaults.
+09:02:24.599 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener]
+09:02:24.615 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@6b739528, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@622ef26a, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@41de5768, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@5f577419, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@28fa700e, org.springframework.test.context.support.DirtiesContextTestExecutionListener@3d526ad9, org.springframework.test.context.transaction.TransactionalTestExecutionListener@e041f0c, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@6a175569, org.springframework.test.context.event.EventPublishingTestExecutionListener@11963225, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@3f3c966c, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@11ee02f8, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@4102b1b1, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@61a5b4ae, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener@3a71c100, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@5b69fd74]
+09:02:24.620 [Test worker] DEBUG org.springframework.test.context.support.AbstractDirtiesContextTestExecutionListener - Before test class: context [DefaultTestContext@66b72664 testClass = DeportesApplicationTests, testInstance = [null], testMethod = [null], testException = [null], mergedContextConfiguration = [WebMergedContextConfiguration@7a34b7b8 testClass = DeportesApplicationTests, locations = '{}', classes = '{class com.gamq.deportes.DeportesApplication}', contextInitializerClasses = '[]', activeProfiles = '{}', propertySourceLocations = '{}', propertySourceProperties = '{org.springframework.boot.test.context.SpringBootTestContextBootstrapper=true}', contextCustomizers = set[org.springframework.boot.test.autoconfigure.actuate.metrics.MetricsExportContextCustomizerFactory$DisableMetricExportContextCustomizer@590c73d3, org.springframework.boot.test.autoconfigure.properties.PropertyMappingContextCustomizer@0, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverContextCustomizerFactory$Customizer@3b956878, org.springframework.boot.test.context.filter.ExcludeFilterContextCustomizer@2c88b9fc, org.springframework.boot.test.json.DuplicateJsonObjectContextCustomizerFactory$DuplicateJsonObjectContextCustomizer@1dd0e7c4, org.springframework.boot.test.mock.mockito.MockitoContextCustomizer@0, org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer@5b7ea70d, org.springframework.boot.test.context.SpringBootTestArgs@1, org.springframework.boot.test.context.SpringBootTestWebEnvironment@895e367], resourceBasePath = 'src/main/webapp', contextLoader = 'org.springframework.boot.test.context.SpringBootContextLoader', parent = [null]], attributes = map['org.springframework.test.context.web.ServletTestExecutionListener.activateListener' -> true]], class annotated with @DirtiesContext [false] with mode [null].
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -26,128 +26,22 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::               (v2.7.15)
 
-2025-11-11 08:51:57.780  INFO 27612 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : Starting DeportesApplicationTests using Java 11.0.24 on LAPTOP-48M5EHMJ with PID 27612 (started by LENOVO in D:\GAMQ PROJECTS\gamq-deportes\deportes-backend)
-2025-11-11 08:51:57.780  INFO 27612 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : No active profile set, falling back to 1 default profile: "default"
-2025-11-11 08:51:58.741  INFO 27612 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-11-11 08:51:58.909  INFO 27612 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 155 ms. Found 23 JPA repository interfaces.
-2025-11-11 08:51:59.629  INFO 27612 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-11-11 08:51:59.696  INFO 27612 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
-2025-11-11 08:51:59.829  INFO 27612 --- [    Test worker] o.h.spatial.integration.SpatialService   : HHH80000001: hibernate-spatial integration enabled : true
-2025-11-11 08:51:59.875  INFO 27612 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
-2025-11-11 08:51:59.996  INFO 27612 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2025-11-11 08:52:00.296  INFO 27612 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2025-11-11 08:52:00.314  INFO 27612 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
-Hibernate: 
-    
-    create table campos_deportivos (
-       id_campo  bigserial not null,
-        acceso_libre BOOLEAN DEFAULT false,
-        capacidad_personas int4,
-        categoria varchar(10),
-        codigo varchar(50),
-        dimensiones varchar(100),
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        estado_actual varchar(20),
-        fecha_creacion timestamp not null,
-        horas_minima_aprobacion int4,
-        max_duracion_auto_aprobacion int4,
-        max_personas_auto_aprobacion int4,
-        nombre varchar(250) not null,
-        observaciones TEXT,
-        requiere_aprobacion BOOLEAN DEFAULT true,
-        tiene_iluminacion BOOLEAN DEFAULT false,
-        uuid varchar(50) not null,
-        id_complejo int8,
-        id_superficie int8,
-        primary key (id_campo)
-    )
-Hibernate: 
-    
-    create table categorias_deportivas (
-       id_categoria  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        codigo varchar(50) not null,
-        descripcion TEXT,
-        estado BOOLEAN NOT NULL DEFAULT false,
-        fecha_creacion timestamp not null,
-        for_asociation boolean,
-        nombre varchar(255) not null,
-        tipo varchar(50),
-        uuid varchar(50) not null,
-        primary key (id_categoria)
-    )
-Hibernate: 
-    
-    create table clasificadores_ruat (
-       id_clasificador_ruat  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        codigo varchar(20) not null,
-        descripcion TEXT,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        nombre varchar(255) not null,
-        tipo_reserva varchar(20) not null,
-        uuid varchar(50) not null,
-        primary key (id_clasificador_ruat)
-    )
-Hibernate: 
-    
-    create table complejos_deportivos (
-       id_complejo  bigserial not null,
-        distrito varchar(50) not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        estado_actual varchar(20),
-        fecha_creacion timestamp not null,
-        geo_ubicacion Geometry,
-        nombre varchar(250) not null,
-        observaciones TEXT,
-        telefono_principal varchar(20),
-        tiene_graderias BOOLEAN DEFAULT false,
-        tiene_iluminacion BOOLEAN DEFAULT false,
-        tiene_vestuarios BOOLEAN DEFAULT false,
-        tipo_estructura varchar(20) not null,
-        ubicacion varchar(250) not null,
-        uuid varchar(50) not null,
-        primary key (id_complejo)
-    )
-Hibernate: 
-    
-    create table configuracion_sistema (
-       id_configuracion  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        aplica_a varchar(50),
-        categoria varchar(50) not null,
-        clave varchar(100) not null,
-        descripcion TEXT,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_actualizacion timestamp,
-        fecha_creacion timestamp not null,
-        modificable_por_usuario BOOLEAN DEFAULT false,
-        modificado_por varchar(50),
-        nombre varchar(200) not null,
-        referencia_uuid varchar(50),
-        requiere_aprobacion BOOLEAN DEFAULT false,
-        ultima_modificacion timestamp,
-        unidad_medida varchar(50),
-        uuid varchar(50) not null,
-        valor_boolean BOOLEAN,
-        valor_json TEXT,
-        valor_maximo float8,
-        valor_minimo float8,
-        valor_numerico float8,
-        valor_texto TEXT,
-        valores_posibles TEXT,
-        primary key (id_configuracion)
-    )
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column apellido_esposo varchar(100)
+2025-11-11 09:02:24.985  INFO 27028 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : Starting DeportesApplicationTests using Java 11.0.24 on LAPTOP-48M5EHMJ with PID 27028 (started by LENOVO in D:\GAMQ PROJECTS\gamq-deportes\deportes-backend)
+2025-11-11 09:02:24.990  INFO 27028 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : No active profile set, falling back to 1 default profile: "default"
+2025-11-11 09:02:26.080  INFO 27028 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-11 09:02:26.273  INFO 27028 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 179 ms. Found 23 JPA repository interfaces.
+2025-11-11 09:02:27.085  INFO 27028 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-11 09:02:27.139  INFO 27028 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-11-11 09:02:27.291  INFO 27028 --- [    Test worker] o.h.spatial.integration.SpatialService   : HHH80000001: hibernate-spatial integration enabled : true
+2025-11-11 09:02:27.339  INFO 27028 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-11-11 09:02:27.465  INFO 27028 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-11-11 09:02:27.713  INFO 27028 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-11-11 09:02:27.734  INFO 27028 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
 Hibernate: 
     
     alter table contribuyentes 
        add column email varchar(255) not null
-2025-11-11 08:52:01.947  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.030  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table contribuyentes 
        add column email varchar(255) not null" via JDBC Statement
 
@@ -292,24 +186,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "email" of relation 
 Hibernate: 
     
     alter table contribuyentes 
-       add column es_deportista_elite BOOLEAN DEFAULT false
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column esta_sancionado BOOLEAN DEFAULT false
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column estado_ruat varchar(20)
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column expedido varchar(20)
-Hibernate: 
-    
-    alter table contribuyentes 
        add column fecha_actualizacion timestamp not null
-2025-11-11 08:52:02.013  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.040  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table contribuyentes 
        add column fecha_actualizacion timestamp not null" via JDBC Statement
 
@@ -455,7 +333,7 @@ Hibernate:
     
     alter table contribuyentes 
        add column fecha_creacion timestamp not null
-2025-11-11 08:52:02.024  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.055  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table contribuyentes 
        add column fecha_creacion timestamp not null" via JDBC Statement
 
@@ -600,32 +478,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_creacion" of 
 Hibernate: 
     
     alter table contribuyentes 
-       add column fecha_fin_sancion timestamp
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column fecha_nacimiento date
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column fecha_ultimo_uso_gratuito date
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column fecha_verificacion_ruat timestamp
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column genero varchar(5)
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column motivo_sancion TEXT
-Hibernate: 
-    
-    alter table contribuyentes 
        add column numero_documento varchar(20) not null
-2025-11-11 08:52:02.165  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.071  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table contribuyentes 
        add column numero_documento varchar(20) not null" via JDBC Statement
 
@@ -770,12 +624,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "numero_documento" o
 Hibernate: 
     
     alter table contribuyentes 
-       add column observaciones_municipales TEXT
-Hibernate: 
-    
-    alter table contribuyentes 
        add column primer_apellido varchar(100) not null
-2025-11-11 08:52:02.221  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.081  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table contribuyentes 
        add column primer_apellido varchar(100) not null" via JDBC Statement
 
@@ -919,122 +769,9 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "primer_apellido" of
 
 Hibernate: 
     
-    alter table contribuyentes 
-       add column registro_unico_deportivo TEXT
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column segundo_apellido varchar(100)
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column telefono varchar(20)
-Hibernate: 
-    
-    alter table contribuyentes 
-       add column verificado_ruat BOOLEAN DEFAULT false
-Hibernate: 
-    
-    create table encargados_complejo (
-       id_encargado_complejo  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        avatar varchar(250) not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_asignacion date,
-        fecha_creacion timestamp not null,
-        fecha_fin_asignacion date,
-        hora_entrada time,
-        hora_salida time,
-        nombre varchar(250) not null,
-        telefono varchar(20),
-        user_uuid varchar(50) not null,
-        uuid varchar(50) not null,
-        id_complejo int8,
-        primary key (id_encargado_complejo)
-    )
-Hibernate: 
-    
-    create table estudiantes_escuela (
-       id_estudiante  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        email varchar(255),
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_baja date,
-        fecha_creacion timestamp not null,
-        fecha_inscripcion date not null,
-        fecha_nacimiento date,
-        genero varchar(5),
-        matricula varchar(50) not null,
-        nombre_completo varchar(255) not null,
-        numero_documento varchar(20),
-        telefono varchar(20),
-        uuid varchar(50) not null,
-        id_contribuyente int8 not null,
-        primary key (id_estudiante)
-    )
-Hibernate: 
-    
-    create table horario_excepciones (
-       id_horario_excepcion  bigserial not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha date not null,
-        fecha_creacion timestamp not null,
-        hora_apertura time,
-        hora_cierre time,
-        motivo TEXT,
-        tipo_excepcion varchar(30) not null,
-        uuid varchar(50) not null,
-        id_campo int8,
-        primary key (id_horario_excepcion)
-    )
-Hibernate: 
-    
-    create table horarios_fijos (
-       id_horario_fijo  bigserial not null,
-        abierto boolean not null,
-        dia varchar(20) not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        hora_apertura time,
-        hora_cierre time,
-        observaciones TEXT,
-        uuid varchar(50) not null,
-        id_campo int8 not null,
-        primary key (id_horario_fijo)
-    )
-Hibernate: 
-    
-    create table organizaciones (
-       id_organizacion  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        codigo_escuela varchar(50),
-        direccion TEXT,
-        disciplina varchar(100),
-        email varchar(255),
-        entrenador varchar(100),
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        nombre varchar(255) not null,
-        nro_nit varchar(20),
-        permite_reservas_gratuitas BOOLEAN DEFAULT false,
-        personeria_juridica varchar(100),
-        requiere_pago_mensualidad BOOLEAN DEFAULT false,
-        tarifa_mensual int4,
-        telefono varchar(20),
-        tipo_organizacion varchar(50) not null,
-        uuid varchar(50) not null,
-        id_representante int8 not null,
-        primary key (id_organizacion)
-    )
-Hibernate: 
-    
-    alter table pagos 
-       add column estado_pago varchar(20)
-Hibernate: 
-    
     alter table pagos 
        add column fecha_actualizacion timestamp not null
-2025-11-11 08:52:02.753  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.093  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table pagos 
        add column fecha_actualizacion timestamp not null" via JDBC Statement
 
@@ -1180,7 +917,7 @@ Hibernate:
     
     alter table pagos 
        add column fecha_creacion timestamp not null
-2025-11-11 08:52:02.765  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.100  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table pagos 
        add column fecha_creacion timestamp not null" via JDBC Statement
 
@@ -1325,20 +1062,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_creacion" of 
 Hibernate: 
     
     alter table pagos 
-       add column monto_pagado numeric(10, 2)
-Hibernate: 
-    
-    alter table pagos 
-       add column observaciones_ruat TEXT
-Hibernate: 
-    
-    alter table pagos 
-       add column respuesta_completa_ruat TEXT
-Hibernate: 
-    
-    alter table pagos 
        add column tipo_tasa varchar(10) not null
-2025-11-11 08:52:02.831  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.109  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table pagos 
        add column tipo_tasa varchar(10) not null" via JDBC Statement
 
@@ -1482,17 +1207,9 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "tipo_tasa" of relat
 
 Hibernate: 
     
-    alter table pagos 
-       add column ultima_consulta timestamp
-Hibernate: 
-    
-    alter table reservas 
-       add column aprobado_por varchar(36)
-Hibernate: 
-    
     alter table reservas 
        add column clasificador_ruat_id varchar(255) not null
-2025-11-11 08:52:02.894  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.119  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column clasificador_ruat_id varchar(255) not null" via JDBC Statement
 
@@ -1637,16 +1354,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "clasificador_ruat_i
 Hibernate: 
     
     alter table reservas 
-       add column es_reserva_gratuita BOOLEAN DEFAULT false
-Hibernate: 
-    
-    alter table reservas 
-       add column estado_validacion varchar(20)
-Hibernate: 
-    
-    alter table reservas 
        add column fecha_actualizacion timestamp not null
-2025-11-11 08:52:02.941  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.133  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column fecha_actualizacion timestamp not null" via JDBC Statement
 
@@ -1791,12 +1500,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_actualizacion
 Hibernate: 
     
     alter table reservas 
-       add column fecha_aprobacion timestamp
-Hibernate: 
-    
-    alter table reservas 
        add column fecha_creacion timestamp not null
-2025-11-11 08:52:02.973  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.140  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column fecha_creacion timestamp not null" via JDBC Statement
 
@@ -1941,12 +1646,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_creacion" of 
 Hibernate: 
     
     alter table reservas 
-       add column fecha_rechazo timestamp
-Hibernate: 
-    
-    alter table reservas 
        add column monto_total numeric(10, 2) not null
-2025-11-11 08:52:02.999  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.149  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column monto_total numeric(10, 2) not null" via JDBC Statement
 
@@ -2091,16 +1792,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "monto_total" of rel
 Hibernate: 
     
     alter table reservas 
-       add column motivo_gratuidad TEXT
-Hibernate: 
-    
-    alter table reservas 
-       add column motivo_rechazo TEXT
-Hibernate: 
-    
-    alter table reservas 
        add column numero_reserva varchar(50) not null
-2025-11-11 08:52:03.042  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.163  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column numero_reserva varchar(50) not null" via JDBC Statement
 
@@ -2246,7 +1939,7 @@ Hibernate:
     
     alter table reservas 
        add column tipo_reserva varchar(20) not null
-2025-11-11 08:52:03.049  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.170  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column tipo_reserva varchar(20) not null" via JDBC Statement
 
@@ -2392,7 +2085,7 @@ Hibernate:
     
     alter table reservas 
        add column id_campo int8 not null
-2025-11-11 08:52:03.059  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.179  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add column id_campo int8 not null" via JDBC Statement
 
@@ -2536,146 +2229,9 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "id_campo" of relati
 
 Hibernate: 
     
-    alter table reservas 
-       add column id_estudiante_escuela int8
-Hibernate: 
-    
-    alter table reservas 
-       add column id_organizacion int8
-Hibernate: 
-    
-    alter table reservas 
-       add column id_tarifa int8
-Hibernate: 
-    
-    create table reservas_auditorias (
-       id_auditoria  bigserial not null,
-        accion varchar(30) not null,
-        datos_cambio JSON,
-        direccion_ip varchar(45),
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        estado_anterior varchar(50),
-        estado_nuevo varchar(50),
-        fecha_accion timestamp not null,
-        fecha_creacion timestamp not null,
-        observaciones TEXT,
-        usuario_uuid varchar(36),
-        uuid varchar(50) not null,
-        reserva_id int8 not null,
-        primary key (id_auditoria)
-    )
-Hibernate: 
-    
-    create table reservas_periodo (
-       id_reserva_periodo  bigserial not null,
-        año int4,
-        disciplina varchar(100),
-        entrenador varchar(100),
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        fecha_pago date,
-        matricula varchar(50),
-        mes int4,
-        uuid varchar(50) not null,
-        id_reserva int8 not null,
-        primary key (id_reserva_periodo)
-    )
-Hibernate: 
-    
-    create table reservas_puntuales (
-       id_reserva_puntual  bigserial not null,
-        cantidad_personas int4,
-        categoria varchar(255) not null,
-        duracion_horas int4,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        fecha_uso date,
-        fecha_uso_real timestamp,
-        hora_fin time,
-        hora_inicio time,
-        observaciones TEXT,
-        periodo varchar(255),
-        superficie varchar(255) not null,
-        uuid varchar(50) not null,
-        id_reserva int8 not null,
-        primary key (id_reserva_puntual)
-    )
-Hibernate: 
-    
-    create table reservas_recurrentes (
-       id_reserva_recurrente  bigserial not null,
-        activo BOOLEAN DEFAULT TRUE,
-        cantidad_personas int4,
-        cantidad_sesiones int4,
-        categoria varchar(255),
-        dias_semana varchar(255),
-        duracion_sesuib_horas int4,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        fecha_fin date,
-        fecha_inicio date not null,
-        observaciones TEXT,
-        superficie varchar(255),
-        tarifa_mensual int4,
-        tipo_recurrencia varchar(20) not null,
-        uuid varchar(50) not null,
-        id_reserva int8 not null,
-        id_tablero int8,
-        primary key (id_reserva_recurrente)
-    )
-Hibernate: 
-    
-    create table superficies (
-       id_superficie  bigserial not null,
-        descripcion varchar(100) not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        uuid varchar(50) not null,
-        primary key (id_superficie)
-    )
-Hibernate: 
-    
-    create table tablero (
-       id_tablero  bigserial not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        horario_fijo jsonb,
-        uuid varchar(50) not null,
-        primary key (id_tablero)
-    )
-Hibernate: 
-    
-    create table tarifa_categorias (
-       id_tarifa_categoria  bigserial not null,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        uuid varchar(50) not null,
-        id_categoria int8,
-        id_tarifa int8,
-        primary key (id_tarifa_categoria)
-    )
-Hibernate: 
-    
-    create table tarifa_conceptos (
-       id_tarifa_concepto  bigserial not null,
-        activo BOOLEAN DEFAULT true,
-        concepto varchar(50) not null,
-        desde time,
-        estado BOOLEAN NOT NULL DEFAULT '0',
-        fecha_creacion timestamp not null,
-        hasta time,
-        tipo varchar(20) not null,
-        uuid varchar(50) not null,
-        valor numeric(10, 2) not null,
-        tarifa_id int8 not null,
-        primary key (id_tarifa_concepto)
-    )
-Hibernate: 
-    
-    alter table tarifas 
-       add column activo BOOLEAN DEFAULT true
-Hibernate: 
-    
     alter table tarifas 
        add column fecha_creacion timestamp not null
-2025-11-11 08:52:04.159  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.193  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column fecha_creacion timestamp not null" via JDBC Statement
 
@@ -2820,12 +2376,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_creacion" of 
 Hibernate: 
     
     alter table tarifas 
-       add column fecha_fin date
-Hibernate: 
-    
-    alter table tarifas 
        add column fecha_inicio date not null
-2025-11-11 08:52:04.180  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.199  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column fecha_inicio date not null" via JDBC Statement
 
@@ -2970,16 +2522,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "fecha_inicio" of re
 Hibernate: 
     
     alter table tarifas 
-       add column frecuencia varchar(20)
-Hibernate: 
-    
-    alter table tarifas 
-       add column observaciones TEXT
-Hibernate: 
-    
-    alter table tarifas 
        add column precio_base numeric(10, 2) not null
-2025-11-11 08:52:04.289  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.212  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column precio_base numeric(10, 2) not null" via JDBC Statement
 
@@ -3124,12 +2668,8 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "precio_base" of rel
 Hibernate: 
     
     alter table tarifas 
-       add column sesiones_incluidas numeric(5, 0)
-Hibernate: 
-    
-    alter table tarifas 
        add column tipo_cobro varchar(20) not null
-2025-11-11 08:52:04.309  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.225  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column tipo_cobro varchar(20) not null" via JDBC Statement
 
@@ -3275,7 +2815,7 @@ Hibernate:
     
     alter table tarifas 
        add column id_campo int8 not null
-2025-11-11 08:52:04.321  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.229  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column id_campo int8 not null" via JDBC Statement
 
@@ -3421,7 +2961,7 @@ Hibernate:
     
     alter table tarifas 
        add column id_clasificador_ruat int8 not null
-2025-11-11 08:52:04.329  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:29.244  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add column id_clasificador_ruat int8 not null" via JDBC Statement
 
@@ -3566,84 +3106,67 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "id_clasificador_rua
 Hibernate: 
     
     alter table campos_deportivos 
-       drop constraint UK_goi09athghfr8ass4vxmgttwd
+       drop constraint idx_campo_uuid
 Hibernate: 
     
     alter table campos_deportivos 
-       add constraint UK_goi09athghfr8ass4vxmgttwd unique (uuid)
+       add constraint idx_campo_uuid unique (uuid)
 Hibernate: 
     
     alter table categorias_deportivas 
-       drop constraint UK_7wil07wbgtygmhe0kfoiw3b8y
+       drop constraint idx_cate_uuid
 Hibernate: 
     
     alter table categorias_deportivas 
-       add constraint UK_7wil07wbgtygmhe0kfoiw3b8y unique (nombre)
+       add constraint idx_cate_uuid unique (uuid)
 Hibernate: 
     
     alter table categorias_deportivas 
-       drop constraint UK_268ft6kgchm6h6bakcyu0ope7
+       drop constraint idx_cate_nombre
 Hibernate: 
     
     alter table categorias_deportivas 
-       add constraint UK_268ft6kgchm6h6bakcyu0ope7 unique (uuid)
+       add constraint idx_cate_nombre unique (nombre)
 Hibernate: 
     
     alter table clasificadores_ruat 
-       drop constraint UK_1wtxaisagfsssly62p2887qku
+       drop constraint idx_clasruat_uuid
 Hibernate: 
     
     alter table clasificadores_ruat 
-       add constraint UK_1wtxaisagfsssly62p2887qku unique (codigo)
+       add constraint idx_clasruat_uuid unique (uuid)
 Hibernate: 
     
     alter table clasificadores_ruat 
-       drop constraint UK_nnna9nvoyce88rtiakrhh6o19
+       drop constraint idx_clasruat_codigo
 Hibernate: 
     
     alter table clasificadores_ruat 
-       add constraint UK_nnna9nvoyce88rtiakrhh6o19 unique (uuid)
+       add constraint idx_clasruat_codigo unique (codigo)
 Hibernate: 
     
     alter table complejos_deportivos 
-       drop constraint UK_tm882xm6mla5dpebkvfyf9r8r
+       drop constraint idx_com_uuid
 Hibernate: 
     
     alter table complejos_deportivos 
-       add constraint UK_tm882xm6mla5dpebkvfyf9r8r unique (uuid)
-Hibernate: create index idx_configuracion_categoria on configuracion_sistema (categoria)
+       add constraint idx_com_uuid unique (uuid)
 Hibernate: 
     
     alter table configuracion_sistema 
-       drop constraint UK_n2k8b6hwyumsdfmax8vg0320m
+       drop constraint idx_configuracion_uuid
 Hibernate: 
     
     alter table configuracion_sistema 
-       add constraint UK_n2k8b6hwyumsdfmax8vg0320m unique (clave)
+       add constraint idx_configuracion_uuid unique (uuid)
 Hibernate: 
     
     alter table configuracion_sistema 
-       drop constraint UK_dubp3je68n5n088i7ifo5ct20
+       drop constraint idx_configuracion_clave
 Hibernate: 
     
     alter table configuracion_sistema 
-       add constraint UK_dubp3je68n5n088i7ifo5ct20 unique (uuid)
-Hibernate: 
-    
-    alter table contribuyentes 
-       drop constraint idx_cont_user_name
-Hibernate: 
-    
-    alter table contribuyentes 
-       add constraint idx_cont_user_name unique (user_name)
-Hibernate: 
-    
-    alter table contribuyentes 
-       drop constraint idx_cont_codigo
-Hibernate: 
-    
-    alter table contribuyentes 
-       add constraint idx_cont_codigo unique (codigo_contribuyente)
+       add constraint idx_configuracion_clave unique (clave)
 Hibernate: 
     
     alter table contribuyentes 
@@ -3655,56 +3178,51 @@ Hibernate:
 Hibernate: 
     
     alter table encargados_complejo 
-       drop constraint UK_blq69v71qh79vmqsw7d2kd9uy
+       drop constraint idx_enc_uuid
 Hibernate: 
     
     alter table encargados_complejo 
-       add constraint UK_blq69v71qh79vmqsw7d2kd9uy unique (uuid)
-Hibernate: create index idx_est_numero_documento on estudiantes_escuela (numero_documento)
-Hibernate: create index idx_est_activo on estudiantes_escuela (activo)
-Hibernate: create index idx_est_contribuyente on estudiantes_escuela (id_contribuyente)
+       add constraint idx_enc_uuid unique (uuid)
 Hibernate: 
     
     alter table estudiantes_escuela 
-       drop constraint UK_hc3vtlosdcisi1abc2p9cjp6
+       drop constraint idx_est_uuid
 Hibernate: 
     
     alter table estudiantes_escuela 
-       add constraint UK_hc3vtlosdcisi1abc2p9cjp6 unique (matricula)
+       add constraint idx_est_uuid unique (uuid)
 Hibernate: 
     
     alter table estudiantes_escuela 
-       drop constraint UK_fsnj9afs852eg67hju74y0i7w
+       drop constraint idx_est_matricula
 Hibernate: 
     
     alter table estudiantes_escuela 
-       add constraint UK_fsnj9afs852eg67hju74y0i7w unique (uuid)
+       add constraint idx_est_matricula unique (matricula)
 Hibernate: 
     
     alter table horario_excepciones 
-       drop constraint UK_a8ib3rh8fn8yu2l3uuwati570
+       drop constraint idx_he_uuid
 Hibernate: 
     
     alter table horario_excepciones 
-       add constraint UK_a8ib3rh8fn8yu2l3uuwati570 unique (uuid)
+       add constraint idx_he_uuid unique (uuid)
 Hibernate: 
     
     alter table horarios_fijos 
-       drop constraint UK_gsmq1kay3piedfk5801ngqyrr
+       drop constraint idx_hf_uuid
 Hibernate: 
     
     alter table horarios_fijos 
-       add constraint UK_gsmq1kay3piedfk5801ngqyrr unique (uuid)
-Hibernate: create index idx_org_nombre on organizaciones (nombre)
-Hibernate: create index idx_org_codigo_escuela on organizaciones (codigo_escuela)
+       add constraint idx_hf_uuid unique (uuid)
 Hibernate: 
     
     alter table organizaciones 
-       drop constraint UK_ge0qmlpx84s0h2tqa676w2e0b
+       drop constraint idx_org_uuid
 Hibernate: 
     
     alter table organizaciones 
-       add constraint UK_ge0qmlpx84s0h2tqa676w2e0b unique (uuid)
+       add constraint idx_org_uuid unique (uuid)
 Hibernate: 
     
     alter table reservas 
@@ -3713,121 +3231,69 @@ Hibernate:
     
     alter table reservas 
        add constraint UK_6hakffa4nlx9ct893cpph3rqh unique (numero_reserva)
-Hibernate: create index idx_resaudit_reserva on reservas_auditorias (reserva_id)
-Hibernate: create index idx_resaudit_fecha on reservas_auditorias (fecha_accion)
 Hibernate: 
     
     alter table reservas_auditorias 
-       drop constraint UK_73ag0xyfkb46aj32i5vyw0pvv
+       drop constraint idx_resaudit_uuid
 Hibernate: 
     
     alter table reservas_auditorias 
-       add constraint UK_73ag0xyfkb46aj32i5vyw0pvv unique (uuid)
-Hibernate: 
-    
-    alter table reservas_periodo 
-       drop constraint UK_5neakbkf6svr98580b70592nk
-Hibernate: 
-    
-    alter table reservas_periodo 
-       add constraint UK_5neakbkf6svr98580b70592nk unique (uuid)
+       add constraint idx_resaudit_uuid unique (uuid)
 Hibernate: 
     
     alter table reservas_puntuales 
-       drop constraint UK_h5t8j0s1vyvq37ravcl9tjsll
+       drop constraint idx_resp_uuid
 Hibernate: 
     
     alter table reservas_puntuales 
-       add constraint UK_h5t8j0s1vyvq37ravcl9tjsll unique (uuid)
+       add constraint idx_resp_uuid unique (uuid)
 Hibernate: 
     
     alter table reservas_recurrentes 
-       drop constraint UK_edl4jrxticy0dfhsnsl3pvj8
+       drop constraint idx_resr_uuid
 Hibernate: 
     
     alter table reservas_recurrentes 
-       add constraint UK_edl4jrxticy0dfhsnsl3pvj8 unique (uuid)
+       add constraint idx_resr_uuid unique (uuid)
 Hibernate: 
     
     alter table superficies 
-       drop constraint UK_no2pxvxbsh9lp3tohulyawfn2
+       drop constraint idx_sup_uuid
 Hibernate: 
     
     alter table superficies 
-       add constraint UK_no2pxvxbsh9lp3tohulyawfn2 unique (uuid)
+       add constraint idx_sup_uuid unique (uuid)
 Hibernate: 
     
     alter table tablero 
-       drop constraint UK_pj046p3h31s5yrqa70xbc4c9n
+       drop constraint idx_tab_uuid
 Hibernate: 
     
     alter table tablero 
-       add constraint UK_pj046p3h31s5yrqa70xbc4c9n unique (uuid)
+       add constraint idx_tab_uuid unique (uuid)
 Hibernate: 
     
     alter table tarifa_categorias 
-       drop constraint UK_67y6x134uvmwysts6rthcajmo
+       drop constraint idx_tarcat_uuid
 Hibernate: 
     
     alter table tarifa_categorias 
-       add constraint UK_67y6x134uvmwysts6rthcajmo unique (uuid)
+       add constraint idx_tarcat_uuid unique (uuid)
 Hibernate: 
     
     alter table tarifa_conceptos 
-       drop constraint UK_7cu01p1gyfxm8cbbbby6ka5hx
+       drop constraint idx_tarcon_uuid
 Hibernate: 
     
     alter table tarifa_conceptos 
-       add constraint UK_7cu01p1gyfxm8cbbbby6ka5hx unique (uuid)
-Hibernate: 
-    
-    alter table campos_deportivos 
-       add constraint FK2lwfgw4oahalg9p31v99optcl 
-       foreign key (id_complejo) 
-       references complejos_deportivos
-Hibernate: 
-    
-    alter table campos_deportivos 
-       add constraint FK1xep8p6ym62adud56shf3alcp 
-       foreign key (id_superficie) 
-       references superficies
-Hibernate: 
-    
-    alter table encargados_complejo 
-       add constraint FK265o8nrmitk66r6l89mkfjr2i 
-       foreign key (id_complejo) 
-       references complejos_deportivos
-Hibernate: 
-    
-    alter table estudiantes_escuela 
-       add constraint FKn3d54r1caxlfg4gxry478o8of 
-       foreign key (id_contribuyente) 
-       references contribuyentes
-Hibernate: 
-    
-    alter table horario_excepciones 
-       add constraint FK51j9u6jw0nnv6fw21jfcao6pe 
-       foreign key (id_campo) 
-       references campos_deportivos
-Hibernate: 
-    
-    alter table horarios_fijos 
-       add constraint FK7wryx05lhbmko6vrx191xppah 
-       foreign key (id_campo) 
-       references campos_deportivos
-Hibernate: 
-    
-    alter table organizaciones 
-       add constraint FK2tkxoe1v89epgjojefy2a3woq 
-       foreign key (id_representante) 
-       references contribuyentes
+       add constraint idx_tarcon_uuid unique (uuid)
 Hibernate: 
     
     alter table reservas 
        add constraint FKf1ebnbb1ihwfex17brsh33lfe 
        foreign key (id_campo) 
        references campos_deportivos
-2025-11-11 08:52:06.416  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:30.373  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table reservas 
        add constraint FKf1ebnbb1ihwfex17brsh33lfe 
        foreign key (id_campo) 
@@ -3974,77 +3440,11 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "id_campo" reference
 
 Hibernate: 
     
-    alter table reservas 
-       add constraint FKhc56h70f03v16pu9qk4oosc0d 
-       foreign key (id_estudiante_escuela) 
-       references estudiantes_escuela
-Hibernate: 
-    
-    alter table reservas 
-       add constraint FKltyfkjrc2cbgxalnsb3y04qg6 
-       foreign key (id_organizacion) 
-       references organizaciones
-Hibernate: 
-    
-    alter table reservas 
-       add constraint FKgcxcf3o4mav6e28i7kqhh8p6i 
-       foreign key (id_tarifa) 
-       references tarifas
-Hibernate: 
-    
-    alter table reservas_auditorias 
-       add constraint FK5rf2dbpch4wk5ak3frv0rio7o 
-       foreign key (reserva_id) 
-       references reservas
-Hibernate: 
-    
-    alter table reservas_periodo 
-       add constraint FKl0mn4vafx3fwpbnsewduxsudg 
-       foreign key (id_reserva) 
-       references reservas
-Hibernate: 
-    
-    alter table reservas_puntuales 
-       add constraint FKmesomkh42o3ei3iaxyp250mfn 
-       foreign key (id_reserva) 
-       references reservas
-Hibernate: 
-    
-    alter table reservas_recurrentes 
-       add constraint FKcy1tn7yj5xnmkapm72ulm65bs 
-       foreign key (id_reserva) 
-       references reservas
-Hibernate: 
-    
-    alter table reservas_recurrentes 
-       add constraint FKcff83u4b7eyq92ult3b2b8hyr 
-       foreign key (id_tablero) 
-       references tablero
-Hibernate: 
-    
-    alter table tarifa_categorias 
-       add constraint FKb45lktw250659qkjn9xkrddt4 
-       foreign key (id_categoria) 
-       references categorias_deportivas
-Hibernate: 
-    
-    alter table tarifa_categorias 
-       add constraint FKbyxifd5dia1jp48qyng2mnf11 
-       foreign key (id_tarifa) 
-       references tarifas
-Hibernate: 
-    
-    alter table tarifa_conceptos 
-       add constraint FKjloxdltqpylo8fjbl9997cixn 
-       foreign key (tarifa_id) 
-       references tarifas
-Hibernate: 
-    
     alter table tarifas 
        add constraint FKg4d535xwne89sr7v4boojc1h9 
        foreign key (id_campo) 
        references campos_deportivos
-2025-11-11 08:52:06.543  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:30.650  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add constraint FKg4d535xwne89sr7v4boojc1h9 
        foreign key (id_campo) 
@@ -4195,7 +3595,7 @@ Hibernate:
        add constraint FK40r2odr0sol3egvxng4bqd7t9 
        foreign key (id_clasificador_ruat) 
        references clasificadores_ruat
-2025-11-11 08:52:06.549  WARN 27612 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
+2025-11-11 09:02:30.661  WARN 27028 --- [    Test worker] o.h.t.s.i.ExceptionHandlerLoggedImpl     : GenerationTarget encountered exception accepting command : Error executing DDL "
     alter table tarifas 
        add constraint FK40r2odr0sol3egvxng4bqd7t9 
        foreign key (id_clasificador_ruat) 
@@ -4340,10 +3740,10 @@ Caused by: org.postgresql.util.PSQLException: ERROR: column "id_clasificador_rua
 	at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:54) ~[hibernate-core-5.6.15.Final.jar:5.6.15.Final]
 	... 118 common frames omitted
 
-2025-11-11 08:52:06.549  INFO 27612 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
-2025-11-11 08:52:06.559  INFO 27612 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-11-11 08:52:08.845  WARN 27612 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-11-11 08:52:10.399  INFO 27612 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : Started DeportesApplicationTests in 12.928 seconds (JVM running for 14.3)
+2025-11-11 09:02:30.663  INFO 27028 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-11-11 09:02:30.674  INFO 27028 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-11 09:02:33.112  WARN 27028 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-11-11 09:02:34.689  INFO 27028 --- [    Test worker] c.g.deportes.DeportesApplicationTests    : Started DeportesApplicationTests in 10.038 seconds (JVM running for 11.528)
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
