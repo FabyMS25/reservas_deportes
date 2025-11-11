@@ -1,6 +1,6 @@
 package com.gamq.deportes.service;
 
-import com.gamq.deportes.dto.CategoriaDto;
+import com.gamq.deportes.dto.CategoriaDeportivaDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,10 +8,10 @@ import java.util.List;
 @Service
 public interface CategoriaService {
 
-    CategoriaDto findByUuid(String uuid);
-    List<CategoriaDto> obtenerCategorias();
-    CategoriaDto crearCategoria(CategoriaDto CategoriaDto);
-    CategoriaDto actualizarCategoria(CategoriaDto CategoriaDto);
+    CategoriaDeportivaDto findByUuid(String uuid);
+    List<CategoriaDeportivaDto> obtenerCategorias();
+    CategoriaDeportivaDto crearCategoria(CategoriaDeportivaDto CategoriaDto);
+    CategoriaDeportivaDto actualizarCategoria(CategoriaDeportivaDto CategoriaDto);
    // String eliminarCategoria(String uuid);
    String delete(String uuid);
 }

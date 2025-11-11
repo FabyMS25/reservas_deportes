@@ -1,9 +1,9 @@
 package com.gamq.deportes.controller;
 
 
-import com.gamq.deportes.dto.encargadoComplejoDto;
+import com.gamq.deportes.dto.EncargadoComplejoDto;
 import com.gamq.deportes.dto.response.Response;
-import com.gamq.deportes.service.encargadoComplejoService;
+import com.gamq.deportes.service.EncargadoComplejoService;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +15,12 @@ import java.util.List;
 public class encargadoComplejoController {
 
     @Autowired
-    encargadoComplejoService encargadoCcomplejoService;
+    EncargadoComplejoService encargadoCcomplejoService;
 
     @GetMapping()
     public Response obtenerEncargados() {
         try {
-            List<encargadoComplejoDto> encargadoComplejoDtos = encargadoCcomplejoService.obtenerEncargadosComplejos();
+            List<EncargadoComplejoDto> encargadoComplejoDtos = encargadoCcomplejoService.obtenerEncargadosComplejos();
             return Response.ok().setPayload(encargadoComplejoDtos);
         } catch (Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
@@ -29,7 +29,7 @@ public class encargadoComplejoController {
     @GetMapping("/{uuid}")
     public Response buscarEncargadoPorUuid( @PathVariable("uuid") String uuid) {
         try{
-            encargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUuid(uuid);
+            EncargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUuid(uuid);
             return Response.ok().setPayload(encargadoComplejoDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
@@ -39,14 +39,14 @@ public class encargadoComplejoController {
     @GetMapping("user/{userUuid}")
     public Response buscarEncargadoPorUserUuid( @PathVariable("userUuid") String userUuid) {
         try{
-            encargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUserUuid(userUuid);
+            EncargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUserUuid(userUuid);
             return Response.ok().setPayload(encargadoComplejoDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
     @PostMapping()
-    public Response crearEncargado(@RequestBody encargadoComplejoDto encargadoComplejoDto) {
+    public Response crearEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
             return Response.ok().setPayload(encargadoCcomplejoService.crearEncargadoComplejo(encargadoComplejoDto));
         } catch (Exception ex) {
@@ -55,7 +55,7 @@ public class encargadoComplejoController {
     }
 
     @PutMapping()
-    public Response actualizarEncargado(@RequestBody encargadoComplejoDto encargadoComplejoDto) {
+    public Response actualizarEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
             return Response.ok().setPayload(encargadoCcomplejoService.actualizarEncargadoComplejo(encargadoComplejoDto));
         } catch (Exception ex) {

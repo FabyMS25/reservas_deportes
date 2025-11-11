@@ -5,24 +5,23 @@ import com.gamq.deportes.model.TarifaCategoria;
 
 public class TarifaCategoriaMapper {
 
-    public static TarifaCategoriaDto toDto(TarifaCategoria tarifaCategoria, boolean op)
-    {
-        TarifaCategoriaDto tarifaCategoriaDto = new TarifaCategoriaDto();
-        tarifaCategoriaDto.setUuid(tarifaCategoria.getUuid());
-        tarifaCategoriaDto.setEstado(tarifaCategoria.isEstado());
-        tarifaCategoriaDto.setCategoriaDto(CategoriaMapper.toDto(tarifaCategoria.getCategoria()));
-//        tarifaCategoriaDto.setTarifaDto(TarifaMapper.toDto(tarifaCategoria.getTarifa(), true));
-
-        if (op) {
-            tarifaCategoriaDto.setTarifaDto(TarifaMapper.toDto(tarifaCategoria.getTarifa(), true));
+    public static TarifaCategoriaDto toDto(TarifaCategoria tarifaCategoria, boolean includeRelations) {
+        TarifaCategoriaDto dto = new TarifaCategoriaDto();
+        dto.setUuid(tarifaCategoria.getUuid());
+        dto.setEstado(tarifaCategoria.isEstado());
+        dto.setCategoriaDto(CategoriaMapper.toDto(tarifaCategoria.getCategoria()));
+        if (includeRelations) {
+            dto.setTarifaDto(TarifaMapper.toDto(tarifaCategoria.getTarifa(), true));
         }
-
-        return tarifaCategoriaDto;
+        return dto;
     }
-    public static TarifaCategoria toEntity(TarifaCategoriaDto tarifaCategoriaDto){
-        TarifaCategoria tarifaCategoria= new TarifaCategoria();
-        tarifaCategoria.setUuid(tarifaCategoriaDto.getUuid());
-        tarifaCategoria.setEstado(tarifaCategoriaDto.isEstado());
+
+    public static TarifaCategoria toEntity(TarifaCategoriaDto dto) {
+        TarifaCategoria tarifaCategoria = new TarifaCategoria();
+        tarifaCategoria.setUuid(dto.getUuid());
+        tarifaCategoria.setEstado(dto.isEstado());
+
         return tarifaCategoria;
     }
+
 }

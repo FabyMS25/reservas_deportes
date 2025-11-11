@@ -2,8 +2,8 @@ package com.gamq.deportes.service;
 
 import com.gamq.deportes.model.AnularTasa.AnularTasaResponse;
 import com.gamq.deportes.model.AnularTasa.AnularTasaToken;
-import com.gamq.deportes.model.Contribuyente.ContribuyenteResponse;
-import com.gamq.deportes.model.Contribuyente.ContribuyenteToken;
+import com.gamq.deportes.model.Contribuyentes.ContribuyenteResponse;
+import com.gamq.deportes.model.Contribuyentes.ContribuyenteToken;
 import com.gamq.deportes.model.Pagos.PagoResponse;
 import com.gamq.deportes.model.Pagos.PagoToken;
 import com.gamq.deportes.model.Registro.RegistroResponse;

@@ -5,18 +5,17 @@ import com.gamq.deportes.dto.mapper.TarifaCategoriaMapper;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
-import com.gamq.deportes.model.Categoria;
+import com.gamq.deportes.model.CategoriaDeportiva;
 import com.gamq.deportes.model.TarifaCategoria;
-import com.gamq.deportes.model.Tarifas;
+import com.gamq.deportes.model.Tarifa;
 import com.gamq.deportes.repository.CategoriaRepository;
-import com.gamq.deportes.repository.TarifasRepository;
+import com.gamq.deportes.repository.TarifaRepository;
 import com.gamq.deportes.service.TarifaCategoriaService;
 import com.gamq.deportes.repository.TarifaCategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,7 +31,7 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
     CategoriaRepository categoriaRepository;
 
     @Autowired
-    TarifasRepository tarifasRepository;
+    TarifaRepository tarifasRepository;
 
 
     public TarifaCategoriaDto findByUuid(String uuid){
@@ -59,8 +58,8 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
     public TarifaCategoriaDto crearTarifaCategoria(TarifaCategoriaDto TarifaCategoriaDto){
         if (TarifaCategoriaDto != null) {
             TarifaCategoria newTarifaCategorias = TarifaCategoriaMapper.toEntity(TarifaCategoriaDto);
-            Categoria catgegoria = obtenerCategoria(TarifaCategoriaDto.getCategoriaDto().getUuid());
-            Tarifas tarifa = obtenerTarifa(TarifaCategoriaDto.getTarifaDto().getUuid());
+            CategoriaDeportiva catgegoria = obtenerCategoria(TarifaCategoriaDto.getCategoriaDto().getUuid());
+            Tarifa tarifa = obtenerTarifa(TarifaCategoriaDto.getTarifaDto().getUuid());
             newTarifaCategorias.setCategoria(catgegoria);
             newTarifaCategorias.setTarifa(tarifa);
             newTarifaCategorias =tarifaCategoriaRepository.save(newTarifaCategorias);
@@ -86,11 +85,11 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
         }
     }
 
-    public Categoria obtenerCategoria(String uuid){
+    public CategoriaDeportiva obtenerCategoria(String uuid){
         return categoriaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CATEGORIA, uuid));
     }
-    public Tarifas obtenerTarifa(String uuid){
+    public Tarifa obtenerTarifa(String uuid){
         return tarifasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }

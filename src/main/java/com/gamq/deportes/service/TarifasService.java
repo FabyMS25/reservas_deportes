@@ -12,4 +12,6 @@ public interface TarifasService {
     TarifaDto crearTarifa(TarifaDto TarifaDto);
     TarifaDto actualizarTarifa(TarifaDto TarifaDto);
     String deleteTarifa(String uuid);
+//    String eliminarTarifa(String uuid);
+//    String eliminarTarifaPermanente(String uuid);
 }

@@ -1,8 +1,8 @@
 package com.gamq.deportes.controller;
 
 import com.gamq.deportes.dto.response.Response;
-import com.gamq.deportes.dto.canchasDto;
-import com.gamq.deportes.service.canchasService;
+import com.gamq.deportes.dto.CampoDeportivoDto;
+import com.gamq.deportes.service.CampoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,15 +11,15 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
-@RequestMapping("/api/canchas")
+@RequestMapping("/api/campoDeportivo")
 public class canchasController {
     @Autowired
-    private canchasService canchasService;
+    private CampoService canchasService;
 
     @GetMapping()
     public Response obtenerCanchas() {
         try{
-            List<canchasDto> canchasDtos =  canchasService.obtenerCanchas();
+            List<CampoDeportivoDto> canchasDtos =  canchasService.obtenerCampos();
             return Response.ok().setPayload(canchasDtos);
         } catch(Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
@@ -29,7 +29,7 @@ public class canchasController {
     @GetMapping("/{uuid}")
     public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
-            canchasDto canchasDto = canchasService.findByUuid(uuidCanchas);
+            CampoDeportivoDto canchasDto = canchasService.findByUuid(uuidCanchas);
             return Response.ok().setPayload(canchasDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
@@ -39,21 +39,21 @@ public class canchasController {
     @GetMapping("/complejo/{uuid}")
     public Response buscarCanchasPorComplejo(@Parameter(description = "Uuid de Complejo para busqueda de Canchas")
                                              @PathVariable("uuid") String uuidComplejo) {
-        return Response.ok().setPayload(canchasService.findCanchasByComplejo(uuidComplejo));
+        return Response.ok().setPayload(canchasService.findCampoByComplejo(uuidComplejo));
     }
     @PostMapping()
-    public Response crearConstruccion(@RequestBody canchasDto canchasDto) {
+    public Response crearConstruccion(@RequestBody CampoDeportivoDto canchasDto) {
         try{
-            return Response.ok().setPayload(canchasService.crearCancha(canchasDto));
+            return Response.ok().setPayload(canchasService.crearCampo(canchasDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
 
     @PutMapping()
-    public Response actualizarConstruccion(@RequestBody canchasDto canchasDto) {
+    public Response actualizarConstruccion(@RequestBody CampoDeportivoDto canchasDto) {
         try{
-            return Response.ok().setPayload(canchasService.actualizarCancha(canchasDto));
+            return Response.ok().setPayload(canchasService.actualizarCampo(canchasDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
@@ -61,6 +61,6 @@ public class canchasController {
     @DeleteMapping("/{uuid}")
     public Response deleteField(@Parameter(description = "Uuid para eliminar cancha")
                                  @PathVariable("uuid") String uuid) {
-        return Response.ok().setPayload(canchasService.deleteField(uuid));
+        return Response.ok().setPayload(canchasService.eliminarCampos(uuid));
     }
 }

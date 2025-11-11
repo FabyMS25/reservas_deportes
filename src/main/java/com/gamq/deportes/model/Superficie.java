@@ -19,25 +19,24 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "superficie", indexes = @Index(name = "idx_sup_uuid", columnList = "uuid", unique = true))
-@SQLDelete(sql = "UPDATE superficie SET estado=true WHERE id_superficie=?")
+@Table(name = "superficies", indexes = @Index(name = "idx_sup_uuid", columnList = "uuid", unique = true))
+@SQLDelete(sql = "UPDATE superficies SET estado=true WHERE id_superficie=?")
 @Where(clause = "estado = false")
 public class Superficie {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_superficie")
     private Long idSuperficie;
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
-    @Column(name = "descripcion", nullable = false, length = 100)
-    private String descripcion;
-
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
+    @Column(name = "descripcion", nullable = false, length = 100)
+    private String descripcion;
+
     @OneToMany(mappedBy = "superficie", cascade = CascadeType.ALL)
-    private List<canchas> canchaList = new ArrayList<>();
+    private List<CampoDeportivo> campoDeportivoList = new ArrayList<>();
 
     @PrePersist
     public void initializeUuid() {

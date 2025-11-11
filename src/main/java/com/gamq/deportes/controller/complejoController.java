@@ -1,8 +1,8 @@
 package com.gamq.deportes.controller;
 
-import com.gamq.deportes.dto.complejoDto;
+import com.gamq.deportes.dto.ComplejoDeportivoDto;
 import com.gamq.deportes.dto.response.Response;
-import com.gamq.deportes.service.complejoService;
+import com.gamq.deportes.service.ComplejoService;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,12 +13,12 @@ import java.util.List;
 @RequestMapping("/api/complejos")
 public class complejoController {
     @Autowired
-    private complejoService complejoService;
+    private ComplejoService complejoService;
 
     @GetMapping()
     public Response obtenercomplejos() {
         try{
-            List<complejoDto> complejoDtos =  complejoService.obtenerComplejos();
+            List<ComplejoDeportivoDto> complejoDtos =  complejoService.obtenerComplejos();
             return Response.ok().setPayload(complejoDtos);
         } catch(Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
@@ -28,7 +28,7 @@ public class complejoController {
     @GetMapping("/{uuid}")
     public Response buscarcomplejoPorUuid( @PathVariable("uuid") String uuidcomplejo) {
         try{
-            complejoDto complejoDto = complejoService.findByUuid(uuidcomplejo);
+            ComplejoDeportivoDto complejoDto = complejoService.findByUuid(uuidcomplejo);
             return Response.ok().setPayload(complejoDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
@@ -36,7 +36,7 @@ public class complejoController {
     }
 
     @PostMapping()
-    public Response crearcomplejo(@RequestBody complejoDto complejoDto) {
+    public Response crearcomplejo(@RequestBody ComplejoDeportivoDto complejoDto) {
         try{
             return Response.ok().setPayload(complejoService.crearComplejo(complejoDto));
         } catch (Exception ex) {
@@ -45,7 +45,7 @@ public class complejoController {
     }
 
     @PutMapping()
-    public Response actualizarcomplejo(@RequestBody complejoDto complejoDto) {
+    public Response actualizarcomplejo(@RequestBody ComplejoDeportivoDto complejoDto) {
         try{
             return Response.ok().setPayload(complejoService.actualizarComplejo(complejoDto));
         } catch (Exception ex) {
@@ -55,6 +55,6 @@ public class complejoController {
     @DeleteMapping("/{uuid}")
     public Response deleteComplex(@Parameter(description = "Uuid para eliminar complejo")
                                 @PathVariable("uuid") String uuid) {
-        return Response.ok().setPayload(complejoService.deleteComplex(uuid));
+        return Response.ok().setPayload(complejoService.eliminarComplejo(uuid));
     }
 }

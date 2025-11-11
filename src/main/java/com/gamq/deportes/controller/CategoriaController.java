@@ -1,7 +1,7 @@
 package com.gamq.deportes.controller;
 
 
-import com.gamq.deportes.dto.CategoriaDto;
+import com.gamq.deportes.dto.CategoriaDeportivaDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.CategoriaService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,7 @@ public class CategoriaController {
     @GetMapping()
     public Response obtenerCategorias() {
         try{
-            List<CategoriaDto> CategoriaDtos =  categoriaService.obtenerCategorias();
+            List<CategoriaDeportivaDto> CategoriaDtos =  categoriaService.obtenerCategorias();
             return Response.ok().setPayload(CategoriaDtos);
         } catch(Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
@@ -29,7 +29,7 @@ public class CategoriaController {
     @GetMapping("/{uuid}")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
-            CategoriaDto CategoriaDto = categoriaService.findByUuid(uuidCategoria);
+            CategoriaDeportivaDto CategoriaDto = categoriaService.findByUuid(uuidCategoria);
             return Response.ok().setPayload(CategoriaDto);
         } catch(Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
@@ -37,7 +37,7 @@ public class CategoriaController {
     }
 
     @PostMapping()
-    public Response crearCategoria(@RequestBody CategoriaDto CategoriaDto) {
+    public Response crearCategoria(@RequestBody CategoriaDeportivaDto CategoriaDto) {
         try{
             return Response.ok().setPayload(categoriaService.crearCategoria(CategoriaDto));
         } catch (Exception ex) {
@@ -46,7 +46,7 @@ public class CategoriaController {
     }
 
     @PutMapping()
-    public Response actualizarCategoria(@RequestBody CategoriaDto CategoriaDto) {
+    public Response actualizarCategoria(@RequestBody CategoriaDeportivaDto CategoriaDto) {
         try{
             return Response.ok().setPayload(categoriaService.actualizarCategoria(CategoriaDto));
         } catch (Exception ex) {

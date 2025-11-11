@@ -1,0 +1,70 @@
+package com.gamq.deportes.controller;
+
+
+import com.gamq.deportes.dto.ClasificadorRuatDto;
+import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.exception.NotFoundException;
+import com.gamq.deportes.service.ClasificadorRuatService;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/clasificadores")
+public class ClasificadorRuatController {
+    @Autowired
+    private ClasificadorRuatService clasificadorRuatService;
+
+    @GetMapping()
+    public Response obtenerClasificadores() {
+        try{
+            List<ClasificadorRuatDto> ClasificadorRuatDtos =  clasificadorRuatService.obtenerClasificadores();
+            return Response.ok().setPayload(ClasificadorRuatDtos);
+        } catch(Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/{uuid}")
+    public Response buscarClasificadorRuatPorUuid( @PathVariable("uuid") String uuidClasificadorRuat) {
+        try{
+            ClasificadorRuatDto ClasificadorRuatDto = clasificadorRuatService.findByUuid(uuidClasificadorRuat);
+            return Response.ok().setPayload(ClasificadorRuatDto);
+        } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
+
+    @PostMapping()
+    public Response crearClasificadorRuat(@RequestBody ClasificadorRuatDto ClasificadorRuatDto) {
+        try{
+            return Response.ok().setPayload(clasificadorRuatService.crearClasificador(ClasificadorRuatDto));
+        } catch (Exception ex) {
+            return  Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+
+    @PutMapping()
+    public Response actualizarClasificadorRuat(@RequestBody ClasificadorRuatDto clasificadorRuatDto) {
+        try {
+            return Response.ok().setPayload(clasificadorRuatService.actualizarClasificador(clasificadorRuatDto));
+        } catch (NotFoundException ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        } catch (RuntimeException ex) {
+            // Handle duplicate code and other runtime exceptions
+            if (ex.getMessage().contains("Ya existe un clasificador con el código")) {
+                return Response.duplicateEntity().setPayload(ex.getMessage());
+            }
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al actualizar el clasificador: " + ex.getMessage());
+        }
+    }
+    @DeleteMapping("/{uuid}")
+    public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
+                                @PathVariable("uuid") String uuid) {
+        return Response.ok().setPayload(clasificadorRuatService.eliminarClasificador(uuid));
+    }
+}

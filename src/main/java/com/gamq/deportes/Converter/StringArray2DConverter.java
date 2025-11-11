@@ -17,7 +17,7 @@ public class StringArray2DConverter implements AttributeConverter<String[][], St
         try {
             return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Error serializando horario", e);
+            throw new IllegalArgumentException("Error serializando HorarioFijo", e);
         }
     }
 
@@ -26,7 +26,7 @@ public class StringArray2DConverter implements AttributeConverter<String[][], St
         try {
             return objectMapper.readValue(dbData, String[][].class);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Error deserializando horario", e);
+            throw new IllegalArgumentException("Error deserializando HorarioFijo", e);
         }
     }
 }
