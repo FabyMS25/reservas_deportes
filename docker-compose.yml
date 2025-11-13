@@ -44,8 +44,8 @@ services:
     container_name: 'deportes-fe'
     ports:
       - '4205:80'
-    depends_on:
-      - be-deportes
+#    depends_on:
+#      - be-deportes
     restart: always
 volumes:
   db:
