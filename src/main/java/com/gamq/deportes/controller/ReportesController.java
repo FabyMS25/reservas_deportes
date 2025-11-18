@@ -395,6 +395,7 @@ public void reporteListaMensuales (
         @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
         @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
         @RequestParam(name = "estado",required = false) String estado,
+        @RequestParam(name = "escuelita",required = false) String escuelita,
         @RequestHeader Map<String, String> headers,
         HttpServletResponse response
 ) {
@@ -409,11 +410,17 @@ public void reporteListaMensuales (
         {
             estado="%"+estado+"%";
         }
-
+        if (escuelita.equals("TODO")){
+            escuelita="%";
+        }else
+        {
+            escuelita="%"+escuelita+"%";
+        }
         HashMap<String, Object> parametros = new HashMap<String,Object>();
         parametros.put("fechaini",fecha_ini);
         parametros.put("fechafin",fecha_fin);
         parametros.put("estado",estado);
+        parametros.put("escuelita",escuelita);
 
         //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
         //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
