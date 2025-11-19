@@ -1,7 +1,10 @@
 HELP.md
 # Carpetas de Gradle
-build/
+
 .gradle/
+build/
+!build/libs/**
+#.gradle/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

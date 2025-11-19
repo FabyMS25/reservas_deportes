@@ -12,25 +12,28 @@
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
-	<parameter name="fechaini" class="java.util.Date"/>
+	<parameter name="fechaini" class="java.sql.Date"/>
 	<parameter name="fechafin" class="java.sql.Date"/>
 	<parameter name="estado" class="java.lang.String"/>
 	<parameter name="logo64" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
 	</parameter>
+	<parameter name="escuelita" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select RE.uuid,fecha_reserva,tipo_reserva,estado_reserva, telefono_principal as tel,
 		numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp,  
 		(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, 
 		con.numero_documento as ci, Com.nombre as cancha,ubicacion, ES.nombre_completo as estu,
-		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula 
+		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula, ORG.nombre as escuela
 		from reservas as RE
+		join reservas_periodo as RP on rp.id_reserva = re.id_reserva
 		join campos_deportivos as ca on ca.id_campo = re.id_campo
 		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
 		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
-		join estudiantes_escuela as ES on ES.id_contribuyente = CON.id_contribuyente 
-		join reservas_periodo as RP on rp.id_reserva = re.id_reserva
+		join estudiantes_escuela as ES on ES.id_estudiante = re.id_estudiante_escuela 
+		join organizaciones as ORG on org.id_organizacion = re.id_organizacion
 		WHERE RE.fecha_reserva BETWEEN $P{fechaini} AND $P{fechafin}
+		AND ORG.nombre LIKE  $P{escuelita} and RE.estado is false
 		AND RE.estado_reserva LIKE $P{estado}]]>
 	</queryString>
 	<field name="fecha_reserva" class="java.sql.Date"/>
@@ -49,25 +52,47 @@
 	<field name="matricula" class="java.lang.String"/>
 	<field name="gestion" class="java.lang.Integer"/>
 	<field name="estu" class="java.lang.String"/>
+	<field name="escuela" class="java.lang.String"/>
 	<variable name="monto_total1" class="java.lang.Double" calculation="Sum">
 		<variableExpression><![CDATA[$F{monto_total}]]></variableExpression>
 	</variable>
-	<variable name="Subtotal_Group" class="java.math.BigDecimal" resetType="Group" resetGroup="Group1" calculation="Sum">
+	<variable name="Subtotal_Group" class="java.math.BigDecimal" resetType="Group" resetGroup="escuela" calculation="Sum">
 		<variableExpression><![CDATA[$F{monto_total}]]></variableExpression>
 	</variable>
+	<variable name="totalEsc" class="java.math.BigDecimal" resetType="Group" resetGroup="escuela"/>
 	<group name="Group1">
 		<groupExpression><![CDATA[$F{mes}]]></groupExpression>
 		<groupHeader>
-			<band height="28">
+			<band height="12">
 				<textField>
-					<reportElement x="0" y="3" width="100" height="20" uuid="572609f8-6b47-4799-933b-98463e57b954"/>
+					<reportElement x="0" y="-5" width="100" height="14" uuid="572609f8-6b47-4799-933b-98463e57b954"/>
 					<textElement>
 						<font size="11" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[new java.text.DateFormatSymbols().getMonths()[$F{mes}-1]]]></textFieldExpression>
 				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="2"/>
+		</groupFooter>
+	</group>
+	<group name="escuela">
+		<groupExpression><![CDATA[$F{escuela}]]></groupExpression>
+		<groupHeader>
+			<band/>
+			<band height="20">
 				<textField>
-					<reportElement x="105" y="3" width="100" height="20" uuid="06b7a607-3e02-4e89-92e5-2d01170e41ca"/>
+					<reportElement x="0" y="0" width="238" height="17" uuid="06b7a607-3e02-4e89-92e5-2d01170e41ca"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{escuela}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="238" y="0" width="114" height="17" uuid="c4806fbf-9419-49e1-9815-9bf3d7e884e2">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b0cb17d9-56a2-495c-909a-585598ef11d1"/>
+					</reportElement>
 					<textElement>
 						<font isBold="true"/>
 					</textElement>
@@ -76,9 +101,17 @@
 			</band>
 		</groupHeader>
 		<groupFooter>
-			<band height="16">
+			<band/>
+			<band height="19">
+				<staticText>
+					<reportElement x="450" y="3" width="65" height="14" uuid="60ca7bda-b0b7-4529-95a6-efefb9bf2664"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Sub Total]]></text>
+				</staticText>
 				<textField>
-					<reportElement x="514" y="0" width="60" height="16" uuid="85d03da7-c41c-4171-8581-643e33613e38"/>
+					<reportElement x="521" y="3" width="60" height="16" uuid="85d03da7-c41c-4171-8581-643e33613e38"/>
 					<box rightPadding="4">
 						<topPen lineWidth="0.75"/>
 						<bottomPen lineWidth="0.75"/>
@@ -88,23 +121,7 @@
 					</textElement>
 					<textFieldExpression><![CDATA[$V{Subtotal_Group}]]></textFieldExpression>
 				</textField>
-				<staticText>
-					<reportElement x="450" y="1" width="65" height="14" uuid="60ca7bda-b0b7-4529-95a6-efefb9bf2664"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="11" isBold="true"/>
-					</textElement>
-					<text><![CDATA[Sub Total]]></text>
-				</staticText>
 			</band>
-		</groupFooter>
-	</group>
-	<group name="trainner">
-		<groupExpression><![CDATA[$F{entrenador}]]></groupExpression>
-		<groupHeader>
-			<band height="2"/>
-		</groupHeader>
-		<groupFooter>
-			<band height="4"/>
 		</groupFooter>
 	</group>
 	<background>
@@ -292,69 +309,69 @@
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="25">
+		<band height="21">
 			<textField pattern="d/M/yy">
-				<reportElement x="20" y="0" width="55" height="20" uuid="930b5912-a3ca-4a4c-8383-e7fb3c99f8d1">
+				<reportElement x="20" y="0" width="55" height="19" uuid="930b5912-a3ca-4a4c-8383-e7fb3c99f8d1">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="1e93538e-506b-46a1-8fb5-d57e9c8d8cc1"/>
 				</reportElement>
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{fecha_reserva}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="75" y="0" width="130" height="20" uuid="b27b5cd4-22fb-4214-9452-2ac41d57bc24">
+				<reportElement x="75" y="0" width="130" height="19" uuid="b27b5cd4-22fb-4214-9452-2ac41d57bc24">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b2e4e401-385e-4f9c-a68b-0437bf9f693d"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="454" y="1" width="70" height="20" uuid="9392b527-2f14-4e43-883c-e50027fd6e40">
+				<reportElement x="454" y="1" width="70" height="18" uuid="9392b527-2f14-4e43-883c-e50027fd6e40">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="79910f28-fe21-4b5d-9fe6-cc85776f4212"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{estado_reserva}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="402" y="1" width="51" height="20" uuid="f125418c-4558-48ca-9417-940decd108e7">
+				<reportElement x="402" y="1" width="51" height="18" uuid="f125418c-4558-48ca-9417-940decd108e7">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0d51ce12-e811-42f5-abf9-d5c386e45e4f"/>
 				</reportElement>
 				<textElement textAlignment="Center"/>
 				<textFieldExpression><![CDATA[$F{numero_tasa}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="527" y="3" width="48" height="20" uuid="34ba8951-d326-45ec-a428-bf1ed8936692">
+				<reportElement x="527" y="0" width="48" height="19" uuid="34ba8951-d326-45ec-a428-bf1ed8936692">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="2c0209df-f2dd-4e38-bd96-6ca1bfcc3eb3"/>
 				</reportElement>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="21" width="585" height="1" uuid="456f3314-3861-44e4-b799-7477e8f71fa0"/>
+				<reportElement x="-1" y="19" width="585" height="1" uuid="456f3314-3861-44e4-b799-7477e8f71fa0"/>
 			</line>
 			<textField>
-				<reportElement x="0" y="0" width="20" height="20" uuid="0992cdc9-4f01-46e2-9b6a-496fab1d45d4">
+				<reportElement x="0" y="0" width="20" height="19" uuid="0992cdc9-4f01-46e2-9b6a-496fab1d45d4">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
-				<textElement>
+				<textElement textAlignment="Center">
 					<font size="10"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$V{escuela_COUNT}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="206" y="-2" width="114" height="22" uuid="c4806fbf-9419-49e1-9815-9bf3d7e884e2">
-					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b0cb17d9-56a2-495c-909a-585598ef11d1"/>
-				</reportElement>
-				<textFieldExpression><![CDATA[$F{estu}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="328" y="-2" width="67" height="22" uuid="a282c2ab-a596-4141-bc97-cb2a2224af22">
+				<reportElement x="328" y="-2" width="67" height="21" uuid="a282c2ab-a596-4141-bc97-cb2a2224af22">
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="33942c46-ac4a-492d-9b44-316735ea0002"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{disciplina}]]></textFieldExpression>
 			</textField>
+			<textField>
+				<reportElement x="210" y="-2" width="118" height="21" uuid="8a8d8419-930e-4af8-a6a0-02bc95ce2bab">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="c8f0f212-c630-413c-9a31-a111af6b8c1c"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{estu}]]></textFieldExpression>
+			</textField>
 		</band>
 	</detail>
 	<columnFooter>
-		<band height="16" splitType="Stretch"/>
+		<band height="2" splitType="Stretch"/>
 	</columnFooter>
 	<pageFooter>
 		<band height="30" splitType="Stretch">

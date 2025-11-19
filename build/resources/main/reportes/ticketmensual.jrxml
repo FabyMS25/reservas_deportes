@@ -12,13 +12,14 @@
 		numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp,  
 		(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, 
 		con.numero_documento as ci, Com.nombre as cancha,ubicacion, ES.nombre_completo as estu,
-		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula 
+		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula,org.nombre as escuela 
 		from reservas as RE
+		join reservas_periodo as RP on rp.id_reserva = re.id_reserva
 		join campos_deportivos as ca on ca.id_campo = re.id_campo
 		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
 		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
-		join estudiantes_escuela as ES on ES.id_contribuyente = CON.id_contribuyente 
-		join reservas_periodo as RP on rp.id_reserva = re.id_reserva
+		join estudiantes_escuela as ES on ES.id_estudiante = re.id_estudiante_escuela 
+		join organizaciones as ORG on org.id_organizacion = re.id_organizacion
 		where RE.uuid=$P{uuid}]]>
 	</queryString>
 	<field name="fecha_reserva" class="java.sql.Date"/>
@@ -39,6 +40,7 @@
 	<field name="entrenador" class="java.lang.String"/>
 	<field name="matricula" class="java.lang.String"/>
 	<field name="estu" class="java.lang.String"/>
+	<field name="escuela" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -418,8 +420,7 @@
 			<textField>
 				<reportElement x="311" y="184" width="117" height="21" uuid="4dc18176-b1e7-4910-85d1-6e973a7cbc78"/>
 				<textElement textAlignment="Center"/>
-				<textFieldExpression><![CDATA[new java.text.DateFormatSymbols().getMonths()[$F{mes}-1]
-]]></textFieldExpression>
+				<textFieldExpression><![CDATA[new java.text.DateFormatSymbols().getMonths()[$F{mes}-1]]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="1" y="49" width="130" height="20" uuid="6ae7a636-0b2f-4ab3-8e4a-d8fa09509454">
@@ -502,8 +503,29 @@
 				<text><![CDATA[ENTRENADOR]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="435" y="138" width="134" height="18" uuid="cb332df9-da16-49e9-9d90-2b8492196164"/>
+				<reportElement x="436" y="141" width="134" height="16" uuid="cb332df9-da16-49e9-9d90-2b8492196164"/>
 				<textFieldExpression><![CDATA[$F{entrenador}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="3" y="140" width="127" height="18" uuid="d25da598-24e1-47a8-acfb-ae1aa8e967ab">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="18f03010-d120-4e40-8ffe-4dc0ca8292da"/>
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+					<paragraph firstLineIndent="5"/>
+				</textElement>
+				<text><![CDATA[ESCUELA]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="135" y="141" width="195" height="18" uuid="a9b62185-411a-47f0-8bfc-e27e8cea80bd"/>
+				<textFieldExpression><![CDATA[$F{escuela}]]></textFieldExpression>
 			</textField>
 		</band>
 	</columnHeader>
