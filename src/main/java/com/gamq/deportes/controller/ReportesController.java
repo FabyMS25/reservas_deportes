@@ -443,6 +443,69 @@ public void reporteListaMensuales (
         System.out.println(e.getLocalizedMessage());
     }
 }
+////////////////////listado por alumno//////////////////////////////////
+@RequestMapping(value="/lista-alumno",method= RequestMethod.GET)
+@ResponseBody
+public void reporteListaMensAlumno (
+        @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
+        @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+        @RequestParam(name = "estado",required = false) String estado,
+        @RequestParam(name = "matricula",required = false) String matricula,
+        @RequestParam(name = "alumno",required = false) String alumno,
+        @RequestHeader Map<String, String> headers,
+        HttpServletResponse response
+) {
+    try {
+        //usuario
+        //String usuario = headers.getOrDefault("usuario", "Default");
+        //ingreso almacen
+
+        if (estado.equals("TODO")){
+            estado="%";
+        }else
+        {
+            estado="%"+estado+"%";
+        }
+        if (matricula.equals("TODO")){
+            matricula="%";
+        }else
+        {
+            matricula="%"+matricula+"%";
+        }
+        if (alumno.equals("TODO")){
+            alumno="%";
+        }else
+        {
+            alumno="%"+alumno+"%";
+        }
+        HashMap<String, Object> parametros = new HashMap<String,Object>();
+        parametros.put("fechaini",fecha_ini);
+        parametros.put("fechafin",fecha_fin);
+        parametros.put("estado",estado);
+        parametros.put("matricula",matricula);
+        parametros.put("alumno",alumno);
+
+        //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+        //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+
+        parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+        try {
+            generadorReporte.generarSqlReportePdf(
+                    "Reservasmensuales",
+                    "classpath:reportes/LisMenAlumno.jrxml",
+                    parametros,
+                    response
+            );
+        } catch (SQLException ex) {
+            response.setStatus(500);
+            throw new RuntimeException(ex);
+
+        }
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+        System.out.println(e.getLocalizedMessage());
+    }
+}
 ////////////////////Ticket Mensual///////////////////////////////////////
     @RequestMapping(value="/ticket-mensual",method= RequestMethod.GET)
     @ResponseBody
