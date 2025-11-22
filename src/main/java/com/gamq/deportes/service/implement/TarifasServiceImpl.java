@@ -9,6 +9,7 @@ import com.gamq.deportes.dto.mapper.TarifaMapper;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
+import com.gamq.deportes.exception.OperationNotAllowedException;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.TarifasService;
@@ -24,21 +25,29 @@ import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
 
-
 @Component
 public class TarifasServiceImpl implements TarifasService {
+
     @Autowired
     private TarifaRepository tarifaRepository;
+
     @Autowired
     private TarifaCategoriaRepository tarifaCategoriaRepository;
+
     @Autowired
     private TarifaConceptoRepository tarifaConceptoRepository;
+
     @Autowired
     private CampoDeportivoRepository campoRepository;
+
     @Autowired
     private CategoriaRepository categoriaRepository;
+
     @Autowired
     private ClasificadorRuatRepository clasificadorRuatRepository;
+
+    @Autowired
+    private ReservaRepository reservaRepository; // Add this repository
 
     public TarifaDto findByUuid(String uuid){
         Optional<Tarifa> TarifasOptional = tarifaRepository.findByUuid(uuid);
@@ -48,6 +57,7 @@ public class TarifasServiceImpl implements TarifasService {
             throw new NotFoundException(TARIFA, uuid);
         }
     }
+
     public List<TarifaDto> obtenerTarifas(){
         List<Tarifa> Tarifass = tarifaRepository.findAll();
         if (!Tarifass.isEmpty()) {
@@ -59,18 +69,6 @@ public class TarifasServiceImpl implements TarifasService {
         }
     }
 
-//    public List<TarifaDto> findTarifasByCampo(String uuidCampo) {
-//        List<Tarifa> tarifas = tarifaRepository.findByCampoUuid(uuidCampo);
-//
-//        if (!tarifas.isEmpty()) {
-//            return tarifas.stream()
-//                    .map(tarifa -> TarifaMapper.toDto(tarifa, true))
-//                    .collect(Collectors.toList());
-//        } else {
-//            throw new NoResultException(TARIFA);
-//        }
-//    }
-
     public TarifaDto crearTarifa(TarifaDto tarifaDto){
         if (tarifaDto != null) {
             Tarifa newTarifa = TarifaMapper.toEntity(tarifaDto);
@@ -80,16 +78,6 @@ public class TarifasServiceImpl implements TarifasService {
             newTarifa.setClasificadorRuat(clasificador);
 
             Tarifa tarifaGuardada = tarifaRepository.save(newTarifa);
-//            List<TarifaCategoria> savedCategories = new ArrayList<>();
-//            for (TarifaCategoriaDto tarifaCategoriaDto : TarifaDto.getCategoriaDtoList()) {
-////                TarifaCategoria tarifaCategoria = new TarifaCategoria();
-//                TarifaCategoria newTarifaCategorias = TarifaCategoriaMapper.toEntity(tarifaCategoriaDto);
-//                CategoriaDeportiva categoria = obtenerCategoria(tarifaCategoriaDto.getCategoriaDto().getUuid());
-//                newTarifaCategorias.setCategoria(categoria);
-//                newTarifaCategorias.setTarifa(newTarifa);
-//                savedCategories.add(tarifaCategoriaRepository.save(newTarifaCategorias));
-//            }
-//            newTarifa.setCategoriaDtoList(savedCategories);
 
             if (tarifaDto.getCategoriasDtoList() != null && !tarifaDto.getCategoriasDtoList().isEmpty()) {
                 crearTarifaCategorias(tarifaGuardada, tarifaDto.getCategoriasDtoList());
@@ -106,14 +94,18 @@ public class TarifasServiceImpl implements TarifasService {
         }
     }
 
-
     @Transactional
     public TarifaDto actualizarTarifa(TarifaDto tarifaDto) {
         if (tarifaDto != null) {
-                Tarifa tarifaExistente  = tarifaRepository.findByUuid(tarifaDto.getUuid())
-                        .orElseThrow(() -> new NotFoundException(TARIFA, tarifaDto.getUuid()));
+            Tarifa tarifaExistente  = tarifaRepository.findByUuid(tarifaDto.getUuid())
+                    .orElseThrow(() -> new NotFoundException(TARIFA, tarifaDto.getUuid()));
 
-                TarifaMapper.updateEntityFromDto(tarifaDto, tarifaExistente);
+            // Check if tariff is already soft deleted
+            if (tarifaExistente.isEstado()) {
+                throw new OperationNotAllowedException("No se puede actualizar una tarifa que ha sido eliminada");
+            }
+
+            TarifaMapper.updateEntityFromDto(tarifaDto, tarifaExistente);
 
             if (tarifaDto.getCampoDeportivoDto() != null) {
                 CampoDeportivo campo = obtenerCampo(tarifaDto.getCampoDeportivoDto().getUuid());
@@ -124,48 +116,24 @@ public class TarifasServiceImpl implements TarifasService {
                 ClasificadorRuat clasificador = obtenerClasificadorRuat(tarifaDto.getClasificadorRuatDto().getUuid());
                 tarifaExistente.setClasificadorRuat(clasificador);
             }
+
             Tarifa tarifaActualizada = tarifaRepository.save(tarifaExistente);
-//            tarifa.getCategoriaDtoList().clear();
-//            tarifaCategoriaRepository.deleteByTarifa(tarifa);
-//                tarifaCategoriaRepository.deleteAll(tarifa.getCategoriaDtoList() );
-//            newTarifa.getCategoriaDtoList().clear();
-//            newTarifa = tarifaRepository.save(newTarifa);
-//            tarifaCategoriaRepository.deleteAll(newTarifa.getCategoriaDtoList());
 
-//            for (TarifaCategoria categoriaDto : newTarifa.getCategoriaDtoList()) {
-//                tarifaCategoriaRepository.delete(categoriaDto);
-//            }
-//            List<TarifaCategoria> savedCategories = new ArrayList<>();
-
-
-//                for (TarifaCategoriaDto tarifaCategoriaDto : TarifaDto.getCategoriaDtoList()) {
-////                TarifaCategoria tarifaCategoria = new TarifaCategoria();
-//                    TarifaCategoria newTarifaCategorias = TarifaCategoriaMapper.toEntity(tarifaCategoriaDto);
-////                    if(tarifaCategoriaDto.getUuid()==""){
-//                        CategoriaDeportiva categoria = obtenerCategoria(tarifaCategoriaDto.getCategoriaDto().getUuid());
-//                        newTarifaCategorias.setCategoria(categoria);
-//                        newTarifaCategorias.setTarifa(newTarifa);
-//                        newTarifaCategorias = tarifaCategoriaRepository.save(newTarifaCategorias);
-////                    }
-//                    savedCategories.add(newTarifaCategorias);
-//                }
-//                newTarifa.setCategoriaDtoList(savedCategories);
-
-                if (tarifaDto.getCategoriasDtoList() != null) {
-                    actualizarTarifaCategorias(tarifaActualizada, tarifaDto.getCategoriasDtoList());
-                }
-
-                if (tarifaDto.getConceptosDtos() != null) {
-                    actualizarTarifaConceptos(tarifaActualizada, tarifaDto.getConceptosDtos());
-                }
-
-                Tarifa tarifaCompleta = tarifaRepository.findByUuid(tarifaActualizada.getUuid())
-                        .orElseThrow(() -> new NotFoundException(TARIFA, tarifaActualizada.getUuid()));
-
-                return TarifaMapper.toDto(tarifaCompleta, true);
-            } else {
-                throw new NullReferenceException(TARIFA);
+            if (tarifaDto.getCategoriasDtoList() != null) {
+                actualizarTarifaCategorias(tarifaActualizada, tarifaDto.getCategoriasDtoList());
             }
+
+            if (tarifaDto.getConceptosDtos() != null) {
+                actualizarTarifaConceptos(tarifaActualizada, tarifaDto.getConceptosDtos());
+            }
+
+            Tarifa tarifaCompleta = tarifaRepository.findByUuid(tarifaActualizada.getUuid())
+                    .orElseThrow(() -> new NotFoundException(TARIFA, tarifaActualizada.getUuid()));
+
+            return TarifaMapper.toDto(tarifaCompleta, true);
+        } else {
+            throw new NullReferenceException(TARIFA);
+        }
     }
 
     @Transactional
@@ -175,34 +143,73 @@ public class TarifasServiceImpl implements TarifasService {
         if (tarifaOptional.isPresent()) {
             Tarifa tarifa = tarifaOptional.get();
 
-            if (!tarifa.getCategoriasList().isEmpty()) {
-                for (TarifaCategoria tarifaCat : new ArrayList<>(tarifa.getCategoriasList())) {
-                    if (tarifaCat != null && tarifaCat.getUuid() != null) {
-                        tarifaCat.setEstado(true);
-//                        tarifaCategoriaRepository.delete(tarifaCat);
-                    }
-                }
-                tarifa.getCategoriasList().clear();
-//                tarifa.setEstado(true);
-//                tarifaRepository.save(tarifa);
+            if (tarifa.isEstado()) {
+                throw new OperationNotAllowedException("La tarifa ya ha sido eliminada");
             }
 
-            tarifaRepository.delete(tarifa);
-//            return TarifaMapper.toDto(tarifa, false);
-            return "Eliminacion exitosa";
+            if (isTarifaUsedInReservas(tarifa)) {
+                throw new OperationNotAllowedException(
+                        "No se puede eliminar la tarifa porque está siendo utilizada en una o más reservas activas"
+                );
+            }
+
+            if (!tarifa.getCategoriasList().isEmpty()) {
+                for (TarifaCategoria tarifaCat : tarifa.getCategoriasList()) {
+                    if (tarifaCat != null) {
+                        tarifaCat.setEstado(true); // Soft delete
+                        tarifaCategoriaRepository.save(tarifaCat);
+                    }
+                }
+            }
+
+            if (!tarifa.getConceptos().isEmpty()) {
+                for (TarifaConcepto concepto : tarifa.getConceptos()) {
+                    if (concepto != null) {
+                        concepto.setEstado(true); // Soft delete
+                        tarifaConceptoRepository.save(concepto);
+                    }
+                }
+            }
+
+            tarifa.setEstado(true);
+            tarifaRepository.save(tarifa);
+
+            return "Eliminación exitosa (soft delete)";
         } else {
             throw new NotFoundException(TARIFA, uuid);
         }
+    }
+
+    /**
+     * Check if a tariff is being used in any active reservations
+     */
+    private boolean isTarifaUsedInReservas(Tarifa tarifa) {
+        // Assuming you have a method in reservaRepository to check for active reservations using this tariff
+        List<Reserva> activeReservas = reservaRepository.findActiveReservasByTarifa(tarifa.getIdTarifa());
+
+        // Alternative approach if you don't have that method:
+        // List<Reserva> allReservas = reservaRepository.findAll();
+        // return allReservas.stream()
+        //     .anyMatch(reserva ->
+        //         reserva.getTarifaDto() != null &&
+        //         reserva.getTarifaDto().getUuid().equals(tarifa.getUuid()) &&
+        //         !reserva.isEstado() && // Active reservation
+        //         !"RECHAZADA".equals(reserva.getEstadoValidacion()) // Not rejected
+        //     );
+
+        return !activeReservas.isEmpty();
     }
 
     private CategoriaDeportiva obtenerCategoria(String uuid) {
         return categoriaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new EntityNotFoundException("CategoriaDeportiva not found with UUID: " + uuid));
     }
+
     public CampoDeportivo obtenerCampo(String uuid){
         return campoRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CANCHAS, uuid));
     }
+
     private ClasificadorRuat obtenerClasificadorRuat(String uuid) {
         return clasificadorRuatRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CLASIFICADOR_RUAT, uuid));
@@ -212,6 +219,7 @@ public class TarifasServiceImpl implements TarifasService {
         for (TarifaCategoriaDto tarifaCatDto : categoriasDto) {
             TarifaCategoria tarifaCategoria = new TarifaCategoria();
             tarifaCategoria.setTarifa(tarifa);
+            tarifaCategoria.setEstado(false); // Active by default
 
             CategoriaDeportiva categoria = categoriaRepository.findByUuid(tarifaCatDto.getCategoriaDto().getUuid())
                     .orElseThrow(() -> new NotFoundException(CATEGORIA, tarifaCatDto.getCategoriaDto().getUuid()));
@@ -226,6 +234,7 @@ public class TarifasServiceImpl implements TarifasService {
         if (tarifa.getCategoriasList() != null) {
             for (TarifaCategoria tarifaCat : tarifa.getCategoriasList()) {
                 tarifaCat.setEstado(true);
+                tarifaCategoriaRepository.save(tarifaCat);
             }
         }
 
@@ -238,6 +247,7 @@ public class TarifasServiceImpl implements TarifasService {
         if (tarifa.getConceptos() != null) {
             for (TarifaConcepto concepto : tarifa.getConceptos()) {
                 concepto.setEstado(true);
+                tarifaConceptoRepository.save(concepto);
             }
         }
 
@@ -249,6 +259,7 @@ public class TarifasServiceImpl implements TarifasService {
         for (TarifaConceptoDto conceptoDto : conceptosDto) {
             TarifaConcepto concepto = TarifaConceptoMapper.toEntity(conceptoDto);
             concepto.setTarifa(tarifa);
+            concepto.setEstado(false); // Active by default
             tarifaConceptoRepository.save(concepto);
         }
     }
