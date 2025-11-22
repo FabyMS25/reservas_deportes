@@ -1,10 +1,9 @@
 HELP.md
 # Carpetas de Gradle
 .gradle/
+!gradle/wrapper/gradle-wrapper.jar
 build/
 !build/libs/**
-#.gradle/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -38,4 +37,3 @@ out/
 
 ### VS Code ###
 .vscode/
-.gradle/
