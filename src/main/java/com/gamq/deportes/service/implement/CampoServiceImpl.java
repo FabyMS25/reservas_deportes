@@ -350,6 +350,11 @@ public class CampoServiceImpl implements CampoService {
         tarifaExistente.setDescripcion(tarifaDto.getDescripcion());
         tarifaExistente.setObservaciones(tarifaDto.getObservaciones());
 
+        // ADD THESE MISSING FIELDS:
+        tarifaExistente.setTipoCobro(tarifaDto.getTipoCobro());
+        tarifaExistente.setFrecuencia(tarifaDto.getFrecuencia());
+        tarifaExistente.setSesionesIncluidas(tarifaDto.getSesionesIncluidas());
+
         // Update clasificador if changed
         if (tarifaDto.getClasificadorRuatDto() != null && tarifaDto.getClasificadorRuatDto().getUuid() != null) {
             ClasificadorRuat clasificador = clasificadorRuatRepository.findByUuid(tarifaDto.getClasificadorRuatDto().getUuid())
@@ -367,7 +372,6 @@ public class CampoServiceImpl implements CampoService {
             actualizarTarifaConceptos(tarifaExistente, tarifaDto.getConceptosDtos());
         }
     }
-
     private void softDeleteTarifa(Tarifa tarifa) {
         tarifa.setEstado(true);
         tarifaRepository.save(tarifa);

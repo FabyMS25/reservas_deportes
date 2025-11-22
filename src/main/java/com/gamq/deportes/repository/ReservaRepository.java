@@ -235,4 +235,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 1, 4) AS long)) FROM Reserva r WHERE r.numeroReserva LIKE :yearPattern")
     Optional<Long> findMaxReservationNumberByYear(@Param("yearPattern") String yearPattern);
+
+    @Query("SELECT r FROM Reserva r WHERE r.tarifa.idTarifa = :idTarifa AND r.estado = false AND r.estadoValidacion != 'RECHAZADA'")
+    List<Reserva> findActiveReservasByTarifa(@Param("idTarifa") Long idTarifa);
 }
