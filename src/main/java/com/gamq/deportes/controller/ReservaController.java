@@ -174,13 +174,16 @@ public class ReservaController {
         }
     }
 
-
     @Operation(summary = "Previsualizar próximo número de reserva")
     @GetMapping("/numero-reserva/preview")
-    public Response previsualizarNumeroReserva() {
+    public Response previsualizarNumeroReserva(
+            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
+            @RequestParam String tipo) {
         try {
-            String numeroReserva = reservationNumberService.previewNextReservationNumber();
+            String numeroReserva = reservationNumberService.previewNextReservationNumber(tipo);
             return Response.ok().setPayload(numeroReserva);
+        } catch (IllegalArgumentException ex) {
+            return Response.badRequest().setPayload(ex.getMessage());
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al previsualizar número de reserva: " + ex.getMessage());
         }
@@ -188,10 +191,14 @@ public class ReservaController {
 
     @Operation(summary = "Generar próximo número de reserva disponible")
     @GetMapping("/numero-reserva/generar")
-    public Response generarNumeroReserva() {
+    public Response generarNumeroReserva(
+            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
+            @RequestParam String tipo) {
         try {
-            String numeroReserva = reservationNumberService.findNextAvailableReservationNumber();
+            String numeroReserva = reservationNumberService.findNextAvailableReservationNumber(tipo);
             return Response.ok().setPayload(numeroReserva);
+        } catch (IllegalArgumentException ex) {
+            return Response.badRequest().setPayload(ex.getMessage());
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al generar número de reserva: " + ex.getMessage());
         }
@@ -201,11 +208,18 @@ public class ReservaController {
     @PostMapping("/numero-reserva/validar")
     public Response validarNumeroReservaPersonalizado(
             @Parameter(description = "Número de reserva a validar")
-            @RequestBody String numeroReserva) {
+            @RequestBody Map<String, String> request) {
         try {
+            String numeroReserva = request.get("numeroReserva");
+            String tipoReserva = request.get("tipoReserva");
+
+            if (tipoReserva == null || tipoReserva.trim().isEmpty()) {
+                return Response.badRequest().setPayload("El tipo de reserva es requerido");
+            }
+
             // Check format
-            if (!reservationNumberService.isReservationNumberValid(numeroReserva)) {
-                return Response.badRequest().setPayload("Formato inválido. Debe ser: 0010/25");
+            if (!reservationNumberService.isReservationNumberValid(numeroReserva, tipoReserva)) {
+                return Response.badRequest().setPayload("Formato inválido. Debe ser: P-0010/25, R-0010/25, o E-0010/25 según el tipo de reserva");
             }
 
             // Check if available
@@ -219,6 +233,8 @@ public class ReservaController {
             response.put("numeroReserva", numeroReserva);
 
             return Response.ok().setPayload(response);
+        } catch (IllegalArgumentException ex) {
+            return Response.badRequest().setPayload(ex.getMessage());
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al validar número de reserva: " + ex.getMessage());
         }
