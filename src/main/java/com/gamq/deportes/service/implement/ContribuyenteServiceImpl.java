@@ -70,15 +70,12 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
         if (contribuyenteDto != null) {
             Contribuyente newContri = ContribuyenteMapper.toEntity(contribuyenteDto);
             Contribuyente contribuyenteGuardado = contribuyentesRepository.save(newContri);
-
-            // Create related entities
             if (contribuyenteDto.getOrganizacionesRepresentadas() != null && !contribuyenteDto.getOrganizacionesRepresentadas().isEmpty()) {
                 crearOrganizacionesParaContribuyente(contribuyenteGuardado, contribuyenteDto.getOrganizacionesRepresentadas());
             }
             if (contribuyenteDto.getEstudianteEnEscuelas() != null && !contribuyenteDto.getEstudianteEnEscuelas().isEmpty()) {
                 crearEstudiantesParaContribuyente(contribuyenteGuardado, contribuyenteDto.getEstudianteEnEscuelas());
             }
-
             return ContribuyenteMapper.toDto(contribuyenteGuardado, true);
         } else {
             throw new NullReferenceException(CONTRIBUYENTE);
@@ -93,22 +90,14 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
             if (contribuyenteOptional.isPresent()) {
                 Contribuyente contribuyenteExistente = contribuyenteOptional.get();
-
-                // Update the existing entity with new data
                 ContribuyenteMapper.updateEntityFromDto(contribuyenteDto, contribuyenteExistente);
-
-                // Save the updated contribuyente
                 Contribuyente contribuyenteActualizado = contribuyentesRepository.save(contribuyenteExistente);
-
-                // Update related entities
                 if (contribuyenteDto.getOrganizacionesRepresentadas() != null) {
                     actualizarOrganizaciones(contribuyenteActualizado, contribuyenteDto.getOrganizacionesRepresentadas());
                 }
                 if (contribuyenteDto.getEstudianteEnEscuelas() != null) {
                     actualizarEstudiantes(contribuyenteActualizado, contribuyenteDto.getEstudianteEnEscuelas());
                 }
-
-                // Return the updated entity with all relationships
                 Contribuyente contribuyenteCompleto = contribuyentesRepository.findByUuid(contribuyenteActualizado.getUuid())
                         .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, contribuyenteActualizado.getUuid()));
                 return ContribuyenteMapper.toDto(contribuyenteCompleto, true);
@@ -243,8 +232,6 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                 estudiantesDtoMap.put(dto.getUuid(), dto);
             }
         }
-
-        // Process existing estudiantes
         List<EstudianteEscuela> estudiantesToDelete = new ArrayList<>();
         if (contribuyente.getEstudianteEnEscuelas() != null) {
             for (EstudianteEscuela estudianteExistente : contribuyente.getEstudianteEnEscuelas()) {
@@ -259,8 +246,6 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                 }
             }
         }
-
-        // Soft delete estudiantes not in the incoming list
         for (EstudianteEscuela estudiante : estudiantesToDelete) {
             estudiante.setEstado(true);
             estudianteEscuelaRepository.save(estudiante);
@@ -279,7 +264,6 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     }
 
     private void actualizarEstudianteExistente(EstudianteEscuela estudianteExistente, EstudianteEscuelaDto dto) {
-        // Update all fields from DTO
         estudianteExistente.setNombreCompleto(dto.getNombreCompleto());
         estudianteExistente.setFechaNacimiento(dto.getFechaNacimiento());
         estudianteExistente.setGenero(dto.getGenero());
@@ -289,7 +273,6 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
         estudianteExistente.setFechaInscripcion(dto.getFechaInscripcion());
         estudianteExistente.setMatricula(dto.getMatricula());
         estudianteExistente.setActivo(dto.getActivo());
-
         estudianteEscuelaRepository.save(estudianteExistente);
     }
 }

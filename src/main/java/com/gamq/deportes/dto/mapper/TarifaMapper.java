@@ -17,7 +17,6 @@ public class TarifaMapper {
         tarifaDto.setFechaFin(tarifa.getFechaFin());
         tarifaDto.setDesde(tarifa.getDesde());
         tarifaDto.setHasta(tarifa.getHasta());
-        tarifaDto.setDescripcion(tarifa.getDescripcion());
         tarifaDto.setActivo(tarifa.getActivo());
         tarifaDto.setDescripcion(tarifa.getDescripcion());
         tarifaDto.setObservaciones(tarifa.getObservaciones());

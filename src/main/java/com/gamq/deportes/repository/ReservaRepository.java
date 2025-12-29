@@ -229,10 +229,32 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     @Query("SELECT r FROM Reserva r WHERE r.estadoReserva = 'PENDIENTE' AND r.estadoValidacion = 'PENDIENTE'")
     List<Reserva> findPendientesDeAprobacion();
 
-    // Add these methods to your ReservaRepository
-    @Query("SELECT r.numeroReserva FROM Reserva r WHERE r.numeroReserva LIKE :yearPattern ORDER BY r.numeroReserva DESC")
-    List<String> findLatestReservationNumbersByYear(@Param("yearPattern") String yearPattern);
+    @Query("SELECT r FROM Reserva r WHERE r.tarifa.idTarifa = :idTarifa AND r.estado = false AND r.estadoValidacion != 'RECHAZADA'")
+    List<Reserva> findActiveReservasByTarifa(@Param("idTarifa") Long idTarifa);
 
-    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 1, 4) AS long)) FROM Reserva r WHERE r.numeroReserva LIKE :yearPattern")
+
+    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 1, 4) AS long)) " +
+            "FROM Reserva r " +
+            "WHERE r.numeroReserva LIKE :yearPattern")
     Optional<Long> findMaxReservationNumberByYear(@Param("yearPattern") String yearPattern);
+
+    @Query("SELECT r FROM Reserva r " +
+            "WHERE r.numeroReserva LIKE CONCAT(:prefix, '-%') " +
+            "AND SUBSTRING(r.numeroReserva, LENGTH(r.numeroReserva) - 1, 2) = :year " +
+            "ORDER BY CAST(SUBSTRING(r.numeroReserva, 3, 4) AS long) DESC")
+    List<Reserva> findByPrefixAndYear(@Param("prefix") String prefix, @Param("year") String year);
+
+    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 3, 4) AS long)) " +
+            "FROM Reserva r " +
+            "WHERE r.numeroReserva LIKE :prefixYearPattern")
+    Optional<Long> findMaxReservationNumberByPrefixAndYear(@Param("prefixYearPattern") String prefixYearPattern);
+
+    // Alternative query that might be more reliable
+    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, LOCATE('-', r.numeroReserva) + 1, 4) AS long)) " +
+            "FROM Reserva r " +
+            "WHERE r.numeroReserva LIKE CONCAT(:prefix, '-%') " +
+            "AND SUBSTRING(r.numeroReserva, LENGTH(r.numeroReserva) - 1, 2) = :year")
+    Optional<Long> findMaxNumberByPrefixAndYearAlternative(
+            @Param("prefix") String prefix,
+            @Param("year") String year);
 }

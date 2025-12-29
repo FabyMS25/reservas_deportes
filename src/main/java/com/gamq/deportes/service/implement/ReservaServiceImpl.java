@@ -151,8 +151,8 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public List<ReservaDto> findReservasByContribuyente(String uuidContribuyente) {
         try {
-            Optional<Contribuyente> optional =  contribuyenteRepository.findByUuid(uuidContribuyente);
-            if (optional.isPresent()) {
+            Optional<Contribuyente> optional = contribuyenteRepository.findByUuid(uuidContribuyente);
+            if (!optional.isPresent()) {
                 return List.of();
             }
 
@@ -166,7 +166,6 @@ public class ReservaServiceImpl implements ReservaService {
             return List.of();
         }
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<ReservaDto> findByEstadoReserva(String estadoReserva) {
@@ -218,15 +217,24 @@ public class ReservaServiceImpl implements ReservaService {
                 .collect(Collectors.toList());
     }
 
-    private String generarNumeroReserva() {
-        return reservationNumberService.findNextAvailableReservationNumber();
-    }
-
     @Override
     @Transactional
     public ReservaDto crearReserva(ReservaDto reservaDto) {
         if (reservaDto == null) {
             throw new NullReferenceException(RESERVA);
+        }
+
+        // Validate required fields
+        if (reservaDto.getCampoDeportivoDto() == null || reservaDto.getCampoDeportivoDto().getUuid() == null) {
+            throw new IllegalArgumentException("El campo deportivo es requerido");
+        }
+
+        if (reservaDto.getContribuyenteDto() == null || reservaDto.getContribuyenteDto().getUuid() == null) {
+            throw new IllegalArgumentException("El contribuyente es requerido");
+        }
+
+        if (reservaDto.getTipoReserva() == null || reservaDto.getTipoReserva().trim().isEmpty()) {
+            throw new IllegalArgumentException("El tipo de reserva es requerido");
         }
 
         CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
@@ -238,17 +246,23 @@ public class ReservaServiceImpl implements ReservaService {
             tarifa = getTarifa(reservaDto.getTarifaDto().getUuid());
         }
 
-        // Handle reservation number
+        // Handle reservation number - FIXED
         String numeroReserva = reservaDto.getNumeroReserva();
         boolean isUserProvided = false;
 
         if (numeroReserva != null && !numeroReserva.trim().isEmpty()) {
+            // Validate user-provided number
+            if (!reservationNumberService.isReservationNumberValid(numeroReserva, reservaDto.getTipoReserva())) {
+                throw new IllegalArgumentException("Formato de número de reserva inválido: " + numeroReserva);
+            }
+
             if (!reservationNumberService.isReservationNumberAvailable(numeroReserva)) {
                 throw new IllegalArgumentException("El número de reserva ya está en uso: " + numeroReserva);
             }
             isUserProvided = true;
         } else {
-            numeroReserva = reservationNumberService.findNextAvailableReservationNumber();
+            // Generate number based on the reservation type
+            numeroReserva = reservationNumberService.findNextAvailableReservationNumber(reservaDto.getTipoReserva());
             isUserProvided = false;
         }
 
@@ -257,6 +271,7 @@ public class ReservaServiceImpl implements ReservaService {
         nuevaReserva.setContribuyente(contribuyente);
         nuevaReserva.setTarifa(tarifa); // This can be null
         nuevaReserva.setNumeroReserva(numeroReserva);
+        nuevaReserva.setTipoReserva(reservaDto.getTipoReserva()); // Ensure tipo is set
 
         if (reservaDto.getOrganizacionDto() != null && reservaDto.getOrganizacionDto().getUuid() != null) {
             Organizacion organizacion = getOrganizacion(reservaDto.getOrganizacionDto().getUuid());
@@ -272,9 +287,10 @@ public class ReservaServiceImpl implements ReservaService {
         nuevaReserva.setFechaCreacion(LocalDateTime.now());
         nuevaReserva.setFechaActualizacion(LocalDateTime.now());
 
-        if (nuevaReserva.getNumeroReserva() == null) {
-            nuevaReserva.setNumeroReserva(generarNumeroReserva());
-        }
+        // Don't generate again if we already have a number
+        // Removed: if (nuevaReserva.getNumeroReserva() == null) {
+        //    nuevaReserva.setNumeroReserva(generarNumeroReserva());
+        // }
 
         if ("puntual".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaPuntualDto() != null) {
             ReservaPuntual puntual = ReservaPuntualMapper.toEntity(reservaDto.getReservaPuntualDto(), false);
@@ -304,7 +320,6 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
         return ReservaMapper.toDto(reservaGuardada);
     }
-
     @Override
     public ReservaDto actualizarReserva(ReservaDto reservaDto) {
         if (reservaDto == null) {
