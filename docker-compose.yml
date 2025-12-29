@@ -1,18 +1,18 @@
 services:
-#  be-deportes:
-#    depends_on:
-#      - db-deportes
-#    image: 'deportes-be'
-#    container_name: 'deportes-be'
-#    build: .
-#    ports:
-#      - '8085:8085'
-#    environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
-#      - SPRING_DATASOURCE_USERNAME=deportes
-#      - SPRING_DATASOURCE_PASSWORD=deportes123
-#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-#    restart: always
+  be-deportes:
+    depends_on:
+      - db-deportes
+    image: 'deportes-be'
+    container_name: 'deportes-be'
+    build: .
+    ports:
+      - '8085:8085'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
+      - SPRING_DATASOURCE_USERNAME=deportes
+      - SPRING_DATASOURCE_PASSWORD=deportes123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    restart: always
   db-deportes:
     image: postgis/postgis:14-3.2-alpine
 #    image: postgres:14-alpine
@@ -44,8 +44,8 @@ services:
     container_name: 'deportes-fe'
     ports:
       - '4205:80'
-#    depends_on:
-#      - be-deportes
+    depends_on:
+      - be-deportes
     restart: always
 volumes:
   db:
