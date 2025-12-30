@@ -40,7 +40,7 @@ public class ApiController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-    @Operation(summary = "Crea una tas en RUAT")
+    @Operation(summary = "Crea una tasa en RUAT")
     @PostMapping("/creartasa")
     public Response Anular(@RequestBody TasaToken tasaToken) {
 

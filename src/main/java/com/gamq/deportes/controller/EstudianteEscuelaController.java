@@ -27,7 +27,7 @@ public class EstudianteEscuelaController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-    @Operation(summary = "Buscar Estudinte por uuid")
+    @Operation(summary = "Buscar Estudiante por uuid")
     @GetMapping("/{uuid}")
     public Response buscarEstudiantePorUuid(@PathVariable("uuid") String uuidEstudiante) {
         try {
@@ -95,7 +95,7 @@ public class EstudianteEscuelaController {
             return Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-    @Operation(summary = "Borrar Estudiante o darde")
+    @Operation(summary = "Borrar Estudiante o dar de baja")
     @PutMapping("/{uuid}/baja")
     public Response darDeBajaEstudiante(@PathVariable("uuid") String uuid) {
         try {
