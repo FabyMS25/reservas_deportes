@@ -3,17 +3,20 @@ package com.gamq.deportes.controller;
 import com.gamq.deportes.dto.SuperficieDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.SuperficieService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
 @RequestMapping("/api/superficie")
+@Tag(name = "Superficie", description = "API para gestion de superficies en las Canchas del GAMQ")
 public class SuperficieController {
     @Autowired
     SuperficieService superficieService;
-    
+    @Operation(summary = "Listar las Superficies")
     @GetMapping()
     public Response obtenerCategorias() {
         try{
@@ -23,7 +26,7 @@ public class SuperficieController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Obtener Superficie por uuid")
     @GetMapping("/{uuid}")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
@@ -33,7 +36,7 @@ public class SuperficieController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Crear Superficie")
     @PostMapping()
     public Response crearCategoria(@RequestBody SuperficieDto SuperficieDto) {
         try{
@@ -42,7 +45,7 @@ public class SuperficieController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Actualizar Superficie")
     @PutMapping()
     public Response actualizarCategoria(@RequestBody SuperficieDto SuperficieDto) {
         try{
@@ -51,6 +54,7 @@ public class SuperficieController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Borrar Superficie por uuid")
     @DeleteMapping("/{uuid}")
     public Response deleteSurface(@Parameter(description = "Uuid para eliminar superficie")
                                 @PathVariable("uuid") String uuid) {

@@ -5,13 +5,16 @@ import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.CategoriaService;
 import com.gamq.deportes.service.TarifaCategoriaService;
 import com.gamq.deportes.service.TarifasService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
 @RequestMapping("/api/tarifacategoria")
+@Tag(name = "Tarifas Categorias", description = "API para gestion de tarifas de toma de servicios GAMQ")
 public class TarifasCategoriaController {
     @Autowired
     TarifaCategoriaService tarifaCategoriaService;
@@ -21,8 +24,8 @@ public class TarifasCategoriaController {
     
     @Autowired
     CategoriaService categoriaService;
-    
-    
+
+    @Operation(summary = "Obtener Tarifas Categorias")
     @GetMapping()
     public Response obtenerTarifaCategorias() {
         try{
@@ -32,7 +35,7 @@ public class TarifasCategoriaController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Obtener Tarifa Categoria por uuid")
     @GetMapping("/{uuid}")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
@@ -42,7 +45,7 @@ public class TarifasCategoriaController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Crear Tarifa Categoria")
     @PostMapping()
     public Response crearCategoria(@RequestBody TarifaCategoriaDto TarifaCategoriaDto) {
         try{
@@ -51,7 +54,7 @@ public class TarifasCategoriaController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Actualizar Tarifa Categoria")
     @PutMapping()
     public Response actualizarCategoria(@RequestBody TarifaCategoriaDto TarifaCategoriaDto) {
         try{
@@ -60,7 +63,7 @@ public class TarifasCategoriaController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Borrar Tarifa Categoria por uuid")
     @DeleteMapping("/{uuid}")
     public Response deleteTarifaCategory(@Parameter(description = "Uuid para eliminar relacion tarida categoria")
                                                 @PathVariable("uuid") String uuid) {

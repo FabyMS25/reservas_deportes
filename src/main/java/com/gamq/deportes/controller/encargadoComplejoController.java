@@ -4,7 +4,9 @@ package com.gamq.deportes.controller;
 import com.gamq.deportes.dto.EncargadoComplejoDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.EncargadoComplejoService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,11 +14,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/encargado")
+@Tag(name = "Encargados", description = "Encargados de Canchas o complejos en GAMQ ")
 public class encargadoComplejoController {
 
     @Autowired
     EncargadoComplejoService encargadoCcomplejoService;
-
+    @Operation(summary = "Listar Encargados")
     @GetMapping()
     public Response obtenerEncargados() {
         try {
@@ -26,6 +29,7 @@ public class encargadoComplejoController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Buscar Encargado por uuid")
     @GetMapping("/{uuid}")
     public Response buscarEncargadoPorUuid( @PathVariable("uuid") String uuid) {
         try{
@@ -35,7 +39,7 @@ public class encargadoComplejoController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Buscar Encargado por userUuid")
     @GetMapping("user/{userUuid}")
     public Response buscarEncargadoPorUserUuid( @PathVariable("userUuid") String userUuid) {
         try{
@@ -45,6 +49,7 @@ public class encargadoComplejoController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Crear Encargado")
     @PostMapping()
     public Response crearEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
@@ -53,7 +58,7 @@ public class encargadoComplejoController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Actualizar Encargado")
     @PutMapping()
     public Response actualizarEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
@@ -62,7 +67,7 @@ public class encargadoComplejoController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Eliminar Encargado por uuid")
     @DeleteMapping("/{uuid}")
     public Response deleteEmployee(@Parameter(description = "Uuid para eliminar encargado")
                                  @PathVariable("uuid") String uuid) {

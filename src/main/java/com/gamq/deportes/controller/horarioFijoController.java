@@ -4,7 +4,9 @@ package com.gamq.deportes.controller;
 import com.gamq.deportes.dto.HorarioFijoDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.horarioFijoService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,11 +14,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/horarioFijo")
+@Tag(name = "Horario Fijo ", description = "Horarios fijo para toma de Servicios GAMQ ")
 public class horarioFijoController {
 
     @Autowired
     horarioFijoService horarioService;
-
+    @Operation(summary = "Listar Horarios Fijos")
     @GetMapping()
     public Response obtenerHorarios() {
         try{
@@ -26,7 +29,7 @@ public class horarioFijoController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Buscar Horarios Fijos por uuid")
     @GetMapping("/{uuid}")
     public Response buscarHorarioPorUuid( @PathVariable("uuid") String uuidHorario) {
         try{
@@ -36,7 +39,7 @@ public class horarioFijoController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Crear Horarios Fijos")
     @PostMapping()
     public Response crearHorario(@RequestBody HorarioFijoDto horarioDto) {
         try{
@@ -45,7 +48,7 @@ public class horarioFijoController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Actualizar Horarios Fijos")
     @PutMapping()
     public Response actualizarHorario(@RequestBody HorarioFijoDto horarioDto) {
         try{
@@ -54,6 +57,7 @@ public class horarioFijoController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Borrar Horarios Fijos por uuid")
     @DeleteMapping("/{uuid}")
     public Response deleteSchedule(@Parameter(description = "Uuid para eliminar HorarioFijo")
                                 @PathVariable("uuid") String uuid) {

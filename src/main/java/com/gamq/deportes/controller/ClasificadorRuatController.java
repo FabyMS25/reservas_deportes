@@ -5,7 +5,9 @@ import com.gamq.deportes.dto.ClasificadorRuatDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.service.ClasificadorRuatService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +15,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/clasificadores")
+@Tag(name = "Clasificadores", description = "Clasificadores del GAMQ ")
 public class ClasificadorRuatController {
     @Autowired
     private ClasificadorRuatService clasificadorRuatService;
-
+    @Operation(summary = "Listar las Categorias")
     @GetMapping()
     public Response obtenerClasificadores() {
         try{
@@ -26,7 +29,7 @@ public class ClasificadorRuatController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Buscar Clasificador por uuid")
     @GetMapping("/{uuid}")
     public Response buscarClasificadorRuatPorUuid( @PathVariable("uuid") String uuidClasificadorRuat) {
         try{
@@ -36,7 +39,7 @@ public class ClasificadorRuatController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Crear Clasificador")
     @PostMapping()
     public Response crearClasificadorRuat(@RequestBody ClasificadorRuatDto ClasificadorRuatDto) {
         try{
@@ -45,7 +48,7 @@ public class ClasificadorRuatController {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Actualizar Clasificador")
     @PutMapping()
     public Response actualizarClasificadorRuat(@RequestBody ClasificadorRuatDto clasificadorRuatDto) {
         try {
@@ -62,6 +65,7 @@ public class ClasificadorRuatController {
             return Response.unprocessableEntity().setPayload("Error al actualizar el clasificador: " + ex.getMessage());
         }
     }
+    @Operation(summary = "Borrar Clasificador")
     @DeleteMapping("/{uuid}")
     public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
                                 @PathVariable("uuid") String uuid) {

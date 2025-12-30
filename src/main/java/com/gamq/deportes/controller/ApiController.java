@@ -13,19 +13,24 @@ import com.gamq.deportes.model.Tasa.TasaToken;
 import com.gamq.deportes.model.login.LoginRequest;
 import com.gamq.deportes.model.login.LoginResponse;
 import com.gamq.deportes.service.ApiService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.gamq.deportes.dto.response.Response;
 
 @RestController
 @RequestMapping("api/ruat")
+@Tag(name = "Api RUAT", description = "Servicios de RUAT")
 public class ApiController {
     @Autowired
     private  ApiService apiService;
+    @Operation(summary = "Login a Ruat se obtiene un Token")
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {
         return this.apiService.login(loginRequest);
     }
+    @Operation(summary = "Buscar un Contribuyente")
     @PostMapping("/buscar")
     public Response Buscar(@RequestBody ContribuyenteToken contribuyenteToken) {
         try{
@@ -35,6 +40,7 @@ public class ApiController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Crea una tas en RUAT")
     @PostMapping("/creartasa")
     public Response Anular(@RequestBody TasaToken tasaToken) {
 
@@ -46,7 +52,7 @@ public class ApiController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
-
+    @Operation(summary = "Anular Tasa")
     @PostMapping("/anulartasa")
     public Response Anular(@RequestBody AnularTasaToken anularTasaToken) {
         try{
@@ -56,6 +62,7 @@ public class ApiController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Registro de Contribuyente")
     @PostMapping("/registro")
     public Response Registrar(@RequestBody RegistroToken registroToken) {
 
@@ -67,6 +74,7 @@ public class ApiController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "VErifica pago de una tasa")
     @PostMapping("/pago")
     public Response consultaPago(@RequestBody PagoToken pagoToken) {
 

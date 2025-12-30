@@ -7,6 +7,7 @@ import com.gamq.deportes.service.ReservaService;
 import com.gamq.deportes.service.implement.ReservationNumberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservas")
+@Tag(name = "Reservas", description = "API para Reservas en Global")
 public class ReservaController {
 
     @Autowired

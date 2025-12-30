@@ -1,6 +1,8 @@
 package com.gamq.deportes.controller;
 
 import com.gamq.deportes.utils.GeneradorReporte;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.sf.jasperreports.engine.JRParameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,10 +17,12 @@ import java.util.Locale;
 import java.util.Map;
 @Controller
 @RequestMapping("/api/reporte")
+@Tag(name = "Reportes", description = "API para Reportes imprimibles del Sistema")
 public class ReportesController {
     @Autowired
     private GeneradorReporte generadorReporte;
     ///////////////reserva puntual por hora/////////////////
+    @Operation(summary = "Reporte de ticket de Reserva Puntual")
     @RequestMapping(value="/ticket-reservap",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketReserve (
@@ -53,6 +57,7 @@ public class ReportesController {
         }
     }
     ///////////////reserva puntual por persona/////////////////
+    @Operation(summary = "Reporte de ticket de Reserva Puntual por Persona")
     @RequestMapping(value="/ticket-reser-per",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketReservePersona (
@@ -89,6 +94,7 @@ public class ReportesController {
 
     ///////////////reserva puntual por persona/////////////////
     ///////////////reserva puntual por evento/////////////////
+    @Operation(summary = "Reporte de ticket de Reserva Puntual por Evento")
     @RequestMapping(value="/ticket-reser-ev",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketReservaEvento (
@@ -124,6 +130,7 @@ public class ReportesController {
     }
 
     ///////////////reserva puntual por persona/////////////////
+    @Operation(summary = "Reporte Lista de reservas por intervalo de fechas y tipo de cobrom, estado, cancha ")
     @RequestMapping(value="/lista-Reservas",method= RequestMethod.GET)
     @ResponseBody
     public void reporteListaReserva (
@@ -185,6 +192,7 @@ public class ReportesController {
         }
     }
     ////////////////////////Listado Recurrentes//////////////////////////////
+    @Operation(summary = "Reporte Lista de reservas Recurrentes por intervalo de fechas y tipo de cobrom, estado, cancha ")
     @RequestMapping(value="/lista-Recurrentes",method= RequestMethod.GET)
     @ResponseBody
     public void TicketReservaRecuPorSesion (
@@ -247,6 +255,7 @@ public class ReportesController {
     }
 
     ////////////////////////RECURRENTES POR Sesion//////////////////////////////
+    @Operation(summary = "Reporte Lista de reservas por intervalo de fechas y tipo de cobrom, estado, cancha ")
     @RequestMapping(value="/ticket-recuses",method= RequestMethod.GET)
     @ResponseBody
     public void TicketRecuSesion (
@@ -282,6 +291,7 @@ public class ReportesController {
     }
 
     ////////////////////////RECURRENTES POR PERSONA//////////////////////////////
+    @Operation(summary = "Reporte Lista de reservas Recuurentes por Persona")
     @RequestMapping(value="/ticket-recuper",method= RequestMethod.GET)
     @ResponseBody
     public void ticketRecuPer (
@@ -317,6 +327,7 @@ public class ReportesController {
     }
 
     ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
+    @Operation(summary = "Reporte Lista de reservas Recuurentes por Mensualidad")
     @RequestMapping(value="/ticket-recumes",method= RequestMethod.GET)
     @ResponseBody
     public void ticketRecuMes (
@@ -352,6 +363,7 @@ public class ReportesController {
     }
 
     ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
+    @Operation(summary = "Reporte Lista de Pagos en un intervalo de fechas")
     @RequestMapping(value="/lista-Pagos",method= RequestMethod.GET)
     @ResponseBody
     public void reporteListaPagos (
@@ -389,6 +401,7 @@ public class ReportesController {
         }
     }
 /////////////////////Listado Ticket Mensual ///////////////////////////////////////////////////
+@Operation(summary = "Reporte ticket de reserva Mensual")
 @RequestMapping(value="/lista-mensuales",method= RequestMethod.GET)
 @ResponseBody
 public void reporteListaMensuales (
@@ -444,6 +457,8 @@ public void reporteListaMensuales (
     }
 }
 ////////////////////listado por alumno//////////////////////////////////
+@Operation(summary = "Reporte Lista de pagos de Escuelas del GAMQ pór matrciula o alumno")
+
 @RequestMapping(value="/lista-alumno",method= RequestMethod.GET)
 @ResponseBody
 public void reporteListaMensAlumno (
@@ -507,6 +522,7 @@ public void reporteListaMensAlumno (
     }
 }
 ////////////////////Ticket Mensual///////////////////////////////////////
+    @Operation(summary = "Reporte Ticket Mensual")
     @RequestMapping(value="/ticket-mensual",method= RequestMethod.GET)
     @ResponseBody
     public void reporteTicketPago (
