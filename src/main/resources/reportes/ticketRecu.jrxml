@@ -433,12 +433,12 @@
 				</textElement>
 				<text><![CDATA[x]]></text>
 			</staticText>
-			<textField>
+			<textField isBlankWhenNull="true">
 				<reportElement x="389" y="138" width="41" height="23" uuid="b0dc2d4f-997a-4386-87ed-9cef8460555f"/>
 				<textElement textAlignment="Left">
 					<font fontName="SansSerif" size="11"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{per}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{per}==null?$F{se}:$F{per}]]></textFieldExpression>
 			</textField>
 		</band>
 	</columnHeader>
