@@ -2,7 +2,9 @@ package com.gamq.deportes.repository;
 
 import com.gamq.deportes.model.Reserva;
 import com.gamq.deportes.model.ReservaPeriodo;
+import com.gamq.deportes.model.ReservaRecurrente;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,7 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, Long> {
+public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, Long>  ,
+        JpaSpecificationExecutor<ReservaPeriodo> {
 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.uuid = ?1")
     Optional<ReservaPeriodo> findByUuid(String uuid);

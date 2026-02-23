@@ -2,6 +2,7 @@ package com.gamq.deportes.controller;
 
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
+import com.gamq.deportes.dto.ReservaRecurrenteFilter;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ReservaRecurrenteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,25 +23,56 @@ import java.util.List;
 @RequestMapping("/api/reservas-recurrentes")
 @Tag(name = "Reservas Recurrentes", description = "API para gestión de reservas recurrentes")
 public class ReservaRecurrenteController {
-
     @Autowired
     private ReservaRecurrenteService reservaRecurrenteService;
 
-    @Operation(summary = "Verificar y actualizar reservas expiradas")
-    @PostMapping("/verificar-expiradas")
-    public Response verificarReservasExpiradas(
-            @Parameter(description = "Horas de timeout para expiración") @RequestParam int horasTimeout) {
+    @Operation(summary = "Obtener todas las reservas con filtros y paginación")
+    @GetMapping()
+    public Response obtenerReservas(
+            @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Pestaña seleccionada (0=Todas,1=Solicitadas,2=Pendientes,etc)")
+            @RequestParam(required = false) Integer tab,
+            @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
+            @Parameter(description = "Estado de reserva")   @RequestParam(required = false) String estadoReserva,
+            @Parameter(description = "Estado de validación")@RequestParam(required = false) String estadoValidacion,
+            @Parameter(description = "Categoría")           @RequestParam(required = false) String categoria,
+            @Parameter(description = "Tipo de recurrencia") @RequestParam(required = false) String tipoRecurrencia,
+            @Parameter(description = "Activo (true/false)") @RequestParam(required = false) String activo,
+            @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
+            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate) {
         try {
-            List<ReservaRecurrenteDto> updatedReservas = reservaRecurrenteService.checkAndUpdateExpiredReservations(horasTimeout);
-            return Response.ok().setPayload(updatedReservas);
+            // Create Pageable with default sorting by fechaCreacion descending
+            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+
+            // Create filter object
+            ReservaRecurrenteFilter filter = new ReservaRecurrenteFilter();
+            filter.setTab(tab);
+            filter.setSearchTerm(searchTerm);
+            filter.setEstadoReserva(estadoReserva);
+            filter.setEstadoValidacion(estadoValidacion);
+            filter.setCategoria(categoria);
+            filter.setTipoRecurrencia(tipoRecurrencia);
+            if (activo != null && !activo.isEmpty()) {
+                filter.setActivo(Boolean.parseBoolean(activo));
+            }
+            if (fromDate != null && !fromDate.isEmpty()) {
+                filter.setFromDate(LocalDate.parse(fromDate.substring(0, 10)));
+            }
+            if (toDate != null && !toDate.isEmpty()) {
+                filter.setToDate(LocalDate.parse(toDate.substring(0, 10)));
+            }
+            Page<ReservaRecurrenteDto> reservasPage = reservaRecurrenteService.obtenerReservasConFiltros(filter, pageable);
+            return Response.ok().setPayload(reservasPage);
         } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
+            return Response.notContent().setPayload(ex.getMessage());
+//            return Response.serverError().setPayload("Error al obtener reservas: " + ex.getMessage());
         }
     }
 
     @Operation(summary = "Obtener todas las reservas")
-    @GetMapping()
-    public Response obtenerReservas(
+    @GetMapping("/all")
+    public Response obtenerTodasReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
         try {
@@ -67,6 +100,18 @@ public class ReservaRecurrenteController {
             return Response.ok().setPayload(reservaRecurrenteDto);
         } catch (Exception ex) {
             return Response.notFound().setPayload("Reserva recurrente no encontrada: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Verificar y actualizar reservas expiradas")
+    @PostMapping("/verificar-expiradas")
+    public Response verificarReservasExpiradas(
+            @Parameter(description = "Horas de timeout para expiración") @RequestParam int horasTimeout) {
+        try {
+            List<ReservaRecurrenteDto> updatedReservas = reservaRecurrenteService.checkAndUpdateExpiredReservations(horasTimeout);
+            return Response.ok().setPayload(updatedReservas);
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
         }
     }
 

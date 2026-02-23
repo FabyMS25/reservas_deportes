@@ -4,6 +4,7 @@ import com.gamq.deportes.model.ReservaPuntual;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,9 +16,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,Long> {
-
-    @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.fechaCreacion < :expirationThreshold " +
+public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, Long>,
+        JpaSpecificationExecutor<ReservaPuntual> {
+        @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.fechaCreacion < :expirationThreshold " +
             "AND rp.reserva.estadoReserva = :estadoReserva")
     List<ReservaPuntual> findExpiredPendingReservations(
             @Param("expirationThreshold") LocalDateTime expirationThreshold,
@@ -25,6 +26,11 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,L
 
     @Query("SELECT c FROM ReservaPuntual c WHERE c.uuid = ?1")
     Optional<ReservaPuntual> findByUuid(String uuid);
+
+
+    Page<ReservaPuntual> findByReserva_Contribuyente_Uuid(String contribuyenteUuid, Pageable pageable);
+
+    Page<ReservaPuntual> findByReserva_CampoDeportivo_Complejo_Uuid(String complejoUuid, Pageable pageable);
 
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.fechaUso = :fechaUso")
     List<ReservaPuntual> findByFechaUso(@Param("fechaUso") LocalDate fechaUso);
@@ -122,7 +128,6 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,L
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.estadoReserva IN :estadosReserva")
     List<ReservaPuntual> findByReservaEstadoReservaIn(@Param("estadosReserva") List<String> estadosReserva);
 
-    // Complex business queries
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid " +
             "AND rp.fechaUso = :fechaUso " +
             "AND rp.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
@@ -156,7 +161,6 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,L
             @Param("excludeReservaUuid") String excludeReservaUuid
     );
 
-    // Paginated queries
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid")
     Page<ReservaPuntual> findByCampoDeportivoUuid(@Param("campoUuid") String campoUuid, Pageable pageable);
 
@@ -170,7 +174,6 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual,L
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.estadoReserva = :estadoReserva")
     Page<ReservaPuntual> findByReservaEstadoReserva(@Param("estadoReserva") String estadoReserva, Pageable pageable);
 
-    // Count queries
     @Query("SELECT COUNT(rp) FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid AND rp.fechaUso = :fechaUso")
     Long countByCampoDeportivoAndFechaUso(
             @Param("campoUuid") String campoUuid,

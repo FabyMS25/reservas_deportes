@@ -1,8 +1,6 @@
 package com.gamq.deportes.service;
 
-import com.gamq.deportes.dto.ReservaDto;
-import com.gamq.deportes.dto.ReservaPuntualDto;
-import com.gamq.deportes.dto.ReservaRecurrenteDto;
+import com.gamq.deportes.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,9 +10,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Service
 public interface ReservaRecurrenteService {
-    List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout);
     List<ReservaRecurrenteDto> obtenerReservas();
     Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable);
+    Page<ReservaRecurrenteDto> obtenerReservasConFiltros(ReservaRecurrenteFilter filter, Pageable pageable);
+    List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout);
     ReservaRecurrenteDto findByUuid(String uuid);
     ReservaRecurrenteDto findByReservaUuid(String reservaUuid);
     List<ReservaRecurrenteDto> findByTipoRecurrencia(String tipoRecurrencia);

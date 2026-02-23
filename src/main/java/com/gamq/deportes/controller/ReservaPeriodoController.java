@@ -1,11 +1,18 @@
 package com.gamq.deportes.controller;
 
 import com.gamq.deportes.dto.ReservaPeriodoDto;
+import com.gamq.deportes.dto.ReservaPeriodoFilter;
 import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.service.ApiService;
 import com.gamq.deportes.service.ReservaPeriodoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,9 +25,42 @@ public class ReservaPeriodoController {
 
     @Autowired
     private ReservaPeriodoService reservaPeriodoService;
-    @Operation(summary = "Obtener todas las reservas Por Periodo")
+
+
+    @Operation(summary = "Obtener todas las reservas por Periodo con filtros y paginación")
     @GetMapping()
-    public Response obtenerReservasPeriodo() {
+    public Response obtenerReservasPeriodo(
+            @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Pestaña seleccionada (0=Todas,1=Pendientes,2=Pagadas,3=Vencidas,4=Este Mes)")
+            @RequestParam(required = false) Integer tab,
+            @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
+            @Parameter(description = "Estado de reserva")   @RequestParam(required = false) String estadoReserva,
+            @Parameter(description = "Estado de validación")@RequestParam(required = false) String estadoValidacion,
+            @Parameter(description = "Categoría")           @RequestParam(required = false) String categoria,
+            @Parameter(description = "Escuela (UUID)")      @RequestParam(required = false) String escuelaFiltro,
+            @Parameter(description = "Período (YYYY-MM)")   @RequestParam(required = false) String periodoFiltro) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+            ReservaPeriodoFilter filter = new ReservaPeriodoFilter();
+            filter.setTab(tab);
+            filter.setSearchTerm(searchTerm);
+            filter.setEstadoReserva(estadoReserva);
+            filter.setEstadoValidacion(estadoValidacion);
+            filter.setCategoria(categoria);
+            filter.setEscuelaFiltro(escuelaFiltro);
+            filter.setPeriodoFiltro(periodoFiltro);
+            Page<ReservaPeriodoDto> reservasPage = reservaPeriodoService.obtenerReservasConFiltros(filter, pageable);
+            return Response.ok().setPayload(reservasPage);
+        } catch (Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+//            return Response.serverError().setPayload("Error al obtener reservas por período: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Obtener todas las reservas por Periodo sin paginación")
+    @GetMapping("/all")
+    public Response obtenerTodasReservasPeriodo() {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.obtenerTodos();
             return Response.ok().setPayload(reservasPeriodo);

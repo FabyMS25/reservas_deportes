@@ -2,10 +2,10 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
+import com.gamq.deportes.dto.ReservaPuntualFilter;
 import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
-import com.gamq.deportes.model.Reserva;
-import com.gamq.deportes.model.ReservaPuntual;
+import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaPuntualRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.service.ReservaPuntualService;
@@ -14,14 +14,20 @@ import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +43,89 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Autowired
     private ReservaRepository reservaRepository;
+
+    public Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable) {
+        Specification<ReservaPuntual> spec = Specification.where(null);
+        if (filter.getTab() != null && filter.getTab() > 0) {
+            String tabEstado = filter.getEstadoReservaFromTab();
+            if (tabEstado != null) {
+                if (tabEstado.contains(",")) {
+                    // Multiple states (for tab 6)
+                    List<String> estados = Arrays.asList(tabEstado.split(","));
+                    spec = spec.and((root, query, cb) ->
+                            root.get("reserva").get("estadoReserva").in(estados));
+                } else {
+                    // Single state
+                    spec = spec.and((root, query, cb) ->
+                            cb.equal(root.get("reserva").get("estadoReserva"), tabEstado));
+                }
+            }
+        }
+        if (filter.getEstadoReserva() != null && !filter.getEstadoReserva().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("reserva").get("estadoReserva"), filter.getEstadoReserva()));
+        }
+        if (filter.getEstadoValidacion() != null && !filter.getEstadoValidacion().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("reserva").get("estadoValidacion"), filter.getEstadoValidacion()));
+        }
+        if (filter.getCategoria() != null && !filter.getCategoria().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
+        }
+        if (filter.getFromDate() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("fechaUso"), filter.getFromDate()));
+        }
+        if (filter.getToDate() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("fechaUso"), filter.getToDate()));
+        }
+        if (filter.getSearchTerm() != null && !filter.getSearchTerm().isEmpty()) {
+            String searchTerm = "%" + filter.getSearchTerm().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> {
+                Join<ReservaPuntual, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
+                Join<Reserva, Contribuyente> contribuyenteJoin = reservaJoin.join("contribuyente", JoinType.LEFT);
+                Join<Reserva, CampoDeportivo> campoJoin = reservaJoin.join("campoDeportivo", JoinType.LEFT);
+                Join<CampoDeportivo, ComplejoDeportivo> complejoJoin = campoJoin.join("complejo", JoinType.LEFT);
+                return cb.or(
+                        cb.like(cb.lower(root.get("categoria")), searchTerm),
+                        cb.like(cb.lower(root.get("superficie")), searchTerm),
+                        cb.like(cb.lower(root.get("observaciones")), searchTerm),
+                        cb.like(cb.lower(reservaJoin.get("numeroReserva")), searchTerm),
+                        cb.like(cb.lower(reservaJoin.get("numeroTasa")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("nombre")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("primerApellido")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("segundoApellido")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("numeroDocumento")), searchTerm),
+                        cb.like(cb.lower(campoJoin.get("nombre")), searchTerm),
+                        cb.like(cb.lower(complejoJoin.get("nombre")), searchTerm)
+                );
+            });
+        }
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("fechaCreacion").descending());
+        }
+        Page<ReservaPuntual> reservasPage = reservaPuntualRepository.findAll(spec, pageable);
+        return reservasPage.map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
+    }
+
+    @Override
+    public List<ReservaPuntualDto> obtenerReservas() {
+        List<ReservaPuntual> reservas = reservaPuntualRepository.findAll();
+        if (reservas.isEmpty()) {
+            return List.of();
+        }
+        return reservas.stream()
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true))
+                .collect(Collectors.toList());
+    }
+
+    public Page<ReservaPuntualDto> obtenerReservas(Pageable pageable) {
+        return reservaPuntualRepository.findAll(pageable)
+                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
+    }
 
     @Override
     @Transactional
@@ -85,23 +174,6 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
         return updatedReservas;
     }
 
-    @Override
-    public List<ReservaPuntualDto> obtenerReservas() {
-        List<ReservaPuntual> reservas = reservaPuntualRepository.findAll();
-
-        if (reservas.isEmpty()) {
-            return List.of();
-        }
-
-        return reservas.stream()
-                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true))
-                .collect(Collectors.toList());
-    }
-
-    public Page<ReservaPuntualDto> obtenerReservas(Pageable pageable) {
-        return reservaPuntualRepository.findAll(pageable)
-                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
-    }
 
     @Override
     @Transactional(readOnly = true)

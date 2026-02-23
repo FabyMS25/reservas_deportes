@@ -1,7 +1,7 @@
 package com.gamq.deportes.controller;
 
-import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
+import com.gamq.deportes.dto.ReservaPuntualFilter;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ApiService;
 import com.gamq.deportes.service.ReservaPuntualService;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,9 +49,44 @@ public class ReservaPuntualController {
         }
     }
 
-    @Operation(summary = "Obtener todas las reservas")
+
+    @Operation(summary = "Obtener todas las reservas con filtros y paginación")
     @GetMapping()
     public Response obtenerReservas(
+            @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Pestaña seleccionada (0=Todas,1=Solicitadas,2=Pendientes,etc)")
+            @RequestParam(required = false) Integer tab,
+            @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
+            @Parameter(description = "Estado de reserva")   @RequestParam(required = false) String estadoReserva,
+            @Parameter(description = "Estado de validación")@RequestParam(required = false) String estadoValidacion,
+            @Parameter(description = "Categoría")           @RequestParam(required = false) String categoria,
+            @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
+            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+            ReservaPuntualFilter filter = new ReservaPuntualFilter();
+            filter.setTab(tab);
+            filter.setSearchTerm(searchTerm);
+            filter.setEstadoReserva(estadoReserva);
+            filter.setEstadoValidacion(estadoValidacion);
+            filter.setCategoria(categoria);
+            if (fromDate != null && !fromDate.isEmpty()) {
+                filter.setFromDate(LocalDate.parse(fromDate.substring(0, 10)));
+            }
+            if (toDate != null && !toDate.isEmpty()) {
+                filter.setToDate(LocalDate.parse(toDate.substring(0, 10)));
+            }
+            Page<ReservaPuntualDto> reservasPage = reservaPuntualService.obtenerReservasConFiltros(filter, pageable);
+            return Response.ok().setPayload(reservasPage);
+        } catch (Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+//            return Response.serverError().setPayload("Error al obtener reservas: " + ex.getMessage());
+        }
+    }
+
+    @GetMapping("/all")
+    public Response obtenerTodasReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
         try {
@@ -67,6 +103,8 @@ public class ReservaPuntualController {
 //            return Response.serverError().setPayload("Error al obtener reservas: " + ex.getMessage());
         }
     }
+
+
     @Operation(summary = "Obtener reserva puntual por UUID")
     @GetMapping("/{uuid}")
     public Response obtenerReservaPuntualPorUuid(

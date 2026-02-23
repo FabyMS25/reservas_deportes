@@ -3,13 +3,11 @@ package com.gamq.deportes.service.implement;
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
+import com.gamq.deportes.dto.ReservaRecurrenteFilter;
 import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
-import com.gamq.deportes.model.Reserva;
-import com.gamq.deportes.model.ReservaPuntual;
-import com.gamq.deportes.model.ReservaRecurrente;
-import com.gamq.deportes.model.Tablero;
+import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaRecurrenteRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.repository.TableroRepository;
@@ -19,13 +17,19 @@ import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,15 +39,111 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
-
     @Autowired
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
-
     @Autowired
     private ReservaRepository reservaRepository;
-
     @Autowired
     private TableroRepository tableroRepository;
+
+    @Override
+    public List<ReservaRecurrenteDto> obtenerReservas() {
+        List<ReservaRecurrente> reservas = reservaRecurrenteRepository.findAll();
+        if (reservas.isEmpty()) {
+            return List.of();
+        }
+        return reservas.stream()
+                .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true))
+                .collect(Collectors.toList());
+    }
+    public Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable) {
+        return reservaRecurrenteRepository.findAll(pageable)
+                .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));
+    }
+
+
+    @Override
+    public Page<ReservaRecurrenteDto> obtenerReservasConFiltros(ReservaRecurrenteFilter filter, Pageable pageable) {
+        Specification<ReservaRecurrente> spec = Specification.where(null);
+        if (filter.getTab() != null && filter.getTab() > 0) {
+            String tabEstado = filter.getEstadoReservaFromTab();
+            if (tabEstado != null) {
+                if (tabEstado.contains(",")) {
+                    // Multiple states (for tab 6)
+                    List<String> estados = Arrays.asList(tabEstado.split(","));
+                    spec = spec.and((root, query, cb) ->
+                            root.get("reserva").get("estadoReserva").in(estados));
+                } else {
+                    // Single state
+                    spec = spec.and((root, query, cb) ->
+                            cb.equal(root.get("reserva").get("estadoReserva"), tabEstado));
+                }
+            }
+        }
+        if (filter.getEstadoReserva() != null && !filter.getEstadoReserva().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("reserva").get("estadoReserva"), filter.getEstadoReserva()));
+        }
+        if (filter.getEstadoValidacion() != null && !filter.getEstadoValidacion().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("reserva").get("estadoValidacion"), filter.getEstadoValidacion()));
+        }
+        if (filter.getCategoria() != null && !filter.getCategoria().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
+        }
+        if (filter.getTipoRecurrencia() != null && !filter.getTipoRecurrencia().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("tipoRecurrencia"), filter.getTipoRecurrencia()));
+        }
+        if (filter.getActivo() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("activo"), filter.getActivo()));
+        }
+        if (filter.getFromDate() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("fechaInicio"), filter.getFromDate()));
+        }
+        if (filter.getToDate() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("fechaInicio"), filter.getToDate()));
+        }
+        if (filter.getSearchTerm() != null && !filter.getSearchTerm().isEmpty()) {
+            String searchTerm = "%" + filter.getSearchTerm().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> {
+                Join<ReservaRecurrente, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
+                Join<Reserva, Contribuyente> contribuyenteJoin = reservaJoin.join("contribuyente", JoinType.LEFT);
+                Join<Reserva, CampoDeportivo> campoJoin = reservaJoin.join("campoDeportivo", JoinType.LEFT);
+                Join<CampoDeportivo, ComplejoDeportivo> complejoJoin = campoJoin.join("complejo", JoinType.LEFT);
+                Join<ReservaRecurrente, Tablero> tableroJoin = root.join("tablero", JoinType.LEFT);
+                return cb.or(
+                        cb.like(cb.lower(root.get("categoria")), searchTerm),
+                        cb.like(cb.lower(root.get("superficie")), searchTerm),
+                        cb.like(cb.lower(root.get("observaciones")), searchTerm),
+                        cb.like(cb.lower(root.get("tipoRecurrencia")), searchTerm),
+                        cb.like(cb.lower(root.get("diasSemana")), searchTerm),
+                        // Reserva fields
+                        cb.like(cb.lower(reservaJoin.get("numeroReserva")), searchTerm),
+                        cb.like(cb.lower(reservaJoin.get("numeroTasa")), searchTerm),
+                        // Contribuyente fields
+                        cb.like(cb.lower(contribuyenteJoin.get("nombre")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("primerApellido")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("segundoApellido")), searchTerm),
+                        cb.like(cb.lower(contribuyenteJoin.get("numeroDocumento")), searchTerm),
+                        // CampoDeportivo and Complejo fields
+                        cb.like(cb.lower(campoJoin.get("nombre")), searchTerm),
+                        cb.like(cb.lower(complejoJoin.get("nombre")), searchTerm)
+//                        cb.like(cb.lower(tableroJoin.get("horario")), searchTerm)
+                );
+            });
+        }
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("fechaCreacion").descending());
+        }
+        Page<ReservaRecurrente> reservasPage = reservaRecurrenteRepository.findAll(spec, pageable);
+        return reservasPage.map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));
+    }
     @Override
     @Transactional
     public List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout) {
@@ -74,23 +174,6 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             }
         }
         return updatedReservas;
-    }
-
-    @Override
-    public List<ReservaRecurrenteDto> obtenerReservas() {
-        List<ReservaRecurrente> reservas = reservaRecurrenteRepository.findAll();
-
-        if (reservas.isEmpty()) {
-            return List.of();
-        }
-
-        return reservas.stream()
-                .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true))
-                .collect(Collectors.toList());
-    }
-    public Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable) {
-        return reservaRecurrenteRepository.findAll(pageable)
-                .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));
     }
 
     @Override
