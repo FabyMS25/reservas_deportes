@@ -309,24 +309,17 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
         ReservaRecurrente nuevaReservaRecurrente = ReservaRecurrenteMapper.toEntity(reservaRecurrenteDto, true);
         nuevaReservaRecurrente.setReserva(reserva);
-
-        // Set tablero if provided
         if (reservaRecurrenteDto.getTableroDto() != null && reservaRecurrenteDto.getTableroDto().getUuid() != null) {
             Tablero tablero = getTablero(reservaRecurrenteDto.getTableroDto().getUuid());
             nuevaReservaRecurrente.setTablero(tablero);
         }
-
-        // Set default values
         if (nuevaReservaRecurrente.getActivo() == null) {
             nuevaReservaRecurrente.setActivo(true);
         }
-
-        // Validate recurrence dates
         if (nuevaReservaRecurrente.getFechaFin() != null &&
                 nuevaReservaRecurrente.getFechaInicio().isAfter(nuevaReservaRecurrente.getFechaFin())) {
             throw new IllegalArgumentException("Fecha de inicio no puede ser después de la fecha de fin");
         }
-
         ReservaRecurrente reservaRecurrenteGuardada = reservaRecurrenteRepository.save(nuevaReservaRecurrente);
         return ReservaRecurrenteMapper.toDto(reservaRecurrenteGuardada, true);
     }
@@ -342,30 +335,21 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
         if (reservaRecurrenteOptional.isPresent()) {
             ReservaRecurrente reservaRecurrenteExistente = reservaRecurrenteOptional.get();
-
-            // Update fields
             ReservaRecurrenteMapper.updateEntityFromDto(reservaRecurrenteDto, reservaRecurrenteExistente);
-
-            // Update parent reservation if provided
             if (reservaRecurrenteDto.getReservaDto() != null) {
                 Reserva reserva = getReserva(reservaRecurrenteDto.getReservaDto().getUuid());
                 reservaRecurrenteExistente.setReserva(reserva);
             }
-
-            // Update tablero if provided
             if (reservaRecurrenteDto.getTableroDto() != null) {
                 Tablero tablero = getTablero(reservaRecurrenteDto.getTableroDto().getUuid());
                 reservaRecurrenteExistente.setTablero(tablero);
             } else {
                 reservaRecurrenteExistente.setTablero(null);
             }
-
-            // Validate recurrence dates
             if (reservaRecurrenteDto.getFechaFin() != null &&
                     reservaRecurrenteDto.getFechaInicio().isAfter(reservaRecurrenteDto.getFechaFin())) {
                 throw new IllegalArgumentException("Fecha de inicio no puede ser después de la fecha de fin");
             }
-
             ReservaRecurrente reservaRecurrenteActualizada = reservaRecurrenteRepository.save(reservaRecurrenteExistente);
             return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
         } else {

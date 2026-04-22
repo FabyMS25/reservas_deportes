@@ -19,7 +19,7 @@ import lombok.experimental.Accessors;
 
 public class TableroDto {
     private String uuid;
-    private String[][] horario;
+    private String[][][] horario;
     private boolean estado;
    // private ReservaRecurrenteDto reservasProgramadasDto;
 

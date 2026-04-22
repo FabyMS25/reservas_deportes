@@ -36,7 +36,6 @@ public class ReservaRecurrenteDto {
     private Integer duracionSesionHoras;
     private BigDecimal tarifaMensual;
     private Boolean activo;
-//    private String horarios; // JSON string or you can create a separate HorarioDto
     private String categoria; //saved to identify later
     private String superficie; //saved to identify later
     private String observaciones;

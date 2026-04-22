@@ -88,6 +88,16 @@ public class ReservaPeriodoController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @Operation(summary = "Obtener reserva-periodo por Estudiante uuid")
+    @GetMapping("/estudiante/{uuidEstudiante}")
+    public Response buscarReservasPeriodoPorEstudiante(@PathVariable("uuidEstudiante") String uuidEstudiante) {
+        try {
+            List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.findByEstudianteUuid(uuidEstudiante);
+            return Response.ok().setPayload(reservasPeriodo);
+        } catch (Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
     @Operation(summary = "Obtener reserva-periodo por periodo")
     @GetMapping("/periodo/{periodo}")
     public Response buscarReservasPeriodoPorPeriodo(@PathVariable("periodo") String periodo) {

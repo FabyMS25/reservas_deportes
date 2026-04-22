@@ -36,9 +36,9 @@ public class Tablero {
     private boolean estado;
 
     @Type(type = "jsonb")
-    @Column(name = "HorarioFijo", columnDefinition = "jsonb")
-    //@Convert(converter = StringArray2DConverter.class)
-    private String[][] horario;
+    @Column(name = "horario_fijo", columnDefinition = "jsonb")
+    private String[][][] horario;
+
     @OneToOne(mappedBy = "tablero")
     private ReservaRecurrente reservasProgramadas;
 

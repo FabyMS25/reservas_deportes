@@ -52,6 +52,17 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
         }
     }
     @Override
+    public List<ReservaPeriodoDto> findByEstudianteUuid(String estudianteUuid) {
+        List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByEstudianteUuid(estudianteUuid);
+        if (!reservasPeriodo.isEmpty()) {
+            return reservasPeriodo.stream()
+                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                    .collect(Collectors.toList());
+        } else {
+            throw new NoResultException(RESERVA_PERIODO);
+        }
+    }
+    @Override
     public Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
         Specification<ReservaPeriodo> spec = Specification.where(null);
         LocalDate now = LocalDate.now();

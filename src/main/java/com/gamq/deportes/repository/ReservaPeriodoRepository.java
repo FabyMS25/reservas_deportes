@@ -27,7 +27,9 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.contribuyente.uuid = ?1")
     List<ReservaPeriodo> findByContribuyenteUuid(String contribuyenteUuid);
-    // In your ReservaRepository
+
+    @Query("SELECT rp FROM ReservaPeriodo rp join rp.reserva r join r.estudianteEscuela e WHERE e.uuid = :estudianteUuid order by rp.año desc, rp.mes desc, rp.fechaCreacion desc")
+    List<ReservaPeriodo> findByEstudianteUuid(@Param("estudianteUuid") String estudianteUuid);
     @Query("SELECT r FROM Reserva r WHERE r.numeroReserva = :numeroReserva AND r.estado = false")
     Optional<Reserva> findByNumeroReserva(@Param("numeroReserva") String numeroReserva);
 

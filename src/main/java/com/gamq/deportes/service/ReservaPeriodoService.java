@@ -14,7 +14,7 @@ import java.util.List;
 public interface ReservaPeriodoService {
     List<ReservaPeriodoDto> obtenerTodos();
     Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable);
-
+    List<ReservaPeriodoDto> findByEstudianteUuid(String estudianteUuid);
     ReservaPeriodoDto findByUuid(String uuid);
     ReservaPeriodoDto findByReservaUuid(String reservaUuid);
     List<ReservaPeriodoDto> findByPeriodo(String periodo);

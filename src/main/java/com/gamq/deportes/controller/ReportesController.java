@@ -1,16 +1,25 @@
 package com.gamq.deportes.controller;
 
+import com.gamq.deportes.dto.ReservaRecurrenteDto;
+import com.gamq.deportes.exception.NotFoundException;
+import com.gamq.deportes.service.ReservaRecurrenteService;
 import com.gamq.deportes.utils.GeneradorReporte;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -21,6 +30,9 @@ import java.util.Map;
 public class ReportesController {
     @Autowired
     private GeneradorReporte generadorReporte;
+
+     @Autowired
+     private ReservaRecurrenteService reservaRecurrenteService;
     ///////////////reserva puntual por hora/////////////////
     @Operation(summary = "Reporte de ticket de Reserva Puntual")
     @RequestMapping(value="/ticket-reservap",method= RequestMethod.GET)
@@ -60,35 +72,28 @@ public class ReportesController {
     @Operation(summary = "Reporte de ticket de Reserva Puntual por Persona")
     @RequestMapping(value="/ticket-reser-per",method= RequestMethod.GET)
     @ResponseBody
-    public void reporteTicketReservePersona (
+    public void reporteTicketReservePersona(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
-            @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
         try {
-            //usuario
-            //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
-            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            HashMap<String, Object> parametros = new HashMap<>();
             parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-            try {
-                generadorReporte.generarSqlReportePdf(
-                        "ticket",
-                        "classpath:reportes/ticketPuntualperson.jrxml",
-                        parametros,
-                        response
-                );
-            } catch (SQLException ex) {
-                response.setStatus(500);
-                throw new RuntimeException(ex);
 
-            }
+            generadorReporte.generarSqlReportePdf(
+                    "ticket",
+                    "classpath:reportes/ticketPuntualperson.jrxml",
+                    parametros,
+                    response
+            );
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            sendErrorResponse(response, 500, "Error SQL al generar ticketPuntualperson.");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            sendErrorResponse(response, 500, "Error inesperado al generar ticketPuntualperson.");
         }
     }
 
@@ -254,111 +259,275 @@ public class ReportesController {
         }
     }
 
-    ////////////////////////RECURRENTES POR Sesion//////////////////////////////
-    @Operation(summary = "Reporte Lista de reservas por intervalo de fechas y tipo de cobrom, estado, cancha ")
-    @RequestMapping(value="/ticket-recuses",method= RequestMethod.GET)
+    @Operation(summary = "Reporte de reserva Recurrente por Sesión")
+    @RequestMapping(value="/ticket-recuses", method = RequestMethod.GET)
     @ResponseBody
-    public void TicketRecuSesion (
+    public void ticketRecuSesion(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
-            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecu.jrxml", response);
+    }
+    @Operation(summary = "Reporte de reserva Recurrente por Mensualidad")
+    @RequestMapping(value="/ticket-recumes", method = RequestMethod.GET)
+    @ResponseBody
+    public void ticketRecuMes(
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            HttpServletResponse response
+    ) {
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecumen.jrxml", response);
+    }
+    @Operation(summary = "Reporte de reserva Recurrente por Persona")
+    @RequestMapping(value="/ticket-recuper", method = RequestMethod.GET)
+    @ResponseBody
+    public void ticketRecuPer(
+            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            HttpServletResponse response
+    ) {
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecuPer.jrxml", response);
+    }
+    private void generarTicketRecurrente(
+            String uuid,
+            String rutaReporte,
             HttpServletResponse response
     ) {
         try {
-            //usuario
-            //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
-            HashMap<String, Object> parametros = new HashMap<String,Object>();
-            parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+            ReservaRecurrenteDto reserva = buscarReservaRecurrente(uuid);
 
-            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-            try {
-                generadorReporte.generarSqlReportePdf(
-                        "Recurrente",
-                        "classpath:reportes/ticketRecu.jrxml",
-                        parametros,
-                        response
-                );
-            } catch (SQLException ex) {
-                response.setStatus(500);
-                throw new RuntimeException(ex);
+            String horarioFormateado;
+            Integer cantidadMeses = null;
 
+            if (reserva == null) {
+                horarioFormateado = "No se encontró la reserva recurrente para el UUID: " + uuid;
+            } else {
+                if (reserva.getTableroDto() == null) {
+                    horarioFormateado = "La reserva no tiene tablero de horarios configurado.";
+                } else if (reserva.getTableroDto().getHorario() == null) {
+                    horarioFormateado = "La reserva existe pero no tiene horarios configurados.";
+                } else {
+                    horarioFormateado = formatHorario3DForReport(reserva);
+                }
+
+                cantidadMeses = calcularCantidadMeses(reserva.getFechaInicio(), reserva.getFechaFin());
             }
+
+            HashMap<String, Object> parametros = new HashMap<>();
+            parametros.put("uuid", uuid);
+            parametros.put("horario_formateado", horarioFormateado);
+            parametros.put("cantidad_meses", cantidadMeses);
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+
+            generadorReporte.generarSqlReportePdf(
+                    "Recurrente",
+                    rutaReporte,
+                    parametros,
+                    response
+            );
+
+        } catch (SQLException e) {
+            sendErrorResponse(response, 500, "Error SQL al generar el reporte.");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            sendErrorResponse(response, 500, "Error inesperado al generar el reporte.");
         }
     }
+    private Integer calcularCantidadMeses(LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio == null || fechaFin == null) {
+            return null;
+        }
 
-    ////////////////////////RECURRENTES POR PERSONA//////////////////////////////
-    @Operation(summary = "Reporte Lista de reservas Recuurentes por Persona")
-    @RequestMapping(value="/ticket-recuper",method= RequestMethod.GET)
-    @ResponseBody
-    public void ticketRecuPer (
-            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
-            @RequestHeader Map<String, String> headers,
-            HttpServletResponse response
-    ) {
+        if (fechaFin.isBefore(fechaInicio)) {
+            return 0;
+        }
+
+        java.time.YearMonth inicio = java.time.YearMonth.from(fechaInicio);
+        java.time.YearMonth fin = java.time.YearMonth.from(fechaFin);
+
+        long meses = java.time.temporal.ChronoUnit.MONTHS.between(inicio, fin) + 1;
+
+        return (int) meses;
+    }
+    private ReservaRecurrenteDto buscarReservaRecurrente(String uuid) {
         try {
-            //usuario
-            //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
-            HashMap<String, Object> parametros = new HashMap<String,Object>();
-            parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
-            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+            return reservaRecurrenteService.findByReservaUuid(uuid);
+        } catch (NotFoundException e) {
             try {
-                generadorReporte.generarSqlReportePdf(
-                        "Recurrente",
-                        "classpath:reportes/ticketRecuPer.jrxml",
-                        parametros,
-                        response
-                );
-            } catch (SQLException ex) {
-                response.setStatus(500);
-                throw new RuntimeException(ex);
-
+                return reservaRecurrenteService.findByUuid(uuid);
+            } catch (NotFoundException ex) {
+                return null;
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
         }
     }
+    private String formatHorario3DForReport(ReservaRecurrenteDto reserva) {
+        if (reserva.getTableroDto() == null || reserva.getTableroDto().getHorario() == null) {
+            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay horarios registrados.</div>";
+        }
 
-    ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
-    @Operation(summary = "Reporte Lista de reservas Recuurentes por Mensualidad")
-    @RequestMapping(value="/ticket-recumes",method= RequestMethod.GET)
-    @ResponseBody
-    public void ticketRecuMes (
-            @RequestParam(name = "uuid", defaultValue = "0") String uuid,
-            @RequestHeader Map<String, String> headers,
-            HttpServletResponse response
-    ) {
-        try {
-            //usuario
-            //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
-            HashMap<String, Object> parametros = new HashMap<String,Object>();
-            parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
+        String[][][] horario3D = reserva.getTableroDto().getHorario();
+        LocalDate startDate = reserva.getFechaInicio();
+        LocalDate endDate = reserva.getFechaFin();
 
-            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-            try {
-                generadorReporte.generarSqlReportePdf(
-                        "Recurrente",
-                        "classpath:reportes/ticketRecumen.jrxml",
-                        parametros,
-                        response
-                );
-            } catch (SQLException ex) {
-                response.setStatus(500);
-                throw new RuntimeException(ex);
+        if (startDate == null) {
+            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay fecha de inicio definida.</div>";
+        }
 
+        if (endDate == null) {
+            endDate = startDate.plusMonths(3);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean hasAnySchedule = false;
+        int totalSessions = 0;
+
+        String[] dias = {"Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"};
+
+        for (int monthIdx = 0; monthIdx < horario3D.length; monthIdx++) {
+            String[][] daysMatrix = horario3D[monthIdx];
+            if (daysMatrix == null || daysMatrix.length == 0) {
+                continue;
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+
+            LocalDate monthStart = startDate.plusMonths(monthIdx);
+            int year = monthStart.getYear();
+            int month = monthStart.getMonthValue();
+
+            @SuppressWarnings("unchecked")
+            java.util.List<String>[] grouped = new java.util.ArrayList[7];
+            for (int i = 0; i < 7; i++) {
+                grouped[i] = new java.util.ArrayList<>();
+            }
+
+            int monthSessions = 0;
+
+            for (int dayIdx = 0; dayIdx < daysMatrix.length; dayIdx++) {
+                String[] daySlots = daysMatrix[dayIdx];
+                if (daySlots == null) {
+                    continue;
+                }
+
+                int dayOfMonth = dayIdx + 1;
+
+                try {
+                    LocalDate currentDate = LocalDate.of(year, month, dayOfMonth);
+                    if (currentDate.isBefore(startDate) || currentDate.isAfter(endDate)) {
+                        continue;
+                    }
+
+                    int dowIndex = currentDate.getDayOfWeek().getValue() - 1;
+
+                    for (String slot : daySlots) {
+                        if (slot == null || slot.trim().isEmpty()) {
+                            continue;
+                        }
+
+                        String cleanSlot = slot.trim();
+
+                        if (cleanSlot.contains("-") && cleanSlot.indexOf("-") != cleanSlot.lastIndexOf("-")) {
+                            cleanSlot = cleanSlot.substring(0, cleanSlot.lastIndexOf("-"));
+                        }
+
+                        String formattedTime;
+                        if (cleanSlot.matches(".*\\d{2}:\\d{2}.*-.*\\d{2}:\\d{2}.*")) {
+                            formattedTime = cleanSlot.replaceAll("\\s*-\\s*", " - ");
+                        } else if (cleanSlot.matches("\\d{2}:\\d{2}")) {
+                            formattedTime = cleanSlot + " - " + cleanSlot;
+                        } else {
+                            continue;
+                        }
+
+                        grouped[dowIndex].add(String.format("%02d/%02d %s", dayOfMonth, month, formattedTime));
+                        hasAnySchedule = true;
+                        monthSessions++;
+                        totalSessions++;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (monthSessions > 0) {
+                sb.append("<div style='margin-bottom:4px;'>");
+                sb.append("<div style='background:#EAF1F8; border:1px solid #C8D6E5; padding:4px 6px;'>")
+                        .append("<b><font size='2'>")
+                        .append(getMonthName(month)).append(" ").append(year)
+                        .append("</font></b>")
+                        .append("</div>");
+                sb.append("<div style='border:1px solid #C8D6E5; border-top:none; padding:6px 10px; font-size:8px;'>");
+                for (int i = 0; i < 7; i++) {
+                    if (!grouped[i].isEmpty()) {
+                        sb.append("<div style='margin-bottom:3px; padding-left:4px;'>")
+                                .append("<b>").append(dias[i]).append(":</b>&nbsp;")
+                                .append(formatGroupedLine(grouped[i], 3))
+                                .append("</div>");
+                    }
+                }
+                sb.append("</div>");
+                sb.append("</div><br/>");
+            }
+        }
+
+        if (!hasAnySchedule) {
+            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay horarios programados dentro del período.</div>";
+        }
+
+        int sesiones = reserva.getCantidadSesiones() != null ? reserva.getCantidadSesiones() : totalSessions;
+        int duracion = reserva.getDuracionSesionHoras() != null ? reserva.getDuracionSesionHoras() : 1;
+        int totalHoras = sesiones * duracion;
+        sb.append("<div style='border:1px solid #BFCBD6; background:#F8FAFC; padding:4px 6px;'>")
+                .append("<b><font size='2'>Resumen:</font></b> ")
+                .append(sesiones).append(" sesiones | ")
+                .append(duracion).append(" hora").append(duracion != 1 ? "s" : "").append(" por sesión | ")
+                .append(totalHoras).append(" hora").append(totalHoras != 1 ? "s" : "").append(" totales")
+                .append("<br/><b>Días programados:</b> ")
+                .append(formatDiasSemana(reserva.getDiasSemana()))
+                .append("</div>");
+
+        return sb.toString();
+    }
+    private String formatGroupedLine(java.util.List<String> items, int chunkSize) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) {
+                if (i % chunkSize == 0) {
+                    out.append("<br/>");
+                } else {
+                    out.append(" &nbsp;·&nbsp; ");
+                }
+            }
+            out.append(items.get(i));
+        }
+        return out.toString();
+    }
+    private String getMonthName(int month) {
+        String[] months = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+        return months[month - 1];
+    }
+
+    private String formatDiasSemana(String diasSemana) {
+        if (diasSemana == null || diasSemana.isEmpty()) return "No especificados";
+
+        String[] dias = diasSemana.split(",");
+        java.util.Map<String, String> mapDias = new java.util.HashMap<>();
+        mapDias.put("LUNES", "Lunes");
+        mapDias.put("MARTES", "Martes");
+        mapDias.put("MIERCOLES", "Miércoles");
+        mapDias.put("JUEVES", "Jueves");
+        mapDias.put("VIERNES", "Viernes");
+        mapDias.put("SABADO", "Sábado");
+        mapDias.put("DOMINGO", "Domingo");
+
+        String result = java.util.Arrays.stream(dias)
+                .map(d -> mapDias.getOrDefault(d.trim().toUpperCase(), d.trim()))
+                .collect(java.util.stream.Collectors.joining(", "));
+
+        return result;
+    }
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) {
+        try {
+            response.setStatus(status);
+            response.setContentType("text/plain");
+            response.getWriter().write(message);
+        } catch (IOException e) {
+            System.err.println("Failed to send error response: " + e.getMessage());
         }
     }
 
@@ -401,7 +570,7 @@ public class ReportesController {
         }
     }
 /////////////////////Listado Ticket Mensual ///////////////////////////////////////////////////
-@Operation(summary = "Reporte ticket de reserva Mensual")
+@Operation(summary = "Reporte lista de reserva Mensual")
 @RequestMapping(value="/lista-mensuales",method= RequestMethod.GET)
 @ResponseBody
 public void reporteListaMensuales (
@@ -522,10 +691,10 @@ public void reporteListaMensAlumno (
     }
 }
 ////////////////////Ticket Mensual///////////////////////////////////////
-    @Operation(summary = "Reporte Ticket Mensual")
-    @RequestMapping(value="/ticket-mensual",method= RequestMethod.GET)
+    @Operation(summary = "Reporte de ticket de Reserva Mensual (Escuela)")
+    @RequestMapping(value="/ticket-mensual", method = RequestMethod.GET)
     @ResponseBody
-    public void reporteTicketPago (
+    public void ticketMensual(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
             HttpServletResponse response
@@ -533,11 +702,8 @@ public void reporteListaMensAlumno (
         try {
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
-            HashMap<String, Object> parametros = new HashMap<String,Object>();
+            HashMap<String, Object> parametros = new HashMap<>();
             parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -556,5 +722,4 @@ public void reporteListaMensAlumno (
             System.out.println(e.getLocalizedMessage());
         }
     }
-
 }
