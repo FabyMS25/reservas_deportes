@@ -25,6 +25,11 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
     List<ReservaRecurrente> findExpiredPendingReservations(
             @Param("expirationThreshold") LocalDateTime expirationThreshold,
             @Param("estadoReserva") String estadoReserva);
+        @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.reserva.campoDeportivo.uuid = :campoUuid AND rr.activo = true AND rr.fechaInicio <= :fechaUso AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fechaUso)    AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
+        List<ReservaRecurrente> findActivasEnFechaPorCampoEntity(
+                @Param("campoUuid") String campoUuid,
+                @Param("fechaUso") LocalDate fechaUso
+        );
 
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.uuid = ?1")
     Optional<ReservaRecurrente> findByUuid(String uuid);

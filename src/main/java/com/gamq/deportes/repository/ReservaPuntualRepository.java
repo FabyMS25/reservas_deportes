@@ -147,12 +147,7 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, 
     );
 
     // Conflict detection queries
-    @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid " +
-            "AND rp.fechaUso = :fechaUso " +
-            "AND ((rp.horaInicio BETWEEN :horaInicio AND :horaFin) OR (rp.horaFin BETWEEN :horaInicio AND :horaFin) " +
-            "OR (rp.horaInicio <= :horaInicio AND rp.horaFin >= :horaFin)) " +
-            "AND rp.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
-            "AND rp.uuid != :excludeReservaUuid")
+        @Query(" SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid AND rp.fechaUso = :fechaUso AND rp.horaInicio < :horaFin AND rp.horaFin > :horaInicio  AND rp.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') AND (:excludeReservaUuid IS NULL OR rp.reserva.uuid <> :excludeReservaUuid)")
     List<ReservaPuntual> findReservasConflictivas(
             @Param("campoUuid") String campoUuid,
             @Param("fechaUso") LocalDate fechaUso,
@@ -160,6 +155,7 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, 
             @Param("horaFin") LocalTime horaFin,
             @Param("excludeReservaUuid") String excludeReservaUuid
     );
+
 
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid")
     Page<ReservaPuntual> findByCampoDeportivoUuid(@Param("campoUuid") String campoUuid, Pageable pageable);

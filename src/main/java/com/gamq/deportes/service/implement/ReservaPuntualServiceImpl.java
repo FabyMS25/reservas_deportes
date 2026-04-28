@@ -7,6 +7,7 @@ import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaPuntualRepository;
+import com.gamq.deportes.repository.ReservaRecurrenteRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.service.ReservaPuntualService;
 import com.gamq.deportes.exception.NotFoundException;
@@ -41,6 +42,8 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     @Autowired
     private ReservaPuntualRepository reservaPuntualRepository;
 
+    @Autowired
+    private ReservaRecurrenteRepository reservaRecurrenteRepository;
     @Autowired
     private ReservaRepository reservaRepository;
 
@@ -237,21 +240,159 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                 .collect(Collectors.toList());
     }
 
+//    @Transactional(readOnly = true)
+//    public List<ReservaPuntualDto> findReservasConflictivas(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
+//        List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
+//                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
+//
+//        return reservasConflictivas.stream()
+//                .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
+//                .collect(Collectors.toList());
+//    }
+    @Override
     @Transactional(readOnly = true)
-    public List<ReservaPuntualDto> findReservasConflictivas(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
+    public boolean existeReservaConflictiva(String campoUuid,
+                                            LocalDate fechaUso,
+                                            LocalTime horaInicio,
+                                            LocalTime horaFin,
+                                            String excludeReservaUuid) {
+        boolean conflictoPuntual = !reservaPuntualRepository.findReservasConflictivas(
+                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid
+        ).isEmpty();
+
+        if (conflictoPuntual) {
+            return true;
+        }
+
+        List<ReservaRecurrente> recurrentes = reservaRecurrenteRepository.findActivasEnFechaPorCampoEntity(campoUuid, fechaUso);
+
+        for (ReservaRecurrente recurrente : recurrentes) {
+            if (recurrente.getReserva() == null) {
+                continue;
+            }
+
+            if (excludeReservaUuid != null && excludeReservaUuid.equals(recurrente.getReserva().getUuid())) {
+                continue;
+            }
+
+            if (hasConflictoConTablero(recurrente, fechaUso, horaInicio, horaFin)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private boolean hasOverlap(LocalTime existingStart,
+                               LocalTime existingEnd,
+                               LocalTime newStart,
+                               LocalTime newEnd) {
+        return existingStart.isBefore(newEnd) && existingEnd.isAfter(newStart);
+    }
+
+    private String mapDiaSemana(String dayOfWeek) {
+        switch (dayOfWeek) {
+            case "MONDAY": return "LUNES";
+            case "TUESDAY": return "MARTES";
+            case "WEDNESDAY": return "MIERCOLES";
+            case "THURSDAY": return "JUEVES";
+            case "FRIDAY": return "VIERNES";
+            case "SATURDAY": return "SABADO";
+            case "SUNDAY": return "DOMINGO";
+            default: return dayOfWeek;
+        }
+    }
+    private boolean hasConflictoConTablero(ReservaRecurrente recurrente,
+                                           LocalDate fechaUso,
+                                           LocalTime nuevaHoraInicio,
+                                           LocalTime nuevaHoraFin) {
+        if (recurrente.getTablero() == null || recurrente.getTablero().getHorario() == null) {
+            return false;
+        }
+
+        if (recurrente.getFechaInicio() == null || recurrente.getFechaFin() == null) {
+            return false;
+        }
+
+        if (fechaUso.isBefore(recurrente.getFechaInicio()) || fechaUso.isAfter(recurrente.getFechaFin())) {
+            return false;
+        }
+
+        String[][][] horario = recurrente.getTablero().getHorario();
+
+        int monthIndex =
+                (fechaUso.getYear() - recurrente.getFechaInicio().getYear()) * 12
+                        + (fechaUso.getMonthValue() - recurrente.getFechaInicio().getMonthValue());
+
+        if (monthIndex < 0 || monthIndex >= horario.length) {
+            return false;
+        }
+
+        String[][] monthMatrix = horario[monthIndex];
+        if (monthMatrix == null) {
+            return false;
+        }
+
+        int dayIndex = fechaUso.getDayOfMonth() - 1;
+        if (dayIndex < 0 || dayIndex >= monthMatrix.length) {
+            return false;
+        }
+
+        String[] slots = monthMatrix[dayIndex];
+        if (slots == null) {
+            return false;
+        }
+
+        for (String slot : slots) {
+            if (slot == null || slot.isBlank() || !slot.contains("-")) {
+                continue;
+            }
+
+            String[] parts = slot.split("-");
+            if (parts.length != 2) {
+                continue;
+            }
+
+            LocalTime existenteInicio = LocalTime.parse(parts[0].trim());
+            LocalTime existenteFin = LocalTime.parse(parts[1].trim());
+
+            if (existeSolapamiento(existenteInicio, existenteFin, nuevaHoraInicio, nuevaHoraFin)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    private boolean existeSolapamiento(LocalTime existenteInicio,
+                                       LocalTime existenteFin,
+                                       LocalTime nuevaInicio,
+                                       LocalTime nuevaFin) {
+        return existenteInicio.isBefore(nuevaFin) && existenteFin.isAfter(nuevaInicio);
+    }
+
+//    @Transactional(readOnly = true)
+//    public boolean existeReservaConflictiva(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
+//        List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
+//                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
+//        return !reservasConflictivas.isEmpty();
+//    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaPuntualDto> findReservasConflictivas(String campoUuid,
+                                                            LocalDate fechaUso,
+                                                            LocalTime horaInicio,
+                                                            LocalTime horaFin,
+                                                            String excludeReservaUuid) {
         List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
-                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
+                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid
+        );
 
         return reservasConflictivas.stream()
                 .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false))
                 .collect(Collectors.toList());
     }
-    @Transactional(readOnly = true)
-    public boolean existeReservaConflictiva(String campoUuid, LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin, String excludeReservaUuid) {
-        List<ReservaPuntual> reservasConflictivas = reservaPuntualRepository.findReservasConflictivas(
-                campoUuid, fechaUso, horaInicio, horaFin, excludeReservaUuid);
-        return !reservasConflictivas.isEmpty();
-    }
+
 
     @Transactional(readOnly = true)
     public Page<ReservaPuntualDto> findByCampoDeportivoUuid(String campoUuid, Pageable pageable) {
