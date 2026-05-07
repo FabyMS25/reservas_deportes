@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+			  pageWidth="612" pageHeight="792" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+			  name="ticketPuntualperson">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
+	<property name="net.sf.jasperreports.print.order.preserve" value="true"/>
+
+	<parameter name="logo64" class="java.lang.String">
+		<defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
+	</parameter>
+	<parameter name="uuid" class="java.lang.String"/>
+
+	<queryString language="SQL">
+		<![CDATA[
+        select RE.uuid, tipo_reserva, rp.categoria, re.fecha_creacion, fecha_reserva, estado_reserva,
+               fecha_uso, hora_inicio, hora_fin, numero_tasa, monto_total, numero_reserva, codigo,
+               COM.nombre as comp, ubicacion, telefono_principal as tel,
+               TA.descripcion, TA.precio_base,
+               RP.cantidad_personas as per,
+               (CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri,
+               con.numero_documento as ci,
+               CA.nombre as cancha
+		from reservas as RE
+		join campos_deportivos as ca on ca.id_campo = re.id_campo
+		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
+		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
+		join reservas_puntuales as RP on rp.id_reserva = re.id_reserva
+		join tarifas as TA on Ta.id_tarifa= re.id_tarifa
+		where RE.uuid=$P{uuid}
+		]]>
+	</queryString>
+	<field name="categoria" class="java.lang.String"/>
+	<field name="fecha_creacion" class="java.sql.Date"/>
+	<field name="fecha_reserva" class="java.sql.Date"/>
+	<field name="fecha_uso" class="java.sql.Date"/>
+	<field name="hora_inicio" class="java.sql.Time"/>
+	<field name="hora_fin" class="java.sql.Time"/>
+	<field name="numero_tasa" class="java.lang.String"/>
+	<field name="monto_total" class="java.lang.Double"/>
+	<field name="precio_base" class="java.lang.Double"/>
+	<field name="contri" class="java.lang.String"/>
+	<field name="ci" class="java.lang.String"/>
+	<field name="codigo" class="java.lang.String"/>
+	<field name="comp" class="java.lang.String"/>
+	<field name="cancha" class="java.lang.String"/>
+	<field name="tel" class="java.lang.String"/>
+	<field name="ubicacion" class="java.lang.String"/>
+	<field name="descripcion" class="java.lang.String"/>
+	<field name="estado_reserva" class="java.lang.String"/>
+	<field name="per" class="java.lang.Integer"/>
+	<field name="numero_reserva" class="java.lang.String"/>
+
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+
+	<title>
+		<band height="105" splitType="Stretch">
+			<image scaleImage="FillFrame" onErrorType="Blank">
+				<reportElement x="2" y="10" width="120" height="45"/>
+				<imageExpression><![CDATA[
+                    net.sf.jasperreports.engine.util.JRImageLoader.getInstance(
+                        new net.sf.jasperreports.engine.SimpleJasperReportsContext()
+                    ).loadAwtImageFromBytes(
+                        java.util.Base64.getDecoder().decode($P{logo64})
+                    )
+                ]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="125" y="5" width="405" height="20"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="13" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GOBIERNO AUTÓNOMO MUNICIPAL DE QUILLACOLLO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="125" y="25" width="405" height="18"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SECRETARÍA MUNICIPAL DE DESARROLLO INTEGRAL - UNIDAD DE DEPORTES]]></text>
+			</staticText>
+			<line>
+				<reportElement x="125" y="40" width="405" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="125" y="45" width="405" height="16"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[SISTEMA DE GESTIÓN DE RESERVAS DE CAMPOS DEPORTIVOS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="70" width="555" height="22"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TICKET DE RESERVA PUNTUAL]]></text>
+			</staticText>
+			<line>
+				<reportElement x="145" y="90" width="265" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+		</band>
+	</title>
+
+	<pageHeader>
+		<band height="25" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="5" width="90" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Autorización N°:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="90" y="5" width="140" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    $F{numero_reserva} == null || $F{numero_reserva}.trim().isEmpty() ? "N/A" : $F{numero_reserva}
+                ]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="330" y="5" width="90" height="14"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<text><![CDATA[Quillacollo, ]]></text>
+			</staticText>
+			<textField pattern="EEEE, d 'de' MMMM 'de' yyyy">
+				<reportElement x="420" y="5" width="150" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="20" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+
+	<columnHeader>
+		<band height="165" splitType="Stretch">
+			<rectangle radius="3">
+				<reportElement x="0" y="0" width="555" height="60" backcolor="#F8F9FA"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#CCCCCC"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="8" y="6" width="80" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SOLICITANTE:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="92" y="6" width="250" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement x="350" y="6" width="40" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CI/NIT:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="404" y="6" width="140" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ci}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement x="8" y="24" width="80" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CEL. REF.:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="92" y="24" width="250" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tel}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement x="350" y="24" width="50" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TASA N°:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="404" y="24" width="140" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    $F{numero_tasa} == null || $F{numero_tasa}.trim().isEmpty() ? "-" : $F{numero_tasa}
+                ]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="8" y="42" width="160" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LUGAR Y FECHA DE RESERVA:]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="170" y="42" width="300" height="14"/>
+				<textElement>
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    "Quillacollo, " + new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fecha_reserva})
+                ]]></textFieldExpression>
+			</textField>
+
+			<!-- LEGAL BASIS -->
+			<staticText>
+				<reportElement x="0" y="64" width="550" height="14"/>
+				<textElement textAlignment="Justified">
+					<font fontName="SansSerif" size="9" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[En beneficio del deporte boliviano y amparados bajo la Ley Nacional del Deporte N° 804, artículos 3, 4, 5 y 51.]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="77" width="550" height="28"/>
+				<textElement textAlignment="Justified" markup="html">
+					<font fontName="SansSerif" size="9"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+					"Tengo a bien autorizar el uso del siguiente escenario deportivo: " +
+					"<b>" + $F{comp} + " - " + $F{cancha} + "</b>, ubicado en <i>" +
+					($F{ubicacion} == null ? "" : $F{ubicacion}) +
+					"</i>."
+				]]></textFieldExpression>
+			</textField>
+
+			<!-- TABLE HEADER -->
+			<rectangle radius="3">
+				<reportElement x="0" y="108" width="555" height="22" backcolor="#D9E5F2"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#AFC0D0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="1" y="114" width="60" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FECHA USO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="114" width="157" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ESCENARIO DEPORTIVO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="222" y="114" width="52" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[INGRESO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="276" y="114" width="52" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SALIDA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="330" y="114" width="95" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PRECIO x PERSONA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="427" y="114" width="60" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL Bs.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="489" y="114" width="65" height="14"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ESTADO]]></text>
+			</staticText>
+			<!-- TABLE VALUES -->
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="1" y="132" width="60" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha_uso}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="63" y="133" width="157" height="26"/>
+				<textElement verticalAlignment="Top" textAlignment="Center">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    $F{comp} + " -\n" + $F{cancha}
+                ]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH:mm">
+				<reportElement x="222" y="132" width="52" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hora_inicio}]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH:mm">
+				<reportElement x="276" y="132" width="52" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hora_fin}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="330" y="132" width="95" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    ($F{precio_base} == null ? "0.00" : String.format(java.util.Locale.US, "%.2f", $F{precio_base}))
+                    + " x " +
+                    ($F{per} == null ? "" : $F{per})
+                ]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="427" y="132" width="60" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[
+                    $F{monto_total} == null ? "0.00 Bs." : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_total})
+                ]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="489" y="132" width="65" height="26"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{estado_reserva}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="160" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#AFC0D0"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+
+	<detail>
+		<band height="160" splitType="Stretch">
+			<frame>
+				<reportElement x="0" y="3" width="555" height="77" positionType="Float"/>
+				<staticText>
+					<reportElement x="0" y="1" width="555" height="12"/>
+					<textElement textAlignment="Left">
+						<font fontName="SansSerif" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CONDICIONES DE USO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="14" width="555" height="62"/>
+					<textElement textAlignment="Justified">
+						<font fontName="SansSerif" size="8"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<text><![CDATA[Mencionar y aclarar que esta autorización puede ser modificada en caso de que ocurra algún evento de improviso o repentino que tenga que cubrir el Gobierno Autónomo Municipal de Quillacollo. La parte solicitante será responsable de cualquier daño o perjuicio ocasionado u ocurrido dentro del mismo y deberá dejar los ambientes deportivos solicitados en buen estado de limpieza. Ser puntuales en el horario de ingreso, así como también en el horario de salida. Se prohíbe terminantemente el cobro del ingreso a dicho escenario deportivo por parte del solicitante según ordenanza municipal N° 128/2013. En todo caso se aplicará el art. 14 del Reglamento para la administración de infraestructuras deportivas, equivalente al 10% del total recaudado, así mismo la venta de cualquier alimento o producto dentro del campo deportivo.]]></text>
+				</staticText>
+			</frame>
+			<frame>
+				<reportElement x="0" y="126" width="555" height="34" positionType="Float"/>
+				<line>
+					<reportElement x="40" y="0" width="200" height="1"/>
+				</line>
+				<line>
+					<reportElement x="315" y="0" width="200" height="1"/>
+				</line>
+
+				<staticText>
+					<reportElement x="40" y="2" width="200" height="14"/>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[RESPONSABLE DE DEPORTES]]></text>
+				</staticText>
+
+				<staticText>
+					<reportElement x="315" y="2" width="200" height="14"/>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CONTRIBUYENTE]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="315" y="16" width="200" height="14"/>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+
+	<pageFooter>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" uuid="b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e"/>
+				<graphicElement>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="3" width="555" height="12" uuid="c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="7" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Documento generado electrónicamente - Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+
+	<summary>
+		<band height="10" splitType="Stretch"/>
+	</summary>
+</jasperReport>
