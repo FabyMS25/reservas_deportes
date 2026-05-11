@@ -7,9 +7,7 @@
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
 	<property name="net.sf.jasperreports.print.order.preserve" value="true"/>
-	<parameter name="logo64" class="java.lang.String">
-		<defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
-	</parameter>
+	<parameter name="logoPath" class="java.io.InputStream"/>
 	<parameter name="uuid" class="java.lang.String"/>
 
 	<queryString language="SQL">
@@ -60,13 +58,7 @@
 		<band height="105" splitType="Stretch">
 			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="2" y="10" width="120" height="45"/>
-				<imageExpression><![CDATA[
-                    net.sf.jasperreports.engine.util.JRImageLoader.getInstance(
-                        new net.sf.jasperreports.engine.SimpleJasperReportsContext()
-                    ).loadAwtImageFromBytes(
-                        java.util.Base64.getDecoder().decode($P{logo64})
-                    )
-                ]]></imageExpression>
+				<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="125" y="5" width="405" height="20"/>
@@ -239,9 +231,7 @@
 				<textElement>
 					<font fontName="SansSerif" size="10"/>
 				</textElement>
-				<textFieldExpression><![CDATA[
-                    "Quillacollo, " + new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fecha_reserva})
-                ]]></textFieldExpression>
+				<textFieldExpression><![CDATA[ "Quillacollo, " + $F{fecha_reserva}]]></textFieldExpression>
 			</textField>
 
 			<!-- LEGAL BASIS -->
@@ -359,19 +349,23 @@
 					<font fontName="SansSerif" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[
+					java.text.DecimalFormat.getInstance(java.util.Locale.US)
+						.format($F{precio_base} == null ? 0 : $F{precio_base})
+					+ " x " +
+					($F{duracion_horas} == null ? 0 : $F{duracion_horas})
+				]]></textFieldExpression>
+				<textFieldExpression><![C<!--DATA[
                     ($F{precio_base} == null ? "0.00" : String.format(java.util.Locale.US, "%.2f", $F{precio_base}))
                     + " x " +
                     ($F{duracion_horas} == null ? "0" : $F{duracion_horas})
-                ]]></textFieldExpression>
+                ]]></textFieldExpression>-->
 			</textField>
-			<textField>
+			<textField pattern="#,##0.00">
 				<reportElement x="427" y="132" width="60" height="26"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="SansSerif" size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[
-                    $F{monto_total} == null ? "0.00 Bs." : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_total})
-                ]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="489" y="132" width="65" height="26"/>

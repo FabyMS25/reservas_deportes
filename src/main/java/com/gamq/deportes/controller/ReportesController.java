@@ -20,10 +20,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+
 @Controller
 @RequestMapping("/api/reporte")
 @Tag(name = "Reportes", description = "API para Reportes imprimibles del Sistema")
@@ -45,11 +43,10 @@ public class ReportesController {
         try {
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
             HashMap<String, Object> parametros = new HashMap<String,Object>();
-                parametros.put("uuid", uuid);
-                //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
+            InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
+            parametros.put("logoPath", logoStream);
+            parametros.put("uuid", uuid);
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -61,7 +58,6 @@ public class ReportesController {
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
-
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -78,16 +74,16 @@ public class ReportesController {
     ) {
         try {
             HashMap<String, Object> parametros = new HashMap<>();
+            InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
+            parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-
             generadorReporte.generarSqlReportePdf(
                     "ticket",
                     "classpath:reportes/ticketPuntualperson.jrxml",
                     parametros,
                     response
             );
-
         } catch (SQLException ex) {
             ex.printStackTrace();
             sendErrorResponse(response, 500, "Error SQL al generar ticketPuntualperson.");
@@ -108,13 +104,11 @@ public class ReportesController {
             HttpServletResponse response
     ) {
         try {
-            //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
             HashMap<String, Object> parametros = new HashMap<String,Object>();
+            InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
+            parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -126,7 +120,6 @@ public class ReportesController {
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
-
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -148,9 +141,7 @@ public class ReportesController {
             HttpServletResponse response
     ) {
         try {
-            //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
             if (tipocobro.equals("TODO")){
                 tipocobro="%";
             }else
@@ -212,7 +203,6 @@ public class ReportesController {
         try {
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
             if (tipocobro.equals("TODO")){
                 tipocobro="%";
             }else
@@ -238,8 +228,6 @@ public class ReportesController {
             parametros.put("tipocobro",tipocobro);
             parametros.put("estado",estado);
             parametros.put("cancha",cancha);
-            //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -251,7 +239,6 @@ public class ReportesController {
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
-
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -293,10 +280,8 @@ public class ReportesController {
     ) {
         try {
             ReservaRecurrenteDto reserva = buscarReservaRecurrente(uuid);
-
             String horarioFormateado;
             Integer cantidadMeses = null;
-
             if (reserva == null) {
                 horarioFormateado = "No se encontró la reserva recurrente para el UUID: " + uuid;
             } else {
@@ -307,23 +292,21 @@ public class ReportesController {
                 } else {
                     horarioFormateado = formatHorario3DForReport(reserva);
                 }
-
                 cantidadMeses = calcularCantidadMeses(reserva.getFechaInicio(), reserva.getFechaFin());
             }
-
             HashMap<String, Object> parametros = new HashMap<>();
+            InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
+            parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
             parametros.put("horario_formateado", horarioFormateado);
             parametros.put("cantidad_meses", cantidadMeses);
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-
             generadorReporte.generarSqlReportePdf(
                     "Recurrente",
                     rutaReporte,
                     parametros,
                     response
             );
-
         } catch (SQLException e) {
             sendErrorResponse(response, 500, "Error SQL al generar el reporte.");
         } catch (Exception e) {
@@ -358,16 +341,19 @@ public class ReportesController {
         }
     }
     private String formatHorario3DForReport(ReservaRecurrenteDto reserva) {
-        if (reserva.getTableroDto() == null || reserva.getTableroDto().getHorario() == null) {
-            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay horarios registrados.</div>";
+
+        if (reserva.getTableroDto() == null ||
+                reserva.getTableroDto().getHorario() == null) {
+            return "No hay horarios registrados.";
         }
 
         String[][][] horario3D = reserva.getTableroDto().getHorario();
+
         LocalDate startDate = reserva.getFechaInicio();
         LocalDate endDate = reserva.getFechaFin();
 
         if (startDate == null) {
-            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay fecha de inicio definida.</div>";
+            return "No hay fecha de inicio definida.";
         }
 
         if (endDate == null) {
@@ -375,31 +361,46 @@ public class ReportesController {
         }
 
         StringBuilder sb = new StringBuilder();
+
         boolean hasAnySchedule = false;
         int totalSessions = 0;
 
-        String[] dias = {"Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"};
+        String[] dias = {
+                "Lun",
+                "Mar",
+                "Mié",
+                "Jue",
+                "Vie",
+                "Sáb",
+                "Dom"
+        };
 
         for (int monthIdx = 0; monthIdx < horario3D.length; monthIdx++) {
+
             String[][] daysMatrix = horario3D[monthIdx];
+
             if (daysMatrix == null || daysMatrix.length == 0) {
                 continue;
             }
 
             LocalDate monthStart = startDate.plusMonths(monthIdx);
+
             int year = monthStart.getYear();
             int month = monthStart.getMonthValue();
 
             @SuppressWarnings("unchecked")
-            java.util.List<String>[] grouped = new java.util.ArrayList[7];
+            List<String>[] grouped = new ArrayList[7];
+
             for (int i = 0; i < 7; i++) {
-                grouped[i] = new java.util.ArrayList<>();
+                grouped[i] = new ArrayList<>();
             }
 
             int monthSessions = 0;
 
             for (int dayIdx = 0; dayIdx < daysMatrix.length; dayIdx++) {
+
                 String[] daySlots = daysMatrix[dayIdx];
+
                 if (daySlots == null) {
                     continue;
                 }
@@ -407,80 +408,137 @@ public class ReportesController {
                 int dayOfMonth = dayIdx + 1;
 
                 try {
-                    LocalDate currentDate = LocalDate.of(year, month, dayOfMonth);
-                    if (currentDate.isBefore(startDate) || currentDate.isAfter(endDate)) {
+
+                    LocalDate currentDate =
+                            LocalDate.of(year, month, dayOfMonth);
+
+                    if (currentDate.isBefore(startDate) ||
+                            currentDate.isAfter(endDate)) {
                         continue;
                     }
 
-                    int dowIndex = currentDate.getDayOfWeek().getValue() - 1;
+                    int dowIndex =
+                            currentDate.getDayOfWeek().getValue() - 1;
 
                     for (String slot : daySlots) {
+
                         if (slot == null || slot.trim().isEmpty()) {
                             continue;
                         }
 
                         String cleanSlot = slot.trim();
 
-                        if (cleanSlot.contains("-") && cleanSlot.indexOf("-") != cleanSlot.lastIndexOf("-")) {
-                            cleanSlot = cleanSlot.substring(0, cleanSlot.lastIndexOf("-"));
+                        if (cleanSlot.contains("-")
+                                && cleanSlot.indexOf("-")
+                                != cleanSlot.lastIndexOf("-")) {
+
+                            cleanSlot =
+                                    cleanSlot.substring(
+                                            0,
+                                            cleanSlot.lastIndexOf("-")
+                                    );
                         }
 
                         String formattedTime;
+
                         if (cleanSlot.matches(".*\\d{2}:\\d{2}.*-.*\\d{2}:\\d{2}.*")) {
-                            formattedTime = cleanSlot.replaceAll("\\s*-\\s*", " - ");
+
+                            formattedTime =
+                                    cleanSlot.replaceAll("\\s*-\\s*", " - ");
+
                         } else if (cleanSlot.matches("\\d{2}:\\d{2}")) {
-                            formattedTime = cleanSlot + " - " + cleanSlot;
+
+                            formattedTime =
+                                    cleanSlot + " - " + cleanSlot;
+
                         } else {
                             continue;
                         }
 
-                        grouped[dowIndex].add(String.format("%02d/%02d %s", dayOfMonth, month, formattedTime));
+                        grouped[dowIndex].add(
+                                String.format(
+                                        "%02d/%02d %s",
+                                        dayOfMonth,
+                                        month,
+                                        formattedTime
+                                )
+                        );
+
                         hasAnySchedule = true;
                         monthSessions++;
                         totalSessions++;
                     }
+
                 } catch (Exception ignored) {
                 }
             }
 
             if (monthSessions > 0) {
-                sb.append("<div style='margin-bottom:4px;'>");
-                sb.append("<div style='background:#EAF1F8; border:1px solid #C8D6E5; padding:4px 6px;'>")
-                        .append("<b><font size='2'>")
-                        .append(getMonthName(month)).append(" ").append(year)
-                        .append("</font></b>")
-                        .append("</div>");
-                sb.append("<div style='border:1px solid #C8D6E5; border-top:none; padding:6px 10px; font-size:8px;'>");
+
+                sb.append("\n");
+                sb.append(getMonthName(month))
+                        .append(" ")
+                        .append(year)
+                        .append("\n");
+
                 for (int i = 0; i < 7; i++) {
+
                     if (!grouped[i].isEmpty()) {
-                        sb.append("<div style='margin-bottom:3px; padding-left:4px;'>")
-                                .append("<b>").append(dias[i]).append(":</b>&nbsp;")
-                                .append(formatGroupedLine(grouped[i], 3))
-                                .append("</div>");
+
+                        sb.append(dias[i])
+                                .append(": ")
+                                .append(formatGroupedLinePlain(grouped[i], 3))
+                                .append("\n");
                     }
                 }
-                sb.append("</div>");
-                sb.append("</div><br/>");
+
+                sb.append("\n");
             }
         }
 
         if (!hasAnySchedule) {
-            return "<div style='font-size:9px; color:#666; text-align:center;'>No hay horarios programados dentro del período.</div>";
+            return "No hay horarios programados.";
         }
 
-        int sesiones = reserva.getCantidadSesiones() != null ? reserva.getCantidadSesiones() : totalSessions;
-        int duracion = reserva.getDuracionSesionHoras() != null ? reserva.getDuracionSesionHoras() : 1;
+        int sesiones =
+                reserva.getCantidadSesiones() != null
+                        ? reserva.getCantidadSesiones()
+                        : totalSessions;
+
+        int duracion =
+                reserva.getDuracionSesionHoras() != null
+                        ? reserva.getDuracionSesionHoras()
+                        : 1;
+
         int totalHoras = sesiones * duracion;
-        sb.append("<div style='border:1px solid #BFCBD6; background:#F8FAFC; padding:4px 6px;'>")
-                .append("<b><font size='2'>Resumen:</font></b> ")
-                .append(sesiones).append(" sesiones | ")
-                .append(duracion).append(" hora").append(duracion != 1 ? "s" : "").append(" por sesión | ")
-                .append(totalHoras).append(" hora").append(totalHoras != 1 ? "s" : "").append(" totales")
-                .append("<br/><b>Días programados:</b> ")
-                .append(formatDiasSemana(reserva.getDiasSemana()))
-                .append("</div>");
+
+        sb.append("\n");
+        sb.append("Resumen:\n");
+        sb.append(sesiones)
+                .append(" sesiones | ");
+        sb.append(duracion)
+                .append(" hora(s) por sesión | ");
+        sb.append(totalHoras)
+                .append(" hora(s) totales\n");
+
+        sb.append("Días programados: ")
+                .append(formatDiasSemana(reserva.getDiasSemana()));
 
         return sb.toString();
+    }
+    private String formatGroupedLinePlain(List<String> items, int chunkSize) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) {
+                if (i % chunkSize == 0) {
+                    out.append("\n");
+                } else {
+                    out.append(" · ");
+                }
+            }
+            out.append(items.get(i));
+        }
+        return out.toString();
     }
     private String formatGroupedLine(java.util.List<String> items, int chunkSize) {
         StringBuilder out = new StringBuilder();
@@ -504,7 +562,6 @@ public class ReportesController {
 
     private String formatDiasSemana(String diasSemana) {
         if (diasSemana == null || diasSemana.isEmpty()) return "No especificados";
-
         String[] dias = diasSemana.split(",");
         java.util.Map<String, String> mapDias = new java.util.HashMap<>();
         mapDias.put("LUNES", "Lunes");
@@ -544,7 +601,6 @@ public class ReportesController {
         try {
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            //ingreso almacen
             HashMap<String, Object> parametros = new HashMap<String,Object>();
             parametros.put("fecha_ini",fecha_ini);
             parametros.put("fecha_fin",fecha_fin);
@@ -642,8 +698,6 @@ public void reporteListaMensAlumno (
     try {
         //usuario
         //String usuario = headers.getOrDefault("usuario", "Default");
-        //ingreso almacen
-
         if (estado.equals("TODO")){
             estado="%";
         }else
@@ -703,6 +757,8 @@ public void reporteListaMensAlumno (
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
             HashMap<String, Object> parametros = new HashMap<>();
+            InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
+            parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {

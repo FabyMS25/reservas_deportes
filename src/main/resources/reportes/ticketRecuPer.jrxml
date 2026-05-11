@@ -7,9 +7,7 @@
   <property name="com.jaspersoft.studio.data.sql.tables" value=""/>
   <property name="com.jaspersoft.studio.data.defaultdataadapter" value="reservas"/>
   <property name="net.sf.jasperreports.print.order.preserve" value="true"/>
-  <parameter name="logo64" class="java.lang.String">
-    <defaultValueExpression><![CDATA["iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="]]></defaultValueExpression>
-  </parameter>
+  <parameter name="logoPath" class="java.io.InputStream"/>
   <parameter name="uuid" class="java.lang.String"/>
   <parameter name="horario_formateado" class="java.lang.String"/>
 
@@ -55,13 +53,7 @@
     <band height="105" splitType="Stretch">
       <image scaleImage="FillFrame" onErrorType="Blank">
         <reportElement x="2" y="10" width="120" height="45"/>
-        <imageExpression><![CDATA[
-                    net.sf.jasperreports.engine.util.JRImageLoader.getInstance(
-                        new net.sf.jasperreports.engine.SimpleJasperReportsContext()
-                    ).loadAwtImageFromBytes(
-                        java.util.Base64.getDecoder().decode($P{logo64})
-                    )
-                ]]></imageExpression>
+        <imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
       </image>
       <staticText>
         <reportElement x="125" y="5" width="405" height="20"/>
@@ -234,9 +226,7 @@
         <textElement>
           <font fontName="SansSerif" size="10"/>
         </textElement>
-        <textFieldExpression><![CDATA[
-            "Quillacollo, " + new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fecha_reserva})
-        ]]></textFieldExpression>
+        <textFieldExpression><![CDATA[ "Quillacollo, " + $F{fecha_reserva}]]></textFieldExpression>
       </textField>
 
       <!-- LEGAL BASIS -->
@@ -341,14 +331,15 @@
         </textElement>
         <textFieldExpression><![CDATA[$F{fecha_fin}]]></textFieldExpression>
       </textField>
-      <textField>
+      <textField pattern="#,##0.00">
         <reportElement x="292" y="132" width="64" height="26"/>
         <textElement textAlignment="Center" verticalAlignment="Middle">
           <font fontName="SansSerif" size="9"/>
         </textElement>
-        <textFieldExpression>
-          <![CDATA[$F{precio_base} == null ? "0.00" : String.format(java.util.Locale.US, "%.2f", $F{precio_base})]]>
-        </textFieldExpression>
+        <textFieldExpression><![CDATA[$F{precio_base}]]></textFieldExpression>
+<!--        <textFieldExpression>-->
+<!--          <![CDATA[$F{precio_base} == null ? "0.00" : String.format(java.util.Locale.US, "%.2f", $F{precio_base})]]>-->
+<!--        </textFieldExpression>-->
       </textField>
       <textField isBlankWhenNull="true">
         <reportElement x="358" y="132" width="64" height="26"/>
@@ -357,14 +348,15 @@
         </textElement>
         <textFieldExpression><![CDATA[$F{per} == null ? $F{se} : $F{per}]]></textFieldExpression>
       </textField>
-      <textField>
+      <textField pattern="#,##0.00">
         <reportElement x="424" y="132" width="62" height="26"/>
         <textElement textAlignment="Center" verticalAlignment="Middle">
           <font fontName="SansSerif" size="9"/>
         </textElement>
-        <textFieldExpression><![CDATA[
-             $F{monto_total} == null ? "0.00 Bs." : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_total})
-        ]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
+<!--        <textFieldExpression><![CDATA[-->
+<!--             $F{monto_total} == null ? "0.00 Bs." : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_total})-->
+<!--        ]]></textFieldExpression>-->
       </textField>
       <textField>
         <reportElement x="488" y="132" width="66" height="26"/>
@@ -396,7 +388,7 @@
                        positionType="Float"
                        stretchType="RelativeToTallestObject"
                        uuid="a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d"/>
-        <textElement markup="html">
+        <textElement>
           <font fontName="SansSerif" size="9"/>
         </textElement>
         <textFieldExpression><![CDATA[$P{horario_formateado}]]></textFieldExpression>
