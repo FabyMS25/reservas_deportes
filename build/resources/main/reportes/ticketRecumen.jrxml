@@ -282,14 +282,14 @@
         <text><![CDATA[FECHA FIN]]></text>
       </staticText>
       <staticText>
-        <reportElement x="292" y="114" width="64" height="14"/>
+        <reportElement x="292" y="114" width="68" height="14"/>
         <textElement textAlignment="Center">
           <font fontName="SansSerif" size="9" isBold="true"/>
         </textElement>
         <text><![CDATA[MENSUALIDAD]]></text>
       </staticText>
       <staticText>
-        <reportElement x="358" y="114" width="64" height="14"/>
+        <reportElement x="362" y="114" width="60" height="14"/>
         <textElement textAlignment="Center">
           <font fontName="SansSerif" size="9" isBold="true"/>
         </textElement>

@@ -313,21 +313,15 @@ public class ReportesController {
             sendErrorResponse(response, 500, "Error inesperado al generar el reporte.");
         }
     }
+
     private Integer calcularCantidadMeses(LocalDate fechaInicio, LocalDate fechaFin) {
-        if (fechaInicio == null || fechaFin == null) {
-            return null;
+        if (fechaInicio == null || fechaFin == null) return null;
+        if (fechaFin.isBefore(fechaInicio)) return 0;
+        long meses = java.time.temporal.ChronoUnit.MONTHS.between(fechaInicio, fechaFin);
+        if (fechaInicio.plusMonths(meses).isBefore(fechaFin)) {
+            meses++;
         }
-
-        if (fechaFin.isBefore(fechaInicio)) {
-            return 0;
-        }
-
-        java.time.YearMonth inicio = java.time.YearMonth.from(fechaInicio);
-        java.time.YearMonth fin = java.time.YearMonth.from(fechaFin);
-
-        long meses = java.time.temporal.ChronoUnit.MONTHS.between(inicio, fin) + 1;
-
-        return (int) meses;
+        return (int) Math.max(meses, 1);
     }
     private ReservaRecurrenteDto buscarReservaRecurrente(String uuid) {
         try {
