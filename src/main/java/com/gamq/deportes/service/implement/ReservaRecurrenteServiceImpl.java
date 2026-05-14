@@ -8,6 +8,7 @@ import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
 import com.gamq.deportes.model.*;
+import com.gamq.deportes.repository.ReservaAuditoriaRepository;
 import com.gamq.deportes.repository.ReservaRecurrenteRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.repository.TableroRepository;
@@ -43,6 +44,8 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
     @Autowired
     private ReservaRepository reservaRepository;
+    @Autowired
+    private ReservaAuditoriaRepository reservaAuditoriaRepository;
     @Autowired
     private TableroRepository tableroRepository;
 
@@ -167,6 +170,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                 reserva.setReserva(updatedReserva);
 
                 if (!originalEstado.equals("EXPIRADA")) {
+                    registrarAuditoria(
+                            updatedReserva,
+                            "EXPIRE",
+                            originalEstado,
+                            updatedReserva.getEstadoReserva(),
+                            null,
+                            "Reserva recurrente expirada por falta de pago",
+                            null
+                    );
                     updatedReservas.add(ReservaRecurrenteMapper.toDto(reserva, true));
                 }
             } catch (Exception e) {
@@ -321,6 +333,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             throw new IllegalArgumentException("Fecha de inicio no puede ser después de la fecha de fin");
         }
         ReservaRecurrente reservaRecurrenteGuardada = reservaRecurrenteRepository.save(nuevaReservaRecurrente);
+        registrarAuditoria(
+                reservaRecurrenteGuardada.getReserva(),
+                "CREATE_RECURRENTE",
+                reserva.getEstadoReserva(),
+                reserva.getEstadoReserva(),
+                null,
+                "Detalle de reserva recurrente creado",
+                buildReservaRecurrenteSnapshot(reservaRecurrenteGuardada)
+        );
         return ReservaRecurrenteMapper.toDto(reservaRecurrenteGuardada, true);
     }
 
@@ -351,6 +372,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                 throw new IllegalArgumentException("Fecha de inicio no puede ser después de la fecha de fin");
             }
             ReservaRecurrente reservaRecurrenteActualizada = reservaRecurrenteRepository.save(reservaRecurrenteExistente);
+            registrarAuditoria(
+                    reservaRecurrenteActualizada.getReserva(),
+                    "UPDATE_RECURRENTE",
+                    reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                    reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                    null,
+                    "Detalle de reserva recurrente actualizado",
+                    buildReservaRecurrenteSnapshot(reservaRecurrenteActualizada)
+            );
             return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
         } else {
             throw new NotFoundException(RESERVA_RECURRENTE, reservaRecurrenteDto.getUuid());
@@ -366,6 +396,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
         reservaRecurrente.setActivo(true);
 
         ReservaRecurrente reservaRecurrenteActualizada = reservaRecurrenteRepository.save(reservaRecurrente);
+        registrarAuditoria(
+                reservaRecurrenteActualizada.getReserva(),
+                "ACTIVATE_RECURRENTE",
+                reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                null,
+                "Reserva recurrente activada",
+                buildReservaRecurrenteSnapshot(reservaRecurrenteActualizada)
+        );
         return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
     }
 
@@ -378,6 +417,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
         reservaRecurrente.setActivo(false);
 
         ReservaRecurrente reservaRecurrenteActualizada = reservaRecurrenteRepository.save(reservaRecurrente);
+        registrarAuditoria(
+                reservaRecurrenteActualizada.getReserva(),
+                "DEACTIVATE_RECURRENTE",
+                reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                reservaRecurrenteActualizada.getReserva().getEstadoReserva(),
+                null,
+                "Reserva recurrente desactivada",
+                buildReservaRecurrenteSnapshot(reservaRecurrenteActualizada)
+        );
         return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
     }
 
@@ -387,6 +435,15 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
         try {
         ReservaRecurrente reserva = reservaRecurrenteRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA_RECURRENTE, uuid));
+            registrarAuditoria(
+                    reserva.getReserva(),
+                    "DELETE_RECURRENTE",
+                    reserva.getReserva().getEstadoReserva(),
+                    reserva.getReserva().getEstadoReserva(),
+                    null,
+                    "Detalle de reserva recurrente desactivado",
+                    buildReservaRecurrenteSnapshot(reserva)
+            );
             reservaRecurrenteRepository.delete(reserva);
             return "Desactivación exitosa del RESERVA";
         } catch (DataAccessException e) {
@@ -411,5 +468,38 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private Tablero getTablero(String uuid) {
         return tableroRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(TABLERO, uuid));
+    }
+
+    private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
+                                    String usuarioUuid, String observaciones, String datosCambio) {
+        if (reserva == null) {
+            return;
+        }
+        ReservaAuditoria auditoria = new ReservaAuditoria();
+        auditoria.setReserva(reserva);
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior);
+        auditoria.setEstadoNuevo(estadoNuevo);
+        auditoria.setUsuarioUuid(usuarioUuid);
+        auditoria.setObservaciones(observaciones);
+        auditoria.setDatosCambio(datosCambio);
+        auditoria.setFechaAccion(LocalDateTime.now());
+        reservaAuditoriaRepository.save(auditoria);
+    }
+
+    private String buildReservaRecurrenteSnapshot(ReservaRecurrente reservaRecurrente) {
+        return "{\"uuid\":\"" + safeValue(reservaRecurrente.getUuid())
+                + "\",\"tipoRecurrencia\":\"" + safeValue(reservaRecurrente.getTipoRecurrencia())
+                + "\",\"fechaInicio\":\"" + safeValue(reservaRecurrente.getFechaInicio())
+                + "\",\"fechaFin\":\"" + safeValue(reservaRecurrente.getFechaFin())
+                + "\",\"cantidadSesiones\":\"" + safeValue(reservaRecurrente.getCantidadSesiones())
+                + "\",\"duracionSesionHoras\":\"" + safeValue(reservaRecurrente.getDuracionSesionHoras())
+                + "\",\"precioBaseAplicado\":\"" + safeValue(reservaRecurrente.getPrecioBaseAplicado())
+                + "\",\"tarifaMensual\":\"" + safeValue(reservaRecurrente.getTarifaMensual())
+                + "\",\"activo\":\"" + safeValue(reservaRecurrente.getActivo()) + "\"}";
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

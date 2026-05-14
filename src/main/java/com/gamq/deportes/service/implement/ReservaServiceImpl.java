@@ -1,15 +1,20 @@
 package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaDto;
+import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
+import com.gamq.deportes.dto.mapper.ReservaTarifaDetalleMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.ReservaService;
+import com.gamq.deportes.service.NotificacionService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
@@ -28,6 +33,13 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Transactional
 public class ReservaServiceImpl implements ReservaService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReservaServiceImpl.class);
+
+    private static final String NOTIFICAR_RESERVA_CREADA = "NOTIFICAR_RESERVA_CREADA";
+    private static final String NOTIFICAR_SOLICITUD_APROBADA = "NOTIFICAR_SOLICITUD_APROBADA";
+    private static final String NOTIFICAR_SOLICITUD_RECHAZADA = "NOTIFICAR_SOLICITUD_RECHAZADA";
+    private static final String NOTIFICAR_RESERVA_CANCELADA = "NOTIFICAR_RESERVA_CANCELADA";
+
     @Autowired
     private ReservaRepository reservaRepository;
 
@@ -44,10 +56,16 @@ public class ReservaServiceImpl implements ReservaService {
     private TarifaRepository tarifaRepository;
 
     @Autowired
+    private TarifaConceptoRepository tarifaConceptoRepository;
+
+    @Autowired
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
 
     @Autowired
     private PagoRepository pagoRepository;
+
+    @Autowired
+    private ReservaAuditoriaRepository reservaAuditoriaRepository;
 
     @Autowired
     private ReservaPuntualRepository reservaPuntualRepository;
@@ -63,6 +81,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Autowired
     private ReservationNumberService reservationNumberService;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Autowired
     private ReservaPeriodoMapper reservaPeriodoMapper; // Add this
@@ -317,7 +338,36 @@ public class ReservaServiceImpl implements ReservaService {
             nuevaReserva.setReservaPeriodo(periodo);
         }
 
+        if (reservaDto.getTarifaDetallesDtoList() != null && !reservaDto.getTarifaDetallesDtoList().isEmpty()) {
+            reservaDto.getTarifaDetallesDtoList().forEach(detalleDto -> {
+                ReservaTarifaDetalle detalle = ReservaTarifaDetalleMapper.toEntity(detalleDto);
+                detalle.setReserva(nuevaReserva);
+
+                if (detalleDto.getTarifaDto() != null && detalleDto.getTarifaDto().getUuid() != null) {
+                    detalle.setTarifa(getTarifa(detalleDto.getTarifaDto().getUuid()));
+                }
+
+                if (detalleDto.getTarifaConceptoDto() != null && detalleDto.getTarifaConceptoDto().getUuid() != null) {
+                    detalle.setTarifaConcepto(getTarifaConcepto(detalleDto.getTarifaConceptoDto().getUuid()));
+                }
+
+                nuevaReserva.getTarifaDetallesList().add(detalle);
+            });
+        }
+
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
+        registrarAuditoria(
+                reservaGuardada,
+                "CREATE",
+                null,
+                reservaGuardada.getEstadoReserva(),
+                reservaGuardada.getAprobadoPor(),
+                "Reserva creada",
+                buildReservaSnapshot(reservaGuardada)
+        );
+        notificarReserva(reservaGuardada, NOTIFICAR_RESERVA_CREADA, "Reserva creada",
+                "Tu reserva " + safeValue(reservaGuardada.getNumeroReserva()) + " fue creada correctamente.",
+                "SUCCESS");
         return ReservaMapper.toDto(reservaGuardada);
     }
     @Override
@@ -330,6 +380,8 @@ public class ReservaServiceImpl implements ReservaService {
 
         if (reservaOptional.isPresent()) {
             Reserva reservaExistente = reservaOptional.get();
+            String estadoAnterior = reservaExistente.getEstadoReserva();
+            String estadoValidacionAnterior = reservaExistente.getEstadoValidacion();
 
             ReservaMapper.updateEntityFromDto(reservaDto, reservaExistente);
 
@@ -361,6 +413,16 @@ public class ReservaServiceImpl implements ReservaService {
             reservaExistente.setFechaActualizacion(LocalDateTime.now());
 
             Reserva reservaActualizada = reservaRepository.save(reservaExistente);
+            registrarAuditoria(
+                    reservaActualizada,
+                    "UPDATE",
+                    estadoAnterior,
+                    reservaActualizada.getEstadoReserva(),
+                    reservaDto.getAprobadoPor(),
+                    "Reserva actualizada",
+                    "{\"estadoValidacionAnterior\":\"" + safeValue(estadoValidacionAnterior)
+                            + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaActualizada.getEstadoValidacion()) + "\"}"
+            );
             return ReservaMapper.toDto(reservaActualizada);
         } else {
             throw new NotFoundException(RESERVA, reservaDto.getUuid());
@@ -372,6 +434,8 @@ public class ReservaServiceImpl implements ReservaService {
     public ReservaDto aprobarReserva(String uuid, String aprobadoPor) {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        String estadoAnterior = reserva.getEstadoReserva();
+        String estadoValidacionAnterior = reserva.getEstadoValidacion();
 
         reserva.setEstadoReserva("PENDIENTE");
         reserva.setEstadoValidacion("APROBADA");
@@ -380,6 +444,19 @@ public class ReservaServiceImpl implements ReservaService {
         reserva.setFechaActualizacion(LocalDateTime.now());
 
         Reserva reservaAprobada = reservaRepository.save(reserva);
+        registrarAuditoria(
+                reservaAprobada,
+                "APPROVE",
+                estadoAnterior,
+                reservaAprobada.getEstadoReserva(),
+                aprobadoPor,
+                "Reserva aprobada",
+                "{\"estadoValidacionAnterior\":\"" + safeValue(estadoValidacionAnterior)
+                        + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaAprobada.getEstadoValidacion()) + "\"}"
+        );
+        notificarReserva(reservaAprobada, NOTIFICAR_SOLICITUD_APROBADA, "Solicitud aprobada",
+                "Tu solicitud de reserva " + safeValue(reservaAprobada.getNumeroReserva()) + " fue aprobada.",
+                "SUCCESS");
         return ReservaMapper.toDto(reservaAprobada);
     }
 
@@ -388,6 +465,8 @@ public class ReservaServiceImpl implements ReservaService {
     public ReservaDto rechazarReserva(String uuid, String motivoRechazo, String aprobadoPor) {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        String estadoAnterior = reserva.getEstadoReserva();
+        String estadoValidacionAnterior = reserva.getEstadoValidacion();
 
         reserva.setEstadoValidacion("RECHAZADA");
         reserva.setMotivoRechazo(motivoRechazo);
@@ -396,6 +475,19 @@ public class ReservaServiceImpl implements ReservaService {
         reserva.setFechaActualizacion(LocalDateTime.now());
 
         Reserva reservaRechazada = reservaRepository.save(reserva);
+        registrarAuditoria(
+                reservaRechazada,
+                "REJECT",
+                estadoAnterior,
+                reservaRechazada.getEstadoReserva(),
+                aprobadoPor,
+                "Reserva rechazada: " + motivoRechazo,
+                "{\"estadoValidacionAnterior\":\"" + safeValue(estadoValidacionAnterior)
+                        + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaRechazada.getEstadoValidacion()) + "\"}"
+        );
+        notificarReserva(reservaRechazada, NOTIFICAR_SOLICITUD_RECHAZADA, "Solicitud rechazada",
+                "Tu solicitud de reserva " + safeValue(reservaRechazada.getNumeroReserva()) + " fue rechazada.",
+                "WARNING");
         return ReservaMapper.toDto(reservaRechazada);
     }
 
@@ -404,12 +496,25 @@ public class ReservaServiceImpl implements ReservaService {
     public ReservaDto cancelarReserva(String uuid, String motivo) {
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        String estadoAnterior = reserva.getEstadoReserva();
 
         reserva.setEstadoReserva("CANCELADA");
         reserva.setMotivoRechazo(motivo);
         reserva.setFechaActualizacion(LocalDateTime.now());
 
         Reserva reservaCancelada = reservaRepository.save(reserva);
+        registrarAuditoria(
+                reservaCancelada,
+                "CANCEL",
+                estadoAnterior,
+                reservaCancelada.getEstadoReserva(),
+                null,
+                "Reserva cancelada: " + motivo,
+                null
+        );
+        notificarReserva(reservaCancelada, NOTIFICAR_RESERVA_CANCELADA, "Reserva cancelada",
+                "Tu reserva " + safeValue(reservaCancelada.getNumeroReserva()) + " fue cancelada.",
+                "WARNING");
         return ReservaMapper.toDto(reservaCancelada);
     }
 
@@ -420,6 +525,15 @@ public class ReservaServiceImpl implements ReservaService {
             Reserva reserva = reservaRepository.findByUuid(uuid)
                     .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
 
+            registrarAuditoria(
+                    reserva,
+                    "DELETE",
+                    reserva.getEstadoReserva(),
+                    reserva.getEstadoReserva(),
+                    null,
+                    "Reserva desactivada",
+                    buildReservaSnapshot(reserva)
+            );
             reservaRepository.delete(reserva);
 
             return "Desactivación exitosa del RESERVA";
@@ -464,8 +578,73 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new NotFoundException(TARIFA, uuid));
     }
 
+    private TarifaConcepto getTarifaConcepto(String uuid) {
+        return tarifaConceptoRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(TARIFA_CONCEPTO, uuid));
+    }
+
     private EstudianteEscuela getEstudianteEscuela(String uuid) {
         return estudianteEscuelaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(ESTUDIANTE_ESCUELA, uuid));
+    }
+
+    private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
+                                    String usuarioUuid, String observaciones, String datosCambio) {
+        ReservaAuditoria auditoria = new ReservaAuditoria();
+        auditoria.setReserva(reserva);
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior);
+        auditoria.setEstadoNuevo(estadoNuevo);
+        auditoria.setUsuarioUuid(usuarioUuid);
+        auditoria.setObservaciones(observaciones);
+        auditoria.setDatosCambio(normalizeJsonText(datosCambio));
+        auditoria.setFechaCreacion(LocalDateTime.now());
+        auditoria.setFechaAccion(LocalDateTime.now());
+        try {
+            reservaAuditoriaRepository.save(auditoria);
+        } catch (RuntimeException ex) {
+            logger.error("No se pudo registrar auditoria de reserva {} accion {}", reserva.getUuid(), accion, ex);
+        }
+    }
+
+    private String normalizeJsonText(String datosCambio) {
+        if (datosCambio == null || datosCambio.trim().isEmpty()) {
+            return null;
+        }
+        return datosCambio;
+    }
+
+    private String buildReservaSnapshot(Reserva reserva) {
+        return "{\"uuid\":\"" + safeValue(reserva.getUuid())
+                + "\",\"numeroReserva\":\"" + safeValue(reserva.getNumeroReserva())
+                + "\",\"tipoReserva\":\"" + safeValue(reserva.getTipoReserva())
+                + "\",\"estadoReserva\":\"" + safeValue(reserva.getEstadoReserva())
+                + "\",\"estadoValidacion\":\"" + safeValue(reserva.getEstadoValidacion())
+                + "\",\"montoTotal\":\"" + safeValue(reserva.getMontoTotal()) + "\"}";
+    }
+
+    private void notificarReserva(Reserva reserva, String tipo, String titulo, String mensaje, String prioridad) {
+        if (reserva.getContribuyente() == null || reserva.getContribuyente().getUuid() == null) {
+            return;
+        }
+        NotificacionDto notificacion = new NotificacionDto()
+                .setUsuarioUuid(reserva.getContribuyente().getUuid())
+                .setTipo(tipo)
+                .setTitulo(titulo)
+                .setMensaje(mensaje)
+                .setPrioridad(prioridad)
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(reserva.getUuid())
+                .setAccionUrl("/reservas/" + reserva.getUuid());
+        try {
+            notificacionService.crearNotificacionSiHabilitada(tipo, notificacion);
+        } catch (RuntimeException ex) {
+            logger.error("No se pudo crear notificacion {} para reserva {}", tipo, reserva.getUuid(), ex);
+        }
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

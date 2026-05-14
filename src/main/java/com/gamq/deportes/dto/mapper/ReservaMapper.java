@@ -82,6 +82,14 @@ public class ReservaMapper {
             );
         }
 
+        if (reserva.getTarifaDetallesList() != null && !reserva.getTarifaDetallesList().isEmpty()) {
+            reservaDto.setTarifaDetallesDtoList(
+                    reserva.getTarifaDetallesList().stream()
+                            .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, false))
+                            .collect(Collectors.toList())
+            );
+        }
+
         return reservaDto;
     }
 

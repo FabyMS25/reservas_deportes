@@ -27,6 +27,7 @@ public class ReservaPuntualMapper {
         dto.setHoraFin(reservaPuntual.getHoraFin());
         dto.setDuracionHoras(reservaPuntual.getDuracionHoras());
         dto.setCantidadPersonas(reservaPuntual.getCantidadPersonas());
+        dto.setPrecioBaseAplicado(reservaPuntual.getPrecioBaseAplicado());
         dto.setCategoria(reservaPuntual.getCategoria());
         dto.setSuperficie(reservaPuntual.getSuperficie());
         dto.setPeriodo(reservaPuntual.getPeriodo());
@@ -68,6 +69,7 @@ public class ReservaPuntualMapper {
         entity.setHoraFin(reservaPuntualDto.getHoraFin());
         entity.setDuracionHoras(reservaPuntualDto.getDuracionHoras());
         entity.setCantidadPersonas(reservaPuntualDto.getCantidadPersonas());
+        entity.setPrecioBaseAplicado(reservaPuntualDto.getPrecioBaseAplicado());
         entity.setCategoria(reservaPuntualDto.getCategoria());
         entity.setSuperficie(reservaPuntualDto.getSuperficie());
         entity.setPeriodo(reservaPuntualDto.getPeriodo());
@@ -92,6 +94,7 @@ public class ReservaPuntualMapper {
         entity.setHoraFin(dto.getHoraFin());
         entity.setDuracionHoras(dto.getDuracionHoras());
         entity.setCantidadPersonas(dto.getCantidadPersonas());
+        entity.setPrecioBaseAplicado(dto.getPrecioBaseAplicado());
         entity.setCategoria(dto.getCategoria());
         entity.setSuperficie(dto.getSuperficie());
         entity.setPeriodo(dto.getPeriodo());

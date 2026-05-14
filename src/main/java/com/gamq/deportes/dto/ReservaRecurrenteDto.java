@@ -34,6 +34,7 @@ public class ReservaRecurrenteDto {
     private String diasSemana;
     private Integer cantidadSesiones;
     private Integer duracionSesionHoras;
+    private BigDecimal precioBaseAplicado;
     private BigDecimal tarifaMensual;
     private Boolean activo;
     private String categoria; //saved to identify later

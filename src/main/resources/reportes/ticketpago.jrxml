@@ -10,15 +10,16 @@
 	</parameter>
 	<parameter name="uuid" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[select PA.uuid,folio, entidad_financiera, fecha_pago, forma_pago, monto_pago, PA.numero_tasa as tasa,COMP.nombre as tt, SU.descripcion,
-		(CON.nombre||' '||CON.ap_paterno||' '||CON.ap_materno) AS contri
+		<![CDATA[select PA.uuid, PA.folio, PA.entidad_financiera, PA.fecha_pago, PA.forma_pago,
+		PA.monto_pagado as monto_pago, PA.numero_tasa as tasa, COMP.nombre as tt, SU.descripcion,
+		(CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri
 		from pagos as PA
-		join reservas as RE on RE.id_reserva= PA.id_reserva
-		join contribuyentes as CON on CON.id_contribuyente=RE.id_contribuyente
-		join canchas as CA on CA.id_cancha= RE.id_cancha
-		join complejo as COMP on COMP.id_complejo=CA.id_complejo
-		join superficie as SU on SU.id_superficie = CA.id_superficie
-		where PA.uuid=$P{uuid}]]>
+		join reservas as RE on RE.id_reserva = PA.id_reserva
+		join contribuyentes as CON on CON.id_contribuyente = RE.id_contribuyente
+		join campos_deportivos as CA on CA.id_campo = RE.id_campo
+		join complejos_deportivos as COMP on COMP.id_complejo = CA.id_complejo
+		join superficies as SU on SU.id_superficie = CA.id_superficie
+		where PA.uuid = $P{uuid}]]>
 	</queryString>
 	<field name="uuid" class="java.lang.String"/>
 	<field name="folio" class="java.lang.String"/>

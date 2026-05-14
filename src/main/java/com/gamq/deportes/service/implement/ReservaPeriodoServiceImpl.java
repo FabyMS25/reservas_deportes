@@ -5,6 +5,7 @@ import com.gamq.deportes.dto.ReservaPeriodoFilter;
 import com.gamq.deportes.dto.mapper.CampoDeportivoMapper;
 import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.model.*;
+import com.gamq.deportes.repository.ReservaAuditoriaRepository;
 import com.gamq.deportes.repository.ReservaPeriodoRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.service.ReservaPeriodoService;
@@ -23,6 +24,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +41,9 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
     @Autowired
     private ReservaRepository reservaRepository;
+
+    @Autowired
+    private ReservaAuditoriaRepository reservaAuditoriaRepository;
 
     @Override
     public List<ReservaPeriodoDto> obtenerTodos() {
@@ -249,7 +254,17 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 ReservaPeriodo nuevaReservaPeriodo = ReservaPeriodoMapper.toEntity(reservaPeriodoDto);
                 nuevaReservaPeriodo.setReserva(reserva);
 
-                return ReservaPeriodoMapper.toDto(reservaPeriodoRepository.save(nuevaReservaPeriodo),false);
+                ReservaPeriodo reservaPeriodoGuardada = reservaPeriodoRepository.save(nuevaReservaPeriodo);
+                registrarAuditoria(
+                        reserva,
+                        "CREATE_PERIODO",
+                        reserva.getEstadoReserva(),
+                        reserva.getEstadoReserva(),
+                        null,
+                        "Detalle de reserva periodo creado",
+                        buildReservaPeriodoSnapshot(reservaPeriodoGuardada)
+                );
+                return ReservaPeriodoMapper.toDto(reservaPeriodoGuardada,false);
             } else {
                 throw new NullReferenceException(RESERVA); // Fixed: Use EntityType instead of String
             }
@@ -268,7 +283,17 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 ReservaPeriodo reservaPeriodoExistente = reservaPeriodoOptional.get();
                 ReservaPeriodoMapper.updateEntityFromDto(reservaPeriodoDto, reservaPeriodoExistente);
 
-                return ReservaPeriodoMapper.toDto(reservaPeriodoRepository.save(reservaPeriodoExistente),false);
+                ReservaPeriodo reservaPeriodoActualizada = reservaPeriodoRepository.save(reservaPeriodoExistente);
+                registrarAuditoria(
+                        reservaPeriodoActualizada.getReserva(),
+                        "UPDATE_PERIODO",
+                        reservaPeriodoActualizada.getReserva().getEstadoReserva(),
+                        reservaPeriodoActualizada.getReserva().getEstadoReserva(),
+                        null,
+                        "Detalle de reserva periodo actualizado",
+                        buildReservaPeriodoSnapshot(reservaPeriodoActualizada)
+                );
+                return ReservaPeriodoMapper.toDto(reservaPeriodoActualizada,false);
             } else {
                 throw new NotFoundException(RESERVA_PERIODO, reservaPeriodoDto.getUuid());
             }
@@ -282,7 +307,45 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     public String eliminarReservaPeriodo(String uuid) {
         ReservaPeriodo reservaPeriodo = reservaPeriodoRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA_PERIODO, uuid));
+        registrarAuditoria(
+                reservaPeriodo.getReserva(),
+                "DELETE_PERIODO",
+                reservaPeriodo.getReserva().getEstadoReserva(),
+                reservaPeriodo.getReserva().getEstadoReserva(),
+                null,
+                "Detalle de reserva periodo desactivado",
+                buildReservaPeriodoSnapshot(reservaPeriodo)
+        );
         reservaPeriodoRepository.delete(reservaPeriodo);
         return "Eliminación exitosa de la reserva de periodo con UUID: " + uuid;
+    }
+
+    private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
+                                    String usuarioUuid, String observaciones, String datosCambio) {
+        if (reserva == null) {
+            return;
+        }
+        ReservaAuditoria auditoria = new ReservaAuditoria();
+        auditoria.setReserva(reserva);
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior);
+        auditoria.setEstadoNuevo(estadoNuevo);
+        auditoria.setUsuarioUuid(usuarioUuid);
+        auditoria.setObservaciones(observaciones);
+        auditoria.setDatosCambio(datosCambio);
+        auditoria.setFechaAccion(LocalDateTime.now());
+        reservaAuditoriaRepository.save(auditoria);
+    }
+
+    private String buildReservaPeriodoSnapshot(ReservaPeriodo reservaPeriodo) {
+        return "{\"uuid\":\"" + safeValue(reservaPeriodo.getUuid())
+                + "\",\"mes\":\"" + safeValue(reservaPeriodo.getMes())
+                + "\",\"anio\":\"" + safeValue(reservaPeriodo.getAño())
+                + "\",\"matricula\":\"" + safeValue(reservaPeriodo.getMatricula())
+                + "\",\"disciplina\":\"" + safeValue(reservaPeriodo.getDisciplina()) + "\"}";
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

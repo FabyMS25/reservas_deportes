@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -50,6 +51,8 @@ public class ReservaPuntual {
     private Integer duracionHoras;
     @Column(name = "cantidad_personas")
     private Integer cantidadPersonas;
+    @Column(name = "precio_base_aplicado", precision = 10, scale = 2)
+    private BigDecimal precioBaseAplicado;
     @Column(name = "categoria", nullable = false)
     private String categoria;
     @Column(name = "superficie", nullable = false)

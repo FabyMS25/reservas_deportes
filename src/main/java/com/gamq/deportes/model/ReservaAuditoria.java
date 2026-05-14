@@ -50,7 +50,7 @@ public class ReservaAuditoria { // Using Spanish name as requested
     @Column(name = "usuario_uuid", length = 36)
     private String usuarioUuid; // External user UUID
 
-    @Column(name = "datos_cambio", columnDefinition = "JSON")
+    @Column(name = "datos_cambio", columnDefinition = "TEXT")
     private String datosCambio; // JSON with changed data
 
     @Column(name = "observaciones", columnDefinition = "TEXT")
@@ -66,6 +66,9 @@ public class ReservaAuditoria { // Using Spanish name as requested
     public void prePersist() {
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID().toString();
+        }
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
         }
         if (this.fechaAccion == null) {
             this.fechaAccion = LocalDateTime.now();

@@ -22,7 +22,7 @@
 	<parameter name="cancha" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select  RE.uuid,tipo_reserva,rp.categoria,re.fecha_creacion,fecha_reserva,  fecha_aprobacion,rp.fecha_inicio, estado_reserva, telefono_principal as tel,
-		Rp.fecha_fin,numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp, TA.descripcion, TA.precio_base,
+		Rp.fecha_fin,numero_tasa, monto_total, RE.es_reserva_gratuita, RE.motivo_gratuidad, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp, TA.descripcion, TA.precio_base,
 		TA.tipo_cobro , estado_reserva,	RP.cantidad_personas as per, horario_fijo,	
 		(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, con.numero_documento as ci, Com.nombre as cancha,ubicacion
 		from reservas as RE
@@ -43,6 +43,8 @@
 	<field name="fecha_fin" class="java.sql.Date"/>
 	<field name="numero_tasa" class="java.lang.String"/>
 	<field name="monto_total" class="java.lang.Double"/>
+	<field name="es_reserva_gratuita" class="java.lang.Boolean"/>
+	<field name="motivo_gratuidad" class="java.lang.String"/>
 	<field name="precio_base" class="java.lang.Double"/>
 	<field name="contri" class="java.lang.String"/>
 	<field name="ci" class="java.lang.String"/>
@@ -320,7 +322,11 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0e3013f9-c343-4f0d-958f-8f025692e2d9"/>
 				</reportElement>
 				<textElement textAlignment="Center"/>
-				<textFieldExpression><![CDATA[$F{tipo_cobro}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					("GRATUITA" + ($F{motivo_gratuidad} == null ? "" : " (" + $F{motivo_gratuidad} + ")")) :
+					$F{tipo_cobro}
+				]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="395" y="1" width="50" height="20" uuid="f125418c-4558-48ca-9417-940decd108e7">
@@ -334,7 +340,11 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="2c0209df-f2dd-4e38-bd96-6ca1bfcc3eb3"/>
 				</reportElement>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					"0.00 (GRATUITA)" :
+					$F{monto_total}
+				]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="0" y="21" width="585" height="1" uuid="456f3314-3861-44e4-b799-7477e8f71fa0"/>

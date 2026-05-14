@@ -12,6 +12,7 @@ import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.exception.OperationNotAllowedException;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.*;
+import com.gamq.deportes.service.SistemaAuditoriaService;
 import com.gamq.deportes.service.TarifasService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,9 @@ public class TarifasServiceImpl implements TarifasService {
 
     @Autowired
     private ReservaRepository reservaRepository; // Add this repository
+
+    @Autowired
+    private SistemaAuditoriaService sistemaAuditoriaService;
 
     public TarifaDto findByUuid(String uuid){
         Optional<Tarifa> TarifasOptional = tarifaRepository.findByUuid(uuid);
@@ -88,6 +92,13 @@ public class TarifasServiceImpl implements TarifasService {
             Tarifa tarifaCompleta = tarifaRepository.findByUuid(tarifaGuardada.getUuid())
                     .orElseThrow(() -> new NotFoundException(TARIFA, tarifaGuardada.getUuid()));
 
+            registrarAuditoriaSistema(
+                    "CREAR_TARIFA",
+                    "tarifa",
+                    tarifaCompleta.getUuid(),
+                    "Tarifa creada",
+                    buildTarifaSnapshot(tarifaCompleta)
+            );
             return TarifaMapper.toDto(tarifaCompleta, true);
         } else {
             throw new NullReferenceException(TARIFA);
@@ -99,6 +110,7 @@ public class TarifasServiceImpl implements TarifasService {
         if (tarifaDto != null) {
             Tarifa tarifaExistente  = tarifaRepository.findByUuid(tarifaDto.getUuid())
                     .orElseThrow(() -> new NotFoundException(TARIFA, tarifaDto.getUuid()));
+            String datosAnterior = buildTarifaSnapshot(tarifaExistente);
 
             // Check if tariff is already soft deleted
             if (tarifaExistente.isEstado()) {
@@ -130,6 +142,13 @@ public class TarifasServiceImpl implements TarifasService {
             Tarifa tarifaCompleta = tarifaRepository.findByUuid(tarifaActualizada.getUuid())
                     .orElseThrow(() -> new NotFoundException(TARIFA, tarifaActualizada.getUuid()));
 
+            registrarAuditoriaSistema(
+                    "ACTUALIZAR_TARIFA",
+                    "tarifa",
+                    tarifaCompleta.getUuid(),
+                    "Tarifa actualizada",
+                    "{\"anterior\":" + datosAnterior + ",\"nuevo\":" + buildTarifaSnapshot(tarifaCompleta) + "}"
+            );
             return TarifaMapper.toDto(tarifaCompleta, true);
         } else {
             throw new NullReferenceException(TARIFA);
@@ -173,6 +192,13 @@ public class TarifasServiceImpl implements TarifasService {
 
             tarifa.setEstado(true);
             tarifaRepository.save(tarifa);
+            registrarAuditoriaSistema(
+                    "ELIMINAR_TARIFA",
+                    "tarifa",
+                    tarifa.getUuid(),
+                    "Tarifa eliminada",
+                    buildTarifaSnapshot(tarifa)
+            );
 
             return "Eliminación exitosa (soft delete)";
         } else {
@@ -248,6 +274,13 @@ public class TarifasServiceImpl implements TarifasService {
             for (TarifaConcepto concepto : tarifa.getConceptos()) {
                 concepto.setEstado(true);
                 tarifaConceptoRepository.save(concepto);
+                registrarAuditoriaSistema(
+                        "ELIMINAR_TARIFA_CONCEPTO",
+                        "tarifa_concepto",
+                        concepto.getUuid(),
+                        "Concepto de tarifa reemplazado durante actualización de tarifa",
+                        buildTarifaConceptoSnapshot(concepto)
+                );
             }
         }
 
@@ -260,7 +293,56 @@ public class TarifasServiceImpl implements TarifasService {
             TarifaConcepto concepto = TarifaConceptoMapper.toEntity(conceptoDto);
             concepto.setTarifa(tarifa);
             concepto.setEstado(false); // Active by default
-            tarifaConceptoRepository.save(concepto);
+            TarifaConcepto conceptoGuardado = tarifaConceptoRepository.save(concepto);
+            registrarAuditoriaSistema(
+                    "CREAR_TARIFA_CONCEPTO",
+                    "tarifa_concepto",
+                    conceptoGuardado.getUuid(),
+                    "Concepto de tarifa creado",
+                    buildTarifaConceptoSnapshot(conceptoGuardado)
+            );
         }
+    }
+
+    private void registrarAuditoriaSistema(String accion, String entidadTipo, String entidadUuid,
+                                           String descripcion, String datosCambio) {
+        sistemaAuditoriaService.registrarAccion(
+                null,
+                accion,
+                "TARIFAS",
+                entidadTipo,
+                entidadUuid,
+                descripcion,
+                datosCambio,
+                null,
+                null
+        );
+    }
+
+    private String buildTarifaSnapshot(Tarifa tarifa) {
+        return "{\"uuid\":\"" + safeValue(tarifa.getUuid())
+                + "\",\"precioBase\":\"" + safeValue(tarifa.getPrecioBase())
+                + "\",\"tipoCobro\":\"" + safeValue(tarifa.getTipoCobro())
+                + "\",\"frecuencia\":\"" + safeValue(tarifa.getFrecuencia())
+                + "\",\"fechaInicio\":\"" + safeValue(tarifa.getFechaInicio())
+                + "\",\"fechaFin\":\"" + safeValue(tarifa.getFechaFin())
+                + "\",\"activo\":\"" + safeValue(tarifa.getActivo())
+                + "\",\"estado\":\"" + tarifa.isEstado() + "\"}";
+    }
+
+    private String buildTarifaConceptoSnapshot(TarifaConcepto concepto) {
+        return "{\"uuid\":\"" + safeValue(concepto.getUuid())
+                + "\",\"tarifaUuid\":\"" + safeValue(concepto.getTarifa() != null ? concepto.getTarifa().getUuid() : null)
+                + "\",\"concepto\":\"" + safeValue(concepto.getConcepto())
+                + "\",\"tipo\":\"" + safeValue(concepto.getTipo())
+                + "\",\"valor\":\"" + safeValue(concepto.getValor())
+                + "\",\"desde\":\"" + safeValue(concepto.getDesde())
+                + "\",\"hasta\":\"" + safeValue(concepto.getHasta())
+                + "\",\"activo\":\"" + safeValue(concepto.getActivo())
+                + "\",\"estado\":\"" + concepto.isEstado() + "\"}";
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

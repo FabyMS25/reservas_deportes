@@ -292,7 +292,7 @@ public class ReservaController {
             ReservaDto nuevaReserva = reservaService.crearReserva(reservaDto);
             return Response.ok().setPayload(nuevaReserva);
         } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al crear reserva: " + ex.getMessage());
+            return Response.unprocessableEntity().setPayload("Error al crear reserva: " + getRootMessage(ex));
         }
     }
 
@@ -392,4 +392,12 @@ public class ReservaController {
 //            return Response.serverError().setPayload("Error al contar reservas: " + ex.getMessage());
 //        }
 //    }
+
+    private String getRootMessage(Exception ex) {
+        Throwable cause = ex;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause.getMessage();
+    }
 }

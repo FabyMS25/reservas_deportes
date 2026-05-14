@@ -33,6 +33,8 @@
 	RP.hora_fin,
 	RE.numero_tasa,
 	RE.monto_total,
+	RE.es_reserva_gratuita,
+	RE.motivo_gratuidad,
 	RE.numero_reserva,
 	ca.codigo,
 	RE.tipo_reserva,
@@ -68,6 +70,8 @@ WHERE
 	<field name="hora_fin" class="java.sql.Time"/>
 	<field name="numero_tasa" class="java.lang.String"/>
 	<field name="monto_total" class="java.lang.Double"/>
+	<field name="es_reserva_gratuita" class="java.lang.Boolean"/>
+	<field name="motivo_gratuidad" class="java.lang.String"/>
 	<field name="precio_base" class="java.lang.Double"/>
 	<field name="contri" class="java.lang.String"/>
 	<field name="ci" class="java.lang.String"/>
@@ -359,7 +363,11 @@ WHERE
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0e3013f9-c343-4f0d-958f-8f025692e2d9"/>
 				</reportElement>
 				<textElement textAlignment="Center"/>
-				<textFieldExpression><![CDATA[$F{tipo_cobro}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					("GRATUITA" + ($F{motivo_gratuidad} == null ? "" : " (" + $F{motivo_gratuidad} + ")")) :
+					$F{tipo_cobro}
+				]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="395" y="1" width="50" height="20" uuid="f125418c-4558-48ca-9417-940decd108e7">
@@ -373,7 +381,11 @@ WHERE
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="2c0209df-f2dd-4e38-bd96-6ca1bfcc3eb3"/>
 				</reportElement>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					"0.00 (GRATUITA)" :
+					$F{monto_total}
+				]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="0" y="21" width="585" height="1" uuid="456f3314-3861-44e4-b799-7477e8f71fa0"/>

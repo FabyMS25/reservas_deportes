@@ -122,6 +122,9 @@ public class Reserva {
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ReservaAuditoria> auditoriasList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ReservaTarifaDetalle> tarifaDetallesList = new ArrayList<>();
+
     public Reserva(String uuid) {
         this.uuid = uuid;
     }

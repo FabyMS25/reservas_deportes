@@ -22,7 +22,7 @@
 	<parameter name="alumno" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select RE.uuid,fecha_reserva,tipo_reserva,estado_reserva, telefono_principal as tel,
-		numero_tasa, monto_total, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp,  
+		numero_tasa, monto_total, RE.es_reserva_gratuita, RE.motivo_gratuidad, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp,  
 		(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, 
 		con.numero_documento as ci, Com.nombre as cancha,ubicacion, ES.nombre_completo as estu,
 		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula, ORG.nombre as escuela
@@ -41,6 +41,8 @@
 	<field name="fecha_reserva" class="java.sql.Date"/>
 	<field name="numero_tasa" class="java.lang.String"/>
 	<field name="monto_total" class="java.lang.Double"/>
+	<field name="es_reserva_gratuita" class="java.lang.Boolean"/>
+	<field name="motivo_gratuidad" class="java.lang.String"/>
 	<field name="contri" class="java.lang.String"/>
 	<field name="ci" class="java.lang.String"/>
 	<field name="codigo" class="java.lang.String"/>
@@ -293,7 +295,11 @@
 					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="2c0209df-f2dd-4e38-bd96-6ca1bfcc3eb3"/>
 				</reportElement>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$F{monto_total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					"0.00 (GRATUITA)" :
+					$F{monto_total}
+				]]></textFieldExpression>
 			</textField>
 			<line>
 				<reportElement x="-1" y="25" width="585" height="1" uuid="456f3314-3861-44e4-b799-7477e8f71fa0"/>

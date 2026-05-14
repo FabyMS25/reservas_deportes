@@ -35,6 +35,7 @@ public class ReservaRecurrenteMapper {
 
         dto.setCantidadSesiones(reservaRecurrente.getCantidadSesiones());
         dto.setDuracionSesionHoras(reservaRecurrente.getDuracionSesionHoras());
+        dto.setPrecioBaseAplicado(reservaRecurrente.getPrecioBaseAplicado());
 
         // Convert Integer to BigDecimal for tarifaMensual in DTO
         if (reservaRecurrente.getTarifaMensual() != null) {
@@ -99,6 +100,7 @@ public class ReservaRecurrenteMapper {
 
         entity.setCantidadSesiones(reservaRecurrenteDto.getCantidadSesiones());
         entity.setDuracionSesionHoras(reservaRecurrenteDto.getDuracionSesionHoras());
+        entity.setPrecioBaseAplicado(reservaRecurrenteDto.getPrecioBaseAplicado());
 
         // Convert BigDecimal to Integer for tarifaMensual in entity
         if (reservaRecurrenteDto.getTarifaMensual() != null) {
@@ -150,6 +152,7 @@ public class ReservaRecurrenteMapper {
 
         entity.setCantidadSesiones(dto.getCantidadSesiones());
         entity.setDuracionSesionHoras(dto.getDuracionSesionHoras());
+        entity.setPrecioBaseAplicado(dto.getPrecioBaseAplicado());
 
         // Convert BigDecimal to Integer for tarifaMensual
         if (dto.getTarifaMensual() != null) {

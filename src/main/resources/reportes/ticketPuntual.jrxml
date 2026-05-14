@@ -9,13 +9,14 @@
 	<property name="net.sf.jasperreports.print.order.preserve" value="true"/>
 	<parameter name="logoPath" class="java.io.InputStream"/>
 	<parameter name="uuid" class="java.lang.String"/>
+	<parameter name="detalle_tarifario" class="java.lang.String"/>
 
 	<queryString language="SQL">
 		<![CDATA[
         select RE.uuid, tipo_reserva, rp.categoria, re.fecha_creacion, fecha_reserva, estado_reserva,
                fecha_uso, hora_inicio, hora_fin, numero_tasa, monto_total, numero_reserva, codigo,
                COM.nombre as comp, ubicacion, telefono_principal as tel,
-               TA.descripcion, TA.precio_base,
+               TA.descripcion, TA.precio_base, RE.es_reserva_gratuita, RE.motivo_gratuidad,
                RP.duracion_horas,
                (CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri,
                con.numero_documento as ci,
@@ -38,6 +39,8 @@
 	<field name="numero_tasa" class="java.lang.String"/>
 	<field name="monto_total" class="java.lang.Double"/>
 	<field name="precio_base" class="java.lang.Double"/>
+	<field name="es_reserva_gratuita" class="java.lang.Boolean"/>
+	<field name="motivo_gratuidad" class="java.lang.String"/>
 	<field name="contri" class="java.lang.String"/>
 	<field name="ci" class="java.lang.String"/>
 	<field name="codigo" class="java.lang.String"/>
@@ -349,6 +352,8 @@
 					<font fontName="SansSerif" size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[
+					Boolean.TRUE.equals($F{es_reserva_gratuita}) ?
+					("GRATUITA" + ($F{motivo_gratuidad} == null ? "" : " (" + $F{motivo_gratuidad} + ")")) :
 					java.text.DecimalFormat.getInstance(java.util.Locale.US)
 						.format($F{precio_base} == null ? 0 : $F{precio_base})
 					+ " x " +
@@ -384,9 +389,26 @@
 	</columnHeader>
 
 	<detail>
-		<band height="160" splitType="Stretch">
+		<band height="220" splitType="Stretch">
 			<frame>
-				<reportElement x="0" y="3" width="555" height="77" positionType="Float"/>
+				<reportElement x="0" y="3" width="555" height="55" positionType="Float"/>
+				<staticText>
+					<reportElement x="0" y="1" width="555" height="12"/>
+					<textElement textAlignment="Left">
+						<font fontName="SansSerif" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DETALLE TARIFARIO]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="0" y="16" width="555" height="36"/>
+					<textElement>
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{detalle_tarifario}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="0" y="63" width="555" height="77" positionType="Float"/>
 				<staticText>
 					<reportElement x="0" y="1" width="555" height="12"/>
 					<textElement textAlignment="Left">
@@ -404,7 +426,7 @@
 				</staticText>
 			</frame>
 			<frame>
-				<reportElement x="0" y="126" width="555" height="34" positionType="Float"/>
+				<reportElement x="0" y="186" width="555" height="34" positionType="Float"/>
 				<line>
 					<reportElement x="40" y="0" width="200" height="1"/>
 				</line>

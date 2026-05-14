@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -50,6 +51,8 @@ public class ReservaRecurrente {
     private Integer cantidadSesiones;
     @Column(name = "duracion_sesuib_horas")
     private Integer duracionSesionHoras;
+    @Column(name = "precio_base_aplicado", precision = 10, scale = 2)
+    private BigDecimal precioBaseAplicado;
     @Column(name = "tarifa_mensual")
     private Integer tarifaMensual;
     @Column(name = "activo", columnDefinition = "BOOLEAN DEFAULT TRUE")

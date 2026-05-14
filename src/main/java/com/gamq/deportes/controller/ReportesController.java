@@ -1,8 +1,13 @@
 package com.gamq.deportes.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
 import com.gamq.deportes.exception.NotFoundException;
+import com.gamq.deportes.model.ReservaTarifaDetalle;
+import com.gamq.deportes.repository.ReservaTarifaDetalleRepository;
 import com.gamq.deportes.service.ReservaRecurrenteService;
+import com.gamq.deportes.service.SistemaAuditoriaService;
 import com.gamq.deportes.utils.GeneradorReporte;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,11 +31,20 @@ import java.util.*;
 @RequestMapping("/api/reporte")
 @Tag(name = "Reportes", description = "API para Reportes imprimibles del Sistema")
 public class ReportesController {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Autowired
     private GeneradorReporte generadorReporte;
 
      @Autowired
      private ReservaRecurrenteService reservaRecurrenteService;
+
+    @Autowired
+    private SistemaAuditoriaService sistemaAuditoriaService;
+
+    @Autowired
+    private ReservaTarifaDetalleRepository reservaTarifaDetalleRepository;
+
     ///////////////reserva puntual por hora/////////////////
     @Operation(summary = "Reporte de ticket de Reserva Puntual")
     @RequestMapping(value="/ticket-reservap",method= RequestMethod.GET)
@@ -47,6 +61,7 @@ public class ReportesController {
             InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
             parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(uuid));
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -55,6 +70,8 @@ public class ReportesController {
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "TICKET_RESERVA_PUNTUAL", "reserva", uuid,
+                        "Generó ticket de reserva puntual por hora", "{\"uuid\":\"" + safeValue(uuid) + "\"}");
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -70,6 +87,7 @@ public class ReportesController {
     @ResponseBody
     public void reporteTicketReservePersona(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
         try {
@@ -77,6 +95,7 @@ public class ReportesController {
             InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
             parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(uuid));
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             generadorReporte.generarSqlReportePdf(
                     "ticket",
@@ -84,6 +103,8 @@ public class ReportesController {
                     parametros,
                     response
             );
+            registrarReporteGenerado(headers, "TICKET_RESERVA_PUNTUAL_PERSONA", "reserva", uuid,
+                    "Generó ticket de reserva puntual por persona", "{\"uuid\":\"" + safeValue(uuid) + "\"}");
         } catch (SQLException ex) {
             ex.printStackTrace();
             sendErrorResponse(response, 500, "Error SQL al generar ticketPuntualperson.");
@@ -109,6 +130,7 @@ public class ReportesController {
             InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
             parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(uuid));
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -117,6 +139,8 @@ public class ReportesController {
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "TICKET_RESERVA_PUNTUAL_EVENTO", "reserva", uuid,
+                        "Generó ticket de reserva puntual por evento", "{\"uuid\":\"" + safeValue(uuid) + "\"}");
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -177,6 +201,8 @@ public class ReportesController {
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "REPORTE_LISTA_RESERVAS", "reporte", null,
+                        "Generó listado de reservas", buildReportFilters(parametros));
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -236,6 +262,8 @@ public class ReportesController {
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "REPORTE_LISTA_RECURRENTES", "reporte", null,
+                        "Generó listado de reservas recurrentes", buildReportFilters(parametros));
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -251,31 +279,36 @@ public class ReportesController {
     @ResponseBody
     public void ticketRecuSesion(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
-        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecu.jrxml", response);
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecu.jrxml", "TICKET_RECURRENTE_SESION", headers, response);
     }
     @Operation(summary = "Reporte de reserva Recurrente por Mensualidad")
     @RequestMapping(value="/ticket-recumes", method = RequestMethod.GET)
     @ResponseBody
     public void ticketRecuMes(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
-        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecumen.jrxml", response);
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecumen.jrxml", "TICKET_RECURRENTE_MENSUALIDAD", headers, response);
     }
     @Operation(summary = "Reporte de reserva Recurrente por Persona")
     @RequestMapping(value="/ticket-recuper", method = RequestMethod.GET)
     @ResponseBody
     public void ticketRecuPer(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
+            @RequestHeader Map<String, String> headers,
             HttpServletResponse response
     ) {
-        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecuPer.jrxml", response);
+        generarTicketRecurrente(uuid, "classpath:reportes/ticketRecuPer.jrxml", "TICKET_RECURRENTE_PERSONA", headers, response);
     }
     private void generarTicketRecurrente(
             String uuid,
             String rutaReporte,
+            String accion,
+            Map<String, String> headers,
             HttpServletResponse response
     ) {
         try {
@@ -300,6 +333,7 @@ public class ReportesController {
             parametros.put("uuid", uuid);
             parametros.put("horario_formateado", horarioFormateado);
             parametros.put("cantidad_meses", cantidadMeses);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(uuid));
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             generadorReporte.generarSqlReportePdf(
                     "Recurrente",
@@ -307,6 +341,8 @@ public class ReportesController {
                     parametros,
                     response
             );
+            registrarReporteGenerado(headers, accion, "reserva", uuid,
+                    "Generó ticket de reserva recurrente", "{\"uuid\":\"" + safeValue(uuid) + "\",\"rutaReporte\":\"" + safeValue(rutaReporte) + "\"}");
         } catch (SQLException e) {
             sendErrorResponse(response, 500, "Error SQL al generar el reporte.");
         } catch (Exception e) {
@@ -609,6 +645,8 @@ public class ReportesController {
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "REPORTE_LISTA_PAGOS", "reporte", null,
+                        "Generó listado de pagos", buildReportFilters(parametros));
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -665,6 +703,8 @@ public void reporteListaMensuales (
                     parametros,
                     response
             );
+            registrarReporteGenerado(headers, "REPORTE_LISTA_MENSUALES", "reporte", null,
+                    "Generó listado de reservas mensuales", buildReportFilters(parametros));
         } catch (SQLException ex) {
             response.setStatus(500);
             throw new RuntimeException(ex);
@@ -728,6 +768,8 @@ public void reporteListaMensAlumno (
                     parametros,
                     response
             );
+            registrarReporteGenerado(headers, "REPORTE_LISTA_MENSUALIDADES_ALUMNO", "reporte", null,
+                    "Generó listado de pagos de escuelas por alumno", buildReportFilters(parametros));
         } catch (SQLException ex) {
             response.setStatus(500);
             throw new RuntimeException(ex);
@@ -754,6 +796,7 @@ public void reporteListaMensAlumno (
             InputStream logoStream = getClass().getResourceAsStream("/imagenes/gamq1.jpg");
             parametros.put("logoPath", logoStream);
             parametros.put("uuid", uuid);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(uuid));
             parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
             try {
                 generadorReporte.generarSqlReportePdf(
@@ -762,6 +805,8 @@ public void reporteListaMensAlumno (
                         parametros,
                         response
                 );
+                registrarReporteGenerado(headers, "TICKET_MENSUAL_ESCUELA", "reserva", uuid,
+                        "Generó ticket de mensualidad de escuela", "{\"uuid\":\"" + safeValue(uuid) + "\"}");
             } catch (SQLException ex) {
                 response.setStatus(500);
                 throw new RuntimeException(ex);
@@ -771,5 +816,141 @@ public void reporteListaMensAlumno (
             System.out.println(e.getMessage());
             System.out.println(e.getLocalizedMessage());
         }
+    }
+
+    private void registrarReporteGenerado(Map<String, String> headers, String accion, String entidadTipo,
+                                          String entidadUuid, String descripcion, String datosCambio) {
+        sistemaAuditoriaService.registrarAccion(
+                getHeader(headers, "usuario_uuid", "usuarioUuid", "user_uuid", "userUuid", "usuario"),
+                accion,
+                "REPORTES",
+                entidadTipo,
+                entidadUuid,
+                descripcion,
+                datosCambio,
+                getHeader(headers, "x-forwarded-for", "X-Forwarded-For", "x-real-ip", "X-Real-IP"),
+                getHeader(headers, "user-agent", "User-Agent")
+        );
+    }
+
+    private String buildDetalleTarifario(String reservaUuid) {
+        List<ReservaTarifaDetalle> detalles = reservaTarifaDetalleRepository.findByReservaUuid(reservaUuid);
+        if (detalles == null || detalles.isEmpty()) {
+            return "Detalle tarifario no registrado. Verificar monto total de la reserva.";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (ReservaTarifaDetalle detalle : detalles) {
+            if (detalle == null) {
+                continue;
+            }
+            String concepto = detalle.getNombreConcepto();
+            if (concepto == null || concepto.trim().isEmpty()) {
+                concepto = "BASE".equalsIgnoreCase(detalle.getTipoLinea()) ? "Tarifa base" : "Concepto tarifario";
+            }
+            builder.append(concepto);
+            if (detalle.getTipoCobro() != null && !detalle.getTipoCobro().trim().isEmpty()) {
+                builder.append(" (").append(detalle.getTipoCobro()).append(")");
+            }
+            JsonNode snapshot = parseSnapshot(detalle.getDatosSnapshot());
+            BigDecimal precioUnitario = getSnapshotDecimal(snapshot, "precioUnitarioOriginal", detalle.getPrecioUnitario());
+            BigDecimal subtotal = getSnapshotDecimal(snapshot, "subtotalOriginal", detalle.getSubtotal());
+            boolean exento = isGratuidad(detalle, snapshot);
+            String motivoGratuidad = getSnapshotText(snapshot, "motivoGratuidad");
+
+            builder.append(": ");
+            builder.append(formatMoney(detalle.getCantidad())).append(" x ");
+            builder.append(formatMoney(precioUnitario)).append(" Bs.");
+            builder.append(" = ").append(formatMoney(subtotal)).append(" Bs.");
+            if (exento) {
+                builder.append(" -> exento por gratuidad");
+                if (motivoGratuidad != null && !motivoGratuidad.trim().isEmpty()) {
+                    builder.append(" (").append(motivoGratuidad).append(")");
+                }
+            } else if (detalle.getReglaAplicada() != null && !detalle.getReglaAplicada().trim().isEmpty()) {
+                builder.append(" - ").append(detalle.getReglaAplicada());
+            }
+            builder.append("\n");
+        }
+        return builder.toString().trim();
+    }
+
+    private JsonNode parseSnapshot(String datosSnapshot) {
+        if (datosSnapshot == null || datosSnapshot.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readTree(datosSnapshot);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private BigDecimal getSnapshotDecimal(JsonNode snapshot, String field, BigDecimal fallback) {
+        if (snapshot != null && snapshot.has(field) && snapshot.get(field).isNumber()) {
+            return snapshot.get(field).decimalValue();
+        }
+        return fallback;
+    }
+
+    private String getSnapshotText(JsonNode snapshot, String field) {
+        if (snapshot != null && snapshot.has(field) && !snapshot.get(field).isNull()) {
+            return snapshot.get(field).asText();
+        }
+        return null;
+    }
+
+    private boolean isGratuidad(ReservaTarifaDetalle detalle, JsonNode snapshot) {
+        if (detalle.getReglaAplicada() != null && detalle.getReglaAplicada().startsWith("GRATUIDAD")) {
+            return true;
+        }
+        return snapshot != null && snapshot.has("esReservaGratuita") && snapshot.get("esReservaGratuita").asBoolean(false);
+    }
+
+    private String formatMoney(BigDecimal value) {
+        if (value == null) {
+            return "0.00";
+        }
+        return String.format(Locale.US, "%.2f", value);
+    }
+
+    private String buildReportFilters(Map<String, Object> parametros) {
+        StringBuilder builder = new StringBuilder("{");
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : parametros.entrySet()) {
+            if ("logoPath".equals(entry.getKey()) || JRParameter.REPORT_LOCALE.equals(entry.getKey())) {
+                continue;
+            }
+            if (!first) {
+                builder.append(",");
+            }
+            builder.append("\"").append(safeValue(entry.getKey())).append("\":\"")
+                    .append(safeValue(entry.getValue())).append("\"");
+            first = false;
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
+    private String getHeader(Map<String, String> headers, String... names) {
+        if (headers == null) {
+            return null;
+        }
+        for (String name : names) {
+            if (headers.containsKey(name)) {
+                return headers.get(name);
+            }
+        }
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            for (String name : names) {
+                if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(name)) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

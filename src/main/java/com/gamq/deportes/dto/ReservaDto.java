@@ -64,4 +64,5 @@ public class    ReservaDto {
 
     public List<PagoDto> pagosDtoList = new ArrayList<>();
     public List<ReservaAuditoriaDto> auditoriasDtoList = new ArrayList<>();
+    public List<ReservaTarifaDetalleDto> tarifaDetallesDtoList = new ArrayList<>();
 }

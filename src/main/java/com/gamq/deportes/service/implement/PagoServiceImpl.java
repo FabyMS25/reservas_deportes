@@ -1,5 +1,6 @@
 package com.gamq.deportes.service.implement;
 
+import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.PagoMapper;
 
 import com.gamq.deportes.dto.PagoDto;
@@ -9,6 +10,7 @@ import com.gamq.deportes.model.Pago;
 
 import com.gamq.deportes.repository.PagoRepository;
 import com.gamq.deportes.repository.ReservaRepository;
+import com.gamq.deportes.service.NotificacionService;
 import com.gamq.deportes.service.PagoService;
 import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
@@ -25,11 +27,17 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Component
 public class PagoServiceImpl implements PagoService {
 
+    private static final String NOTIFICAR_PAGO_PENDIENTE = "NOTIFICAR_PAGO_PENDIENTE";
+    private static final String NOTIFICAR_PAGO_CONFIRMADO = "NOTIFICAR_PAGO_CONFIRMADO";
+
     @Autowired
     PagoRepository pagosRepository;
 
     @Autowired
     ReservaRepository reservasRepository;
+
+    @Autowired
+    NotificacionService notificacionService;
 
     public PagoDto findByUuid(String uuid){
 
@@ -93,7 +101,9 @@ public class PagoServiceImpl implements PagoService {
             Pago newPago = PagoMapper.toEntity(pagosDto);
             Reserva reservas = obtenerReserva(reservaUuid);
             newPago.setReserva(reservas);
-            return PagoMapper.toDto(pagosRepository.save(newPago), true);
+            Pago pagoGuardado = pagosRepository.save(newPago);
+            notificarPago(pagoGuardado);
+            return PagoMapper.toDto(pagoGuardado, true);
         } else {
             throw new NullReferenceException(PAGOS);
         }
@@ -108,7 +118,9 @@ public class PagoServiceImpl implements PagoService {
                 Reserva reservas= obtenerReserva(pagosDto.getReservaDto().getUuid());
                 pagosModificado.setReserva(reservas);
 
-                return PagoMapper.toDto(pagosRepository.save(pagosModificado),true);
+                Pago pagoGuardado = pagosRepository.save(pagosModificado);
+                notificarPago(pagoGuardado);
+                return PagoMapper.toDto(pagoGuardado,true);
             } else {
                 throw new NotFoundException(PAGOS, pagosDto.getUuid());
             }
@@ -128,5 +140,41 @@ public class PagoServiceImpl implements PagoService {
     public Reserva obtenerReserva(String uuid){
         return reservasRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+    }
+
+    private void notificarPago(Pago pago) {
+        if (pago.getReserva() == null
+                || pago.getReserva().getContribuyente() == null
+                || pago.getReserva().getContribuyente().getUuid() == null) {
+            return;
+        }
+
+        String estadoPago = pago.getEstadoPago() == null ? "pendiente" : pago.getEstadoPago();
+        boolean confirmado = "confirmado".equalsIgnoreCase(estadoPago)
+                || "pagado".equalsIgnoreCase(estadoPago)
+                || "PAGADO".equals(estadoPago);
+
+        String tipo = confirmado ? NOTIFICAR_PAGO_CONFIRMADO : NOTIFICAR_PAGO_PENDIENTE;
+        String titulo = confirmado ? "Pago confirmado" : "Pago pendiente";
+        String mensaje = confirmado
+                ? "El pago de la reserva " + safeValue(pago.getReserva().getNumeroReserva()) + " fue confirmado."
+                : "Tienes un pago pendiente para la reserva " + safeValue(pago.getReserva().getNumeroReserva()) + ".";
+        String prioridad = confirmado ? "SUCCESS" : "WARNING";
+
+        NotificacionDto notificacion = new NotificacionDto()
+                .setUsuarioUuid(pago.getReserva().getContribuyente().getUuid())
+                .setTipo(tipo)
+                .setTitulo(titulo)
+                .setMensaje(mensaje)
+                .setPrioridad(prioridad)
+                .setCanal("APP")
+                .setReferenciaTipo("PAGO")
+                .setReferenciaUuid(pago.getUuid())
+                .setAccionUrl("/pagos/" + pago.getUuid());
+        notificacionService.crearNotificacionSiHabilitada(tipo, notificacion);
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value);
     }
 }

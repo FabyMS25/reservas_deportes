@@ -7,6 +7,7 @@ import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaPuntualRepository;
+import com.gamq.deportes.repository.ReservaAuditoriaRepository;
 import com.gamq.deportes.repository.ReservaRecurrenteRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.service.ReservaPuntualService;
@@ -46,6 +47,8 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
     @Autowired
     private ReservaRepository reservaRepository;
+    @Autowired
+    private ReservaAuditoriaRepository reservaAuditoriaRepository;
 
     public Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable) {
         Specification<ReservaPuntual> spec = Specification.where(null);
@@ -164,6 +167,15 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                 reserva.setReserva(updatedReserva);
 
                 if (!originalEstado.equals("EXPIRADA")) {
+                    registrarAuditoria(
+                            updatedReserva,
+                            "EXPIRE",
+                            originalEstado,
+                            updatedReserva.getEstadoReserva(),
+                            null,
+                            "Reserva puntual expirada por falta de pago",
+                            null
+                    );
                     updatedReservas.add(ReservaPuntualMapper.toDto(reserva, true));
                     System.out.println("Successfully updated reservation to EXPIRADA");
                 }
@@ -423,6 +435,15 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
         }
 
         ReservaPuntual reservaPuntualGuardada = reservaPuntualRepository.save(nuevaReservaPuntual);
+        registrarAuditoria(
+                reservaPuntualGuardada.getReserva(),
+                "CREATE_PUNTUAL",
+                reserva.getEstadoReserva(),
+                reserva.getEstadoReserva(),
+                null,
+                "Detalle de reserva puntual creado",
+                buildReservaPuntualSnapshot(reservaPuntualGuardada)
+        );
         return ReservaPuntualMapper.toDto(reservaPuntualGuardada, true);
     }
 
@@ -454,6 +475,15 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             }
 
             ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntualExistente);
+            registrarAuditoria(
+                    reservaPuntualActualizada.getReserva(),
+                    "UPDATE_PUNTUAL",
+                    reservaPuntualActualizada.getReserva().getEstadoReserva(),
+                    reservaPuntualActualizada.getReserva().getEstadoReserva(),
+                    null,
+                    "Detalle de reserva puntual actualizado",
+                    buildReservaPuntualSnapshot(reservaPuntualActualizada)
+            );
             return ReservaPuntualMapper.toDto(reservaPuntualActualizada, true);
         } else {
             throw new NotFoundException(RESERVA_PUNTUAL, reservaPuntualDto.getUuid());
@@ -469,6 +499,15 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
         reservaPuntual.setFechaUsoReal(fechaUsoReal);
 
         ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntual);
+        registrarAuditoria(
+                reservaPuntualActualizada.getReserva(),
+                "REGISTER_REAL_USE",
+                reservaPuntualActualizada.getReserva().getEstadoReserva(),
+                reservaPuntualActualizada.getReserva().getEstadoReserva(),
+                null,
+                "Uso real registrado para reserva puntual",
+                "{\"fechaUsoReal\":\"" + safeValue(fechaUsoReal) + "\"}"
+        );
         return ReservaPuntualMapper.toDto(reservaPuntualActualizada, true);
     }
 
@@ -479,6 +518,15 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             ReservaPuntual reserva = reservaPuntualRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA_PUNTUAL, uuid));
 
+            registrarAuditoria(
+                    reserva.getReserva(),
+                    "DELETE_PUNTUAL",
+                    reserva.getReserva().getEstadoReserva(),
+                    reserva.getReserva().getEstadoReserva(),
+                    null,
+                    "Detalle de reserva puntual desactivado",
+                    buildReservaPuntualSnapshot(reserva)
+            );
             reservaPuntualRepository.delete(reserva);
 
             return "Desactivación exitosa del RESERVA";
@@ -509,5 +557,36 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     private Reserva getReserva(String uuid) {
         return reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+    }
+
+    private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
+                                    String usuarioUuid, String observaciones, String datosCambio) {
+        if (reserva == null) {
+            return;
+        }
+        ReservaAuditoria auditoria = new ReservaAuditoria();
+        auditoria.setReserva(reserva);
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior);
+        auditoria.setEstadoNuevo(estadoNuevo);
+        auditoria.setUsuarioUuid(usuarioUuid);
+        auditoria.setObservaciones(observaciones);
+        auditoria.setDatosCambio(datosCambio);
+        auditoria.setFechaAccion(LocalDateTime.now());
+        reservaAuditoriaRepository.save(auditoria);
+    }
+
+    private String buildReservaPuntualSnapshot(ReservaPuntual reservaPuntual) {
+        return "{\"uuid\":\"" + safeValue(reservaPuntual.getUuid())
+                + "\",\"fechaUso\":\"" + safeValue(reservaPuntual.getFechaUso())
+                + "\",\"horaInicio\":\"" + safeValue(reservaPuntual.getHoraInicio())
+                + "\",\"horaFin\":\"" + safeValue(reservaPuntual.getHoraFin())
+                + "\",\"duracionHoras\":\"" + safeValue(reservaPuntual.getDuracionHoras())
+                + "\",\"cantidadPersonas\":\"" + safeValue(reservaPuntual.getCantidadPersonas())
+                + "\",\"precioBaseAplicado\":\"" + safeValue(reservaPuntual.getPrecioBaseAplicado()) + "\"}";
+    }
+
+    private String safeValue(Object value) {
+        return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
 }

@@ -1,5 +1,9 @@
 package com.gamq.deportes.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.gamq.deportes.dto.RuatApiResponseDto;
 import com.gamq.deportes.model.AnularTasa.AnularTasaResponse;
 import com.gamq.deportes.model.AnularTasa.AnularTasaToken;
 import com.gamq.deportes.model.Contribuyentes.ContribuyenteResponse;
@@ -16,6 +20,9 @@ import com.gamq.deportes.service.ApiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.bind.annotation.*;
 import com.gamq.deportes.dto.response.Response;
 
@@ -25,6 +32,10 @@ import com.gamq.deportes.dto.response.Response;
 public class ApiController {
     @Autowired
     private  ApiService apiService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Operation(summary = "Login a Ruat se obtiene un Token")
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {
@@ -35,9 +46,9 @@ public class ApiController {
     public Response Buscar(@RequestBody ContribuyenteToken contribuyenteToken) {
         try{
             ContribuyenteResponse contribuyenteResponse=this.apiService.buscarContribuyente(contribuyenteToken);
-            return Response.ok().setPayload(contribuyenteResponse);
+            return Response.ok().setPayload(toRuatApiResponse(contribuyenteResponse));
         } catch(Exception ex) {
-            return Response.notFound().setPayload(ex.getMessage());
+            return toRuatErrorResponse(ex);
         }
     }
     @Operation(summary = "Crea una tasa en RUAT")
@@ -47,9 +58,9 @@ public class ApiController {
         try{
 
             TasaResponse tasaResponse=this.apiService.crearTasa(tasaToken);
-            return Response.ok().setPayload(tasaResponse);
+            return Response.ok().setPayload(toRuatApiResponse(tasaResponse));
         } catch(Exception ex) {
-            return Response.notFound().setPayload(ex.getMessage());
+            return toRuatErrorResponse(ex);
         }
     }
     @Operation(summary = "Anular Tasa")
@@ -57,9 +68,9 @@ public class ApiController {
     public Response Anular(@RequestBody AnularTasaToken anularTasaToken) {
         try{
             AnularTasaResponse anularTasaResponse= this.apiService.anularTasa(anularTasaToken);
-            return Response.ok().setPayload(anularTasaResponse);
+            return Response.ok().setPayload(toRuatApiResponse(anularTasaResponse));
         } catch(Exception ex) {
-            return Response.notFound().setPayload(ex.getMessage());
+            return toRuatErrorResponse(ex);
         }
     }
     @Operation(summary = "Registro de Contribuyente")
@@ -69,9 +80,9 @@ public class ApiController {
         try{
 
             RegistroResponse registroResponse= this.apiService.registro(registroToken);
-            return Response.ok().setPayload(registroResponse);
+            return Response.ok().setPayload(toRuatApiResponse(registroResponse));
         } catch(Exception ex) {
-            return Response.notFound().setPayload(ex.getMessage());
+            return toRuatErrorResponse(ex);
         }
     }
     @Operation(summary = "VErifica pago de una tasa")
@@ -81,14 +92,128 @@ public class ApiController {
         try{
 
             PagoResponse pagoResponse= this.apiService.consultaPago(pagoToken);
-            return Response.ok().setPayload(pagoResponse);
+            return Response.ok().setPayload(toRuatApiResponse(pagoResponse));
         } catch(Exception ex) {
-            return Response.notFound().setPayload(ex.getMessage());
+            return toRuatErrorResponse(ex);
         }
     }
 
     @GetMapping()
     public String cadena(){
         return "prueba";
+    }
+
+    private RuatApiResponseDto toRuatApiResponse(Object ruatResponse) {
+        ObjectNode responseNode = objectMapper.convertValue(ruatResponse, ObjectNode.class);
+        String mensaje = textValue(responseNode, "mensaje", "Operacion procesada por RUAT");
+        Boolean continuarFlujo = booleanValue(responseNode, "continuarFlujo");
+
+        responseNode.remove("mensaje");
+        responseNode.remove("continuarFlujo");
+
+        return new RuatApiResponseDto()
+                .setMensaje(mensaje)
+                .setContinuarFlujo(continuarFlujo)
+                .setDatos(responseNode);
+    }
+
+    private Response toRuatErrorResponse(Exception ex) {
+        RuatApiResponseDto payload = new RuatApiResponseDto()
+                .setMensaje("No se pudo procesar la solicitud en RUAT")
+                .setContinuarFlujo(false);
+
+        if (ex instanceof HttpStatusCodeException) {
+            HttpStatusCodeException httpException = (HttpStatusCodeException) ex;
+            payload = parseRuatErrorBody(httpException.getResponseBodyAsString(), payload)
+                    .setDetalle(createErrorDetail(httpException));
+
+            if (httpException.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Response.notFound().setPayload(payload);
+            }
+            if (httpException.getStatusCode().is4xxClientError()) {
+                return Response.badRequest().setPayload(payload);
+            }
+            return Response.exception().setPayload(payload);
+        }
+
+        if (ex instanceof ResourceAccessException) {
+            payload.setMensaje("No se pudo conectar con RUAT. Intente nuevamente.");
+            payload.setDetalle(ex.getMessage());
+            return Response.exception().setPayload(payload);
+        }
+
+        payload.setMensaje(cleanExceptionMessage(ex.getMessage()));
+        return Response.exception().setPayload(payload);
+    }
+
+    private RuatApiResponseDto parseRuatErrorBody(String body, RuatApiResponseDto fallback) {
+        if (body == null || body.trim().isEmpty()) {
+            return fallback;
+        }
+
+        try {
+            JsonNode errorNode = objectMapper.readTree(body);
+            String mensaje = textValue(errorNode, "mensaje", fallback.getMensaje());
+            Boolean continuarFlujo = booleanValue(errorNode, "continuarFlujo");
+
+            fallback.setMensaje(mensaje);
+            if (continuarFlujo != null) {
+                fallback.setContinuarFlujo(continuarFlujo);
+            }
+            return fallback;
+        } catch (Exception ignored) {
+            return fallback.setMensaje(cleanExceptionMessage(body));
+        }
+    }
+
+    private ObjectNode createErrorDetail(HttpStatusCodeException ex) {
+        ObjectNode detail = objectMapper.createObjectNode();
+        detail.put("httpStatus", ex.getRawStatusCode());
+        detail.put("statusText", ex.getStatusText());
+
+        String body = ex.getResponseBodyAsString();
+        if (body != null && !body.trim().isEmpty()) {
+            try {
+                detail.set("respuestaRuat", objectMapper.readTree(body));
+            } catch (Exception ignored) {
+                detail.put("respuestaRuat", cleanExceptionMessage(body));
+            }
+        }
+        return detail;
+    }
+
+    private String textValue(JsonNode node, String fieldName, String defaultValue) {
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) {
+            return defaultValue;
+        }
+        return field.asText(defaultValue);
+    }
+
+    private Boolean booleanValue(JsonNode node, String fieldName) {
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) {
+            return null;
+        }
+        if (field.isBoolean()) {
+            return field.asBoolean();
+        }
+        String value = field.asText();
+        if ("true".equalsIgnoreCase(value) || "1".equals(value)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(value) || "0".equals(value)) {
+            return false;
+        }
+        return null;
+    }
+
+    private String cleanExceptionMessage(String message) {
+        if (message == null || message.trim().isEmpty()) {
+            return "No se pudo procesar la solicitud en RUAT";
+        }
+        return message.replaceAll("^\\d{3}\\s[^:]*:\\s*", "")
+                .replaceAll("^\\[|\\]$", "")
+                .trim();
     }
 }
