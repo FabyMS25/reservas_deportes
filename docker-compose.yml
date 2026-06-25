@@ -13,6 +13,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=deportes123
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     restart: always
+
   db-deportes:
     image: postgis/postgis:14-3.2-alpine
 #    image: postgres:14-alpine
@@ -26,6 +27,7 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
     restart: always
+
   pg-deportes:
     image: dpage/pgadmin4
     container_name: 'deportes-pg'
@@ -43,10 +45,13 @@ services:
     image: 'deportes-fe'
     container_name: 'deportes-fe'
     ports:
-      - '4205:80'
-    depends_on:
-      - be-deportes
+      - '127.0.0.1:4205:80'
+#    ports:
+#      - '4205:80'
+#    depends_on:
+#      - be-deportes
     restart: always
+
 volumes:
   db:
   pg:
