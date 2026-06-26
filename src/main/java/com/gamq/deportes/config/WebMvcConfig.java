@@ -37,9 +37,33 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:4200", "http://181.177.143.187:4205","http://200.58.81.34:4206","http://200.58.81.34:4203")
-                .allowedMethods("GET","POST", "PUT", "PATCH", "DELETE")
-                .allowedHeaders("*");
+                .allowedOriginPatterns(
+                        "https://deportes.quillacollo.gob.bo",
+                        "http://127.0.0.1:4205",
+                        "http://181.177.143.187:4205",
+                        "http://200.58.81.34:4206",
+                        "http://200.58.81.34:4203",
+                        "http://localhost:4200", "http://localhost:4205"
+                )
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("Authorization", "Content-Disposition")
+                .allowCredentials(true)
+                .maxAge(3600);
+
+        registry.addMapping("/ws-notificaciones/**")
+                .allowedOriginPatterns(
+                        "https://deportes.quillacollo.gob.bo",
+                        "http://127.0.0.1:4205",
+                        "http://181.177.143.187:4205",
+                        "http://localhost:4200", "http://localhost:4205"
+                )
+                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+
         WebMvcConfigurer.super.addCorsMappings(registry);
     }
+
 }
