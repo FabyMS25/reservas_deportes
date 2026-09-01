@@ -33,6 +33,7 @@
 		join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
 		join organizaciones as ORG on org.id_organizacion = re.id_organizacion
 		WHERE RE.fecha_reserva BETWEEN $P{fechaini} AND $P{fechafin}
+		AND RE.estado = false
 		AND ORG.nombre LIKE  $P{escuelita} and RE.estado is false
 		AND RE.estado_reserva LIKE $P{estado}]]>
 	</queryString>

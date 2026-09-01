@@ -21,7 +21,7 @@
           tipo_reserva, comp, descripcion, precio_base, cantidad_sesiones as se, tam,
           tipo_cobro, estado_reserva, per, contri, ci, cancha, ubicacion
       FROM recurrentes as RE
-      WHERE RE.uuid = $P{uuid}
+      WHERE RE.uuid = $P{uuid} AND RE.estado = false
     ]]>
   </queryString>
   <field name="categoria" class="java.lang.String"/>

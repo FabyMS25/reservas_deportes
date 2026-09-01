@@ -19,7 +19,7 @@
 		join campos_deportivos as CA on CA.id_campo = RE.id_campo
 		join complejos_deportivos as COMP on COMP.id_complejo = CA.id_complejo
 		join superficies as SU on SU.id_superficie = CA.id_superficie
-		where PA.uuid = $P{uuid}]]>
+		where PA.uuid = $P{uuid} and PA.estado = false and RE.estado = false]]>
 	</queryString>
 	<field name="uuid" class="java.lang.String"/>
 	<field name="folio" class="java.lang.String"/>

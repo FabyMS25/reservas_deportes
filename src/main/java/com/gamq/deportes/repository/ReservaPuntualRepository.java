@@ -138,7 +138,7 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, 
 
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid " +
             "AND rp.fechaUso = :fechaUso " +
-            "AND rp.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
+            "AND rp.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "ORDER BY rp.horaInicio ASC")
     List<ReservaPuntual> findReservasActivasPorCampoYFecha(
             @Param("campoUuid") String campoUuid,
@@ -147,7 +147,7 @@ public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, 
 
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.campoDeportivo.uuid = :campoUuid " +
             "AND rp.fechaUso BETWEEN :fechaInicio AND :fechaFin " +
-            "AND rp.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA')")
+            "AND rp.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
     List<ReservaPuntual> findReservasActivasPorCampoYRangoFechas(
             @Param("campoUuid") String campoUuid,
             @Param("fechaInicio") LocalDate fechaInicio,

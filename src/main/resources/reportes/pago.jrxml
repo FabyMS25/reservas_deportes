@@ -19,6 +19,7 @@
 		join complejos_deportivos as COMP on COMP.id_complejo = CA.id_complejo
 		join superficies as SU on SU.id_superficie = CA.id_superficie
 		where PA.fecha_pago between $P{fecha_ini} and $P{fecha_fin}
+		and PA.estado = false and RE.estado = false
 		order by PA.fecha_pago asc]]>
 	</queryString>
 	<field name="uuid" class="java.lang.String"/>

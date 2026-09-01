@@ -32,6 +32,8 @@ JOIN complejos_deportivos AS COM
 JOIN superficies AS SU
   ON SU.id_superficie = ca.id_superficie
 WHERE PA.fecha_pago BETWEEN $P{fecha_ini} AND $P{fecha_fin}
+  AND PA.estado = false
+  AND RE.estado = false
 ORDER BY PA.fecha_pago ASC
     ]]>
 	</queryString>

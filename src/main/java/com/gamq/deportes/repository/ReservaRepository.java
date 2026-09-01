@@ -175,7 +175,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     // Complex business queries
     @Query("SELECT r FROM Reserva r WHERE r.campoDeportivo.uuid = :uuidCancha " +
             "AND r.fechaReserva BETWEEN :fechaIni AND :fechaFin " +
-            "AND r.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA')")
+            "AND r.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
     List<Reserva> findReservasActivasPorCampoYFecha(
             @Param("uuidCancha") String uuidCancha,
             @Param("fechaIni") LocalDateTime fechaIni,
@@ -183,7 +183,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     );
 
     @Query("SELECT r FROM Reserva r WHERE r.contribuyente.uuid = :uuidContribuyente " +
-            "AND r.estadoReserva IN ('PENDIENTE', 'APROBADA', 'CONFIRMADA') " +
+            "AND r.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "ORDER BY r.fechaReserva ASC")
     List<Reserva> findReservasActivasPorContribuyente(@Param("uuidContribuyente") String uuidContribuyente);
 
@@ -207,7 +207,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query(value = "SELECT * FROM reservas r WHERE r.id_campo = :idCampo " +
             "AND DATE(r.fecha_reserva) = DATE(:fecha) " +
-            "AND r.estado_reserva IN ('APROBADA', 'CONFIRMADA')",
+            "AND r.estado = false " +
+            "AND r.estado_reserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')",
             nativeQuery = true)
     List<Reserva> findReservasActivasPorCampoIdYFecha(
             @Param("idCampo") Long idCampo,
@@ -216,7 +217,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r WHERE r.campoDeportivo.uuid = :uuidCancha " +
             "AND r.fechaReserva BETWEEN :fechaIni AND :fechaFin " +
-            "AND r.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
+            "AND r.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "AND r.uuid != :excludeReservaUuid")
     List<Reserva> findReservasConflictivas(
             @Param("uuidCancha") String uuidCancha,

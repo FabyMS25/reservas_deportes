@@ -61,6 +61,7 @@ FROM reservas AS RE
 	 TA.id_tarifa = RE.id_tarifa 
 WHERE 
 	 RP.fecha_uso BETWEEN $P{fechaini} AND $P{fechafin} 
+	 AND RE.estado = false
 	 AND TA.tipo_cobro LIKE $P{tipocobro} 
 	 AND RE.estado_reserva LIKE $P{estado}
 	 AND COM.nombre LIKE  $P{cancha} ]]>

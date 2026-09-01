@@ -22,7 +22,7 @@ public class ReservaRecurrenteFilter {
             case 3: return "PAGADA";
             case 4: return "EN_CURSO";
             case 5: return "COMPLETADA";
-            case 6: return "CANCELADA,EXPIRADA,NO_SHOW,RECHAZADA";
+            case 6: return "CANCELADA,EXPIRADA,NO_SHOW";
             default: return null;
         }
     }

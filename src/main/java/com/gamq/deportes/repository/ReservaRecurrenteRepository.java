@@ -176,12 +176,12 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
 
     // Complex business queries for active recurrent reservations
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.activo = true " +
-            "AND rr.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
+            "AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "AND rr.fechaInicio <= :fecha AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fecha)")
     List<ReservaRecurrente> findActivasEnFecha(@Param("fecha") LocalDate fecha);
 
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.activo = true " +
-            "AND rr.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
+            "AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "AND rr.reserva.campoDeportivo.uuid = :campoUuid " +
             "AND rr.fechaInicio <= :fecha AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fecha)")
     List<ReservaRecurrente> findActivasEnFechaPorCampo(
@@ -190,7 +190,7 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
     );
 
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.activo = true " +
-            "AND rr.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA') " +
+            "AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO') " +
             "AND (rr.fechaFin IS NULL OR rr.fechaFin >= CURRENT_DATE)")
     List<ReservaRecurrente> findActivasVigentes();
 
@@ -262,7 +262,7 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
     // Find by monthly fee range and active status
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.activo = true " +
             "AND rr.tarifaMensual BETWEEN :tarifaMin AND :tarifaMax " +
-            "AND rr.reserva.estadoReserva IN ('APROBADA', 'CONFIRMADA', 'ACTIVA')")
+            "AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
     List<ReservaRecurrente> findActivasByTarifaMensualBetween(
             @Param("tarifaMin") Integer tarifaMin,
             @Param("tarifaMax") Integer tarifaMax

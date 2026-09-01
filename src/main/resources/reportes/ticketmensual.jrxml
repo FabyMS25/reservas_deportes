@@ -53,7 +53,7 @@
         join contribuyentes AS CON on CON.id_contribuyente = RE.id_contribuyente
         left join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
         left join organizaciones as ORG on ORG.id_organizacion = RE.id_organizacion
-        where RE.uuid = $P{uuid}
+        where RE.uuid = $P{uuid} and RE.estado = false
         order by ES.nombre_completo, RP.año, RP.mes
         ]]>
 	</queryString>

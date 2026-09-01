@@ -27,7 +27,7 @@
         join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
         join reservas_puntuales as RP on rp.id_reserva = re.id_reserva
         join tarifas as TA on Ta.id_tarifa= re.id_tarifa
-        where RE.uuid=$P{uuid}
+        where RE.uuid=$P{uuid} and RE.estado = false
         ]]>
 	</queryString>
 	<field name="categoria" class="java.lang.String"/>

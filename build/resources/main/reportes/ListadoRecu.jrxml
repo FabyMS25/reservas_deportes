@@ -33,6 +33,7 @@
 		join tablero as tab on tab.id_tablero = rp.id_tablero
 		join tarifas as TA on Ta.id_tarifa= re.id_tarifa
 		where fecha_reserva between $P{fechaini} and $P{fechafin}
+		and RE.estado = false
 		and TA.tipo_cobro LIKE $P{tipocobro} 
 		and estado_reserva like $P{estado}
 		and  COM.nombre like  $P{cancha}]]>

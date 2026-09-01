@@ -103,7 +103,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                     break;
 
                 case 6: // Canceladas/Expiradas (multiple states)
-                    List<String> estados = Arrays.asList("CANCELADA", "EXPIRADA", "NO_SHOW", "RECHAZADA");
+                    List<String> estados = Arrays.asList("CANCELADA", "EXPIRADA", "NO_SHOW");
                     spec = spec.and((root, query, cb) ->
                             root.join("reserva", JoinType.LEFT).get("estadoReserva").in(estados));
                     break;
