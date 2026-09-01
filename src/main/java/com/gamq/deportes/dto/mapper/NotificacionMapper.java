@@ -27,6 +27,7 @@ public class NotificacionMapper {
         dto.setLeidaEn(notificacion.getLeidaEn());
         dto.setExpiraEn(notificacion.getExpiraEn());
         dto.setMetadataJson(notificacion.getMetadataJson());
+        dto.setNotificacionAdminUuid(notificacion.getNotificacionAdminUuid());
         return dto;
     }
 
@@ -55,6 +56,7 @@ public class NotificacionMapper {
         notificacion.setLeidaEn(dto.getLeidaEn());
         notificacion.setExpiraEn(dto.getExpiraEn());
         notificacion.setMetadataJson(dto.getMetadataJson());
+        notificacion.setNotificacionAdminUuid(dto.getNotificacionAdminUuid());
         return notificacion;
     }
 }

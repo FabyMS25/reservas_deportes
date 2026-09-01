@@ -40,6 +40,6 @@ public class EstudianteEscuelaDto {
 
     private ContribuyenteDto contribuyenteDto; // representante o tutor
 //    organizacionDto: Organizacion;
-    private List<ReservaDto> mensualidadesDtoList = new ArrayList<>();
+    private List<ReservaPeriodoDto> mensualidadesDtoList = new ArrayList<>();
 //    private List<OrganizacionDto> organizacionesRepresentadas = new ArrayList<>();
 }

@@ -25,7 +25,10 @@ public class ReservaPeriodoMapper {
         dto.setDisciplina(reservaPeriodo.getDisciplina());
         dto.setEntrenador(reservaPeriodo.getEntrenador());
 
-        dto.setFechaPago(reservaPeriodo.getFechaPago());
+        if (reservaPeriodo.getEstudianteEscuela() != null) {
+            dto.setEstudianteEscuelaDto(
+                    EstudianteEscuelaMapper.toDto(reservaPeriodo.getEstudianteEscuela(), false));
+        }
         if (includeDetails) {
             dto.setReservaDto(ReservaMapper.toDto(reservaPeriodo.getReserva()));
         }
@@ -56,8 +59,6 @@ public class ReservaPeriodoMapper {
         reservaPeriodo.setDisciplina(dto.getDisciplina());
         reservaPeriodo.setEntrenador(dto.getEntrenador());
 
-        reservaPeriodo.setFechaPago(dto.getFechaPago());
-
         return reservaPeriodo;
     }
 
@@ -72,8 +73,6 @@ public class ReservaPeriodoMapper {
         reservaPeriodo.setMatricula(dto.getMatricula());
         reservaPeriodo.setDisciplina(dto.getDisciplina());
         reservaPeriodo.setEntrenador(dto.getEntrenador());
-
-        reservaPeriodo.setFechaPago(dto.getFechaPago());
 
         return reservaPeriodo;
     }

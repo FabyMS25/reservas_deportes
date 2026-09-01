@@ -1,32 +1,41 @@
 package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.TableroDto;
+import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.TableroMapper;
-import com.gamq.deportes.dto.mapper.TableroMapper;
-import com.gamq.deportes.dto.mapper.TableroMapper;
-import com.gamq.deportes.dto.mapper.TableroMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.model.Tablero;
-import com.gamq.deportes.model.Tablero;
+import com.gamq.deportes.model.Reserva;
+import com.gamq.deportes.model.ReservaRecurrente;
+import com.gamq.deportes.repository.ReservaRecurrenteRepository;
 import com.gamq.deportes.repository.TableroRepository;
 import com.gamq.deportes.service.TableroService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
-@Component
+@Service
+@Transactional
 public class TableroServiceImpl implements TableroService {
     
     @Autowired
     TableroRepository tableroRepository;
 
+    @Autowired
+    ReservaRecurrenteRepository reservaRecurrenteRepository;
+
+    @Autowired
+    NotificacionDestinatariosReservaService destinatariosService;
+
+    @Transactional(readOnly = true)
     public TableroDto findByUuid(String uuid){
         Optional<Tablero> TableroOptional = tableroRepository.findByUuid(uuid);
         if (TableroOptional.isPresent()) {
@@ -36,16 +45,13 @@ public class TableroServiceImpl implements TableroService {
         }
     }
     
+    @Transactional(readOnly = true)
     public List<TableroDto> obtenerTablero(){
         List<Tablero> Tableros = tableroRepository.findAll();
 
-        if (!Tableros.isEmpty()) {
-            return Tableros.stream().map(Tablero -> {
-                return TableroMapper.toDto(Tablero);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(TABLERO);
-        }
+        return Tableros.stream().map(Tablero -> {
+            return TableroMapper.toDto(Tablero);
+        }).collect(Collectors.toList());
     }
     public TableroDto crearTablero(TableroDto TableroDto){
         if (TableroDto != null) {
@@ -63,17 +69,55 @@ public class TableroServiceImpl implements TableroService {
             Optional<Tablero> TableroOptional = tableroRepository.findByUuid(TableroDto.getUuid());
 
             if (TableroOptional.isPresent()) {
+                Tablero tableroExistente = TableroOptional.get();
+                boolean horarioCambiado = !Arrays.deepEquals(
+                        tableroExistente.getHorario(), TableroDto.getHorario());
+                tableroExistente.setHorario(TableroDto.getHorario());
+                tableroExistente.setEstado(TableroDto.isEstado());
+                Tablero guardado = tableroRepository.save(tableroExistente);
 
-
-                Tablero TableroModificado = TableroMapper.toEntity(TableroDto);
-                TableroModificado.setUuid(TableroOptional.get().getUuid());
-
-                return TableroMapper.toDto(tableroRepository.save(TableroModificado));
+                if (horarioCambiado) {
+                    reservaRecurrenteRepository.findByTableroUuid(guardado.getUuid())
+                            .stream()
+                            .findFirst()
+                            .ifPresent(this::notificarCambioHorario);
+                }
+                return TableroMapper.toDto(guardado);
             } else {
                 throw new NotFoundException(TABLERO, TableroDto.getUuid());
             }
         } else {
             throw new NullReferenceException(TABLERO);
         }
+    }
+
+    private void notificarCambioHorario(ReservaRecurrente recurrente) {
+        Reserva reserva = recurrente.getReserva();
+        if (reserva == null || reserva.getContribuyente() == null) return;
+
+        String numero = reserva.getNumeroReserva() == null ? "" : reserva.getNumeroReserva();
+        String contribuyente = reserva.getContribuyente().getNombreCompleto();
+        NotificacionDto personal = base(
+                recurrente,
+                "El horario de tu reserva recurrente " + numero + " fue actualizado.");
+        NotificacionDto interno = base(
+                recurrente,
+                "El horario de la reserva recurrente " + numero + " de "
+                        + (contribuyente == null ? "el contribuyente" : contribuyente)
+                        + " fue actualizado.");
+        destinatariosService.publicar(
+                "NOTIFICAR_CAMBIO_HORARIO", reserva, personal, interno, null);
+    }
+
+    private NotificacionDto base(ReservaRecurrente recurrente, String mensaje) {
+        return new NotificacionDto()
+                .setTipo("NOTIFICAR_CAMBIO_HORARIO")
+                .setTitulo("Cambio de horario")
+                .setMensaje(mensaje)
+                .setPrioridad("INFO")
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(recurrente.getUuid())
+                .setAccionUrl("/reservations/recurrent");
     }
 }

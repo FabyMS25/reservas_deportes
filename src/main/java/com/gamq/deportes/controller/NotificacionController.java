@@ -72,13 +72,13 @@ public class NotificacionController {
         }
     }
 
-    @Operation(summary = "Crear notificacion")
-    @PostMapping()
-    public Response crearNotificacion(@RequestBody NotificacionDto notificacionDto) {
+    @Operation(summary = "Sincronizar notificaciones administrativas recientes")
+    @PostMapping("/admin/sincronizar/{usuarioUuid}")
+    public Response sincronizarNotificacionesAdmin(@PathVariable("usuarioUuid") String usuarioUuid) {
         try {
-            return Response.ok().setPayload(notificacionService.crearNotificacion(notificacionDto));
+            return Response.ok().setPayload(notificacionService.sincronizarNotificacionesAdmin(usuarioUuid));
         } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al crear notificacion: " + ex.getMessage());
+            return Response.unprocessableEntity().setPayload("Error al sincronizar notificaciones administrativas: " + ex.getMessage());
         }
     }
 
@@ -99,28 +99,6 @@ public class NotificacionController {
             return Response.ok().setPayload(notificacionService.marcarTodasComoLeidas(usuarioUuid));
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al marcar notificaciones como leidas: " + ex.getMessage());
-        }
-    }
-
-    @Operation(summary = "Actualizar estado de lectura")
-    @PatchMapping("/{uuid}/estado-lectura")
-    public Response actualizarEstadoLectura(
-            @PathVariable("uuid") String uuid,
-            @RequestBody Map<String, String> request) {
-        try {
-            return Response.ok().setPayload(notificacionService.actualizarEstadoLectura(uuid, request.get("estadoLectura")));
-        } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al actualizar estado de lectura: " + ex.getMessage());
-        }
-    }
-
-    @Operation(summary = "Marcar notificacion como enviada")
-    @PatchMapping("/{uuid}/enviada")
-    public Response marcarComoEnviada(@PathVariable("uuid") String uuid) {
-        try {
-            return Response.ok().setPayload(notificacionService.marcarComoEnviada(uuid));
-        } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al marcar notificacion como enviada: " + ex.getMessage());
         }
     }
 

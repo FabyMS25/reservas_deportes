@@ -6,7 +6,6 @@ import com.gamq.deportes.model.*;
 
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.CampoService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,25 +61,17 @@ public class CampoServiceImpl implements CampoService {
     public List<CampoDeportivoDto> findCampoByComplejo(String uuidComplejo){
         List<CampoDeportivo> campos = campoRepository.findByComplejoUuid(uuidComplejo);
 
-        if (!campos.isEmpty()) {
-            return campos.stream()
-                    .map(campo -> CampoDeportivoMapper.toDto(campo, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(CANCHAS);
-        }
+        return campos.stream()
+                .map(campo -> CampoDeportivoMapper.toDto(campo, true))
+                .collect(Collectors.toList());
     }
 
     public List<CampoDeportivoDto> obtenerCampos(){
         List<CampoDeportivo> campos = campoRepository.findAll();
 
-        if (!campos.isEmpty()) {
-            return campos.stream()
-                    .map(campo -> CampoDeportivoMapper.toDto(campo, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(CANCHAS);
-        }
+        return campos.stream()
+                .map(campo -> CampoDeportivoMapper.toDto(campo, true))
+                .collect(Collectors.toList());
     }
 
     @Transactional

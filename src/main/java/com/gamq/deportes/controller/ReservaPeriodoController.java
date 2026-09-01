@@ -82,8 +82,7 @@ public class ReservaPeriodoController {
     @GetMapping("/reserva/{reservaUuid}")
     public Response buscarReservaPeriodoPorReserva(@PathVariable("reservaUuid") String reservaUuid) {
         try {
-            ReservaPeriodoDto reservaPeriodoDto = reservaPeriodoService.findByReservaUuid(reservaUuid);
-            return Response.ok().setPayload(reservaPeriodoDto);
+            return Response.ok().setPayload(reservaPeriodoService.findByReservaUuid(reservaUuid));
         } catch (Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
         }

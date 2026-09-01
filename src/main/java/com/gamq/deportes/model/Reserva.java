@@ -48,6 +48,18 @@ public class Reserva {
     @Column(name = "fecha_reserva", nullable = false)
     private LocalDateTime fechaReserva;
 
+    @Column(name = "fecha_limite_pago")
+    private LocalDateTime fechaLimitePago;
+
+    @Column(name = "cancelacion_automatica", columnDefinition = "BOOLEAN DEFAULT true")
+    private Boolean cancelacionAutomatica = true;
+
+    @Column(name = "motivo_cancelacion_automatica", columnDefinition = "TEXT")
+    private String motivoCancelacionAutomatica;
+
+    @Column(name = "autorizado_por", length = 36)
+    private String autorizadoPor;
+
     @Column(name = "fecha_aprobacion")
     private LocalDateTime fechaAprobacion;
 
@@ -59,6 +71,12 @@ public class Reserva {
 
     @Column(name = "aprobado_por", length = 36)
     private String aprobadoPor;
+
+    @Column(name = "creado_por", length = 36)
+    private String creadoPor;
+
+    @Column(name = "anulado_por", length = 36)
+    private String anuladoPor;
 
     @Column(name = "estado_validacion", length = 20)
     private String estadoValidacion;
@@ -100,10 +118,6 @@ public class Reserva {
     private Organizacion organizacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_estudiante_escuela")
-    private EstudianteEscuela estudianteEscuela;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tarifa")
     private Tarifa tarifa;
 
@@ -113,8 +127,8 @@ public class Reserva {
     @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ReservaRecurrente reservaRecurrente;
 
-    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ReservaPeriodo reservaPeriodo;
+    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReservaPeriodo> reservasPeriodoList = new ArrayList<>();
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Pago> pagosList = new ArrayList<>();
@@ -136,6 +150,12 @@ public class Reserva {
         }
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();
+        }
+        if (this.fechaActualizacion == null) {
+            this.fechaActualizacion = LocalDateTime.now();
+        }
+        if (this.cancelacionAutomatica == null) {
+            this.cancelacionAutomatica = true;
         }
         if (this.estadoReserva == null) {
             this.estadoReserva = "borrador";

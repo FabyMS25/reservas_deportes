@@ -6,7 +6,6 @@ import com.gamq.deportes.model.CampoDeportivo;
 import com.gamq.deportes.repository.ComplejoDeportivoRepository;
 import com.gamq.deportes.service.ComplejoService;
 import com.gamq.deportes.dto.mapper.ComplejoDeportivoMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.repository.CampoDeportivoRepository;
@@ -43,13 +42,9 @@ public class ComplejoServiceImpl implements ComplejoService {
     public List<ComplejoDeportivoDto> obtenerComplejos() {
         List<ComplejoDeportivo> complejos = complejoRepository.findAll();
 
-        if (!complejos.isEmpty()) {
-            return complejos.stream()
-                    .map(ComplejoDeportivoMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(COMPLEJO);
-        }
+        return complejos.stream()
+                .map(ComplejoDeportivoMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

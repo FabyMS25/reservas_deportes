@@ -9,7 +9,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,7 +18,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Entity
-@Table(name = "reservas_periodo")
+@Table(name = "reservas_periodo", indexes = {
+        @Index(name = "idx_res_periodo_reserva", columnList = "id_reserva"),
+        @Index(name = "idx_res_periodo_estudiante", columnList = "id_estudiante_escuela")
+})
 @SQLDelete(sql = "UPDATE reservas_periodo SET estado = true WHERE id_reserva_periodo = ?")
 @Where(clause = "estado = false")
 public class ReservaPeriodo {
@@ -55,12 +57,13 @@ public class ReservaPeriodo {
     @Column(name = "entrenador", length = 100)
     private String entrenador;
 
-    @Column(name = "fecha_pago")
-    private LocalDate fechaPago;
-
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_reserva", nullable = false)
     private Reserva reserva;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_estudiante_escuela", nullable = false)
+    private EstudianteEscuela estudianteEscuela;
 
     public ReservaPeriodo(String uuid) {
         this.uuid = uuid;

@@ -18,10 +18,16 @@ public class ReservaMapper {
 
         // Reservation details
         reservaDto.setFechaReserva(reserva.getFechaReserva());
+        reservaDto.setFechaLimitePago(reserva.getFechaLimitePago());
+        reservaDto.setCancelacionAutomatica(reserva.getCancelacionAutomatica());
+        reservaDto.setMotivoCancelacionAutomatica(reserva.getMotivoCancelacionAutomatica());
+        reservaDto.setAutorizadoPor(reserva.getAutorizadoPor());
         reservaDto.setFechaAprobacion(reserva.getFechaAprobacion());
         reservaDto.setFechaRechazo(reserva.getFechaRechazo());
         reservaDto.setMotivoRechazo(reserva.getMotivoRechazo());
         reservaDto.setAprobadoPor(reserva.getAprobadoPor());
+        reservaDto.setCreadoPor(reserva.getCreadoPor());
+        reservaDto.setAnuladoPor(reserva.getAnuladoPor());
         reservaDto.setEstadoValidacion(reserva.getEstadoValidacion());
 
         // Reservation status and type
@@ -44,10 +50,6 @@ public class ReservaMapper {
             reservaDto.setOrganizacionDto(OrganizacionMapper.toDto(reserva.getOrganizacion(), false));
         }
 
-        if (reserva.getEstudianteEscuela() != null) {
-            reservaDto.setEstudianteEscuelaDto(EstudianteEscuelaMapper.toDto(reserva.getEstudianteEscuela(), false));
-        }
-
         if (reserva.getTarifa() != null) {
             reservaDto.setTarifaDto(TarifaMapper.toDto(reserva.getTarifa(), false));
         }
@@ -61,8 +63,10 @@ public class ReservaMapper {
             reservaDto.setReservaRecurrenteDto(ReservaRecurrenteMapper.toDto(reserva.getReservaRecurrente(),false));
         }
 
-        if (reserva.getReservaPeriodo() != null) {
-            reservaDto.setReservaPeriodoDto(ReservaPeriodoMapper.toDto(reserva.getReservaPeriodo(),false));
+        if (reserva.getReservasPeriodoList() != null && !reserva.getReservasPeriodoList().isEmpty()) {
+            reservaDto.setReservasPeriodoDtoList(reserva.getReservasPeriodoList().stream()
+                    .map(periodo -> ReservaPeriodoMapper.toDto(periodo, false))
+                    .collect(Collectors.toList()));
         }
 
         // Payments and audits
@@ -102,10 +106,16 @@ public class ReservaMapper {
         reserva.setFechaActualizacion(reservaDto.getFechaActualizacion());
 
         reserva.setFechaReserva(reservaDto.getFechaReserva());
+        reserva.setFechaLimitePago(reservaDto.getFechaLimitePago());
+        reserva.setCancelacionAutomatica(reservaDto.getCancelacionAutomatica());
+        reserva.setMotivoCancelacionAutomatica(reservaDto.getMotivoCancelacionAutomatica());
+        reserva.setAutorizadoPor(reservaDto.getAutorizadoPor());
         reserva.setFechaAprobacion(reservaDto.getFechaAprobacion());
         reserva.setFechaRechazo(reservaDto.getFechaRechazo());
         reserva.setMotivoRechazo(reservaDto.getMotivoRechazo());
         reserva.setAprobadoPor(reservaDto.getAprobadoPor());
+        reserva.setCreadoPor(reservaDto.getCreadoPor());
+        reserva.setAnuladoPor(reservaDto.getAnuladoPor());
         reserva.setEstadoValidacion(reservaDto.getEstadoValidacion());
 
         reserva.setEstadoReserva(reservaDto.getEstadoReserva());
@@ -129,10 +139,18 @@ public class ReservaMapper {
         reserva.setFechaActualizacion(reservaDto.getFechaActualizacion());
 
         reserva.setFechaReserva(reservaDto.getFechaReserva());
+        reserva.setFechaLimitePago(reservaDto.getFechaLimitePago());
+        reserva.setCancelacionAutomatica(reservaDto.getCancelacionAutomatica());
+        reserva.setMotivoCancelacionAutomatica(reservaDto.getMotivoCancelacionAutomatica());
+        reserva.setAutorizadoPor(reservaDto.getAutorizadoPor());
         reserva.setFechaAprobacion(reservaDto.getFechaAprobacion());
         reserva.setFechaRechazo(reservaDto.getFechaRechazo());
         reserva.setMotivoRechazo(reservaDto.getMotivoRechazo());
         reserva.setAprobadoPor(reservaDto.getAprobadoPor());
+        if (reserva.getCreadoPor() == null) {
+            reserva.setCreadoPor(reservaDto.getCreadoPor());
+        }
+        reserva.setAnuladoPor(reservaDto.getAnuladoPor());
         reserva.setEstadoValidacion(reservaDto.getEstadoValidacion());
 
         reserva.setEstadoReserva(reservaDto.getEstadoReserva());

@@ -31,33 +31,37 @@ public class ReservaController {
     @Autowired
     ReservationNumberService reservationNumberService;
 
-//    @GetMapping()
-//    public Response obtenerTodasLasReservas() {
-//        try{
-//            List<ReservaDto> reservasDtos =  reservaService.obtenerReservas();
-//            return Response.ok().setPayload(reservasDtos);
-//        } catch(Exception ex) {
-//            return Response.notContent().setPayload(ex.getMessage());
-//        }
-//    }
     @Operation(summary = "Obtener todas las reservas")
-    @GetMapping()
+    @GetMapping
     public Response obtenerReservas(
-            @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
-        try {
-            if (page >= 0 && size > 0) {
-                Pageable pageable = PageRequest.of(page, size);
-                Page<ReservaDto> reservasPage = reservaService.obtenerReservas(pageable);
-                return Response.ok().setPayload(reservasPage);
-            } else {
-                List<ReservaDto> reservasDtos = reservaService.obtenerReservas();
-                return Response.ok().setPayload(reservasDtos);
-            }
-        } catch (Exception ex) {
-            return Response.notContent().setPayload(ex.getMessage());
-//            return Response.serverError().setPayload("Error al obtener reservas: " + ex.getMessage());
-        }
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Integer tab,
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String typeReserva,
+            @RequestParam(required = false) String estadoReserva,
+            @RequestParam(required = false) String estadoValidacion,
+            @RequestParam(required = false) Boolean esReservaGratuita,
+            @RequestParam(required = false) String organization,
+            @RequestParam(required = false) Integer mesFiltro,
+            @RequestParam(required = false) Integer anioFiltro
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return Response.ok().setPayload(
+                reservaService.obtenerReservas(
+                        pageable,
+                        tab,
+                        searchTerm,
+                        typeReserva,
+                        estadoReserva,
+                        estadoValidacion,
+                        esReservaGratuita,
+                        organization,
+                        mesFiltro,
+                        anioFiltro
+                )
+        );
     }
 
     @Operation(summary = "Buscar reserva por UUID")
@@ -345,9 +349,11 @@ public class ReservaController {
             @Parameter(description = "UUID de la reserva")
             @PathVariable("uuid") String uuid,
             @Parameter(description = "Motivo de la cancelación")
-            @RequestParam String motivo) {
+            @RequestParam String motivo,
+            @Parameter(description = "UUID del usuario que realiza la cancelación")
+            @RequestParam(required = false) String anuladoPor) {
         try {
-            ReservaDto reservaCancelada = reservaService.cancelarReserva(uuid, motivo);
+            ReservaDto reservaCancelada = reservaService.cancelarReserva(uuid, motivo, anuladoPor);
             return Response.ok().setPayload(reservaCancelada);
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al cancelar reserva: " + ex.getMessage());

@@ -15,11 +15,30 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.uuid = ?1")
     Optional<ConfiguracionSistema> findByUuid(String uuid);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = ?1")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = ?1 AND c.aplicaA = 'global' AND c.referenciaUuid IS NULL")
     Optional<ConfiguracionSistema> findByClave(String clave);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.aplicaA = 'global' AND c.referenciaUuid IS NULL AND c.estado = false")
     Optional<ConfiguracionSistema> findByClaveAndEstadoFalse(@Param("clave") String clave);
+
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false AND c.activo = true " +
+            "AND ((c.aplicaA = :aplicaA AND c.referenciaUuid = :referenciaUuid) " +
+            "OR (c.aplicaA = :aplicaA AND c.referenciaUuid IS NULL) " +
+            "OR (c.aplicaA = 'global' AND c.referenciaUuid IS NULL)) " +
+            "ORDER BY CASE WHEN c.aplicaA = :aplicaA AND c.referenciaUuid = :referenciaUuid THEN 0 " +
+            "WHEN c.aplicaA = :aplicaA AND c.referenciaUuid IS NULL THEN 1 ELSE 2 END")
+    List<ConfiguracionSistema> findEffectiveCandidates(
+            @Param("clave") String clave,
+            @Param("aplicaA") String aplicaA,
+            @Param("referenciaUuid") String referenciaUuid);
+
+    @Query("SELECT COUNT(c) FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.aplicaA = :aplicaA " +
+            "AND ((:referenciaUuid IS NULL AND c.referenciaUuid IS NULL) OR c.referenciaUuid = :referenciaUuid) " +
+            "AND c.estado = false")
+    Long countByClaveAndScope(
+            @Param("clave") String clave,
+            @Param("aplicaA") String aplicaA,
+            @Param("referenciaUuid") String referenciaUuid);
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.categoria = ?1")
     List<ConfiguracionSistema> findByCategoria(String categoria);

@@ -2,7 +2,6 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.SistemaAuditoriaDto;
 import com.gamq.deportes.dto.mapper.SistemaAuditoriaMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.SistemaAuditoria;
@@ -39,9 +38,6 @@ public class SistemaAuditoriaServiceImpl implements SistemaAuditoriaService {
     @Transactional(readOnly = true)
     public List<SistemaAuditoriaDto> obtenerSistemaAuditorias() {
         List<SistemaAuditoria> auditorias = sistemaAuditoriaRepository.findAll();
-        if (auditorias.isEmpty()) {
-            throw new NoResultException(SISTEMA_AUDITORIA);
-        }
         return auditorias.stream()
                 .map(SistemaAuditoriaMapper::toDto)
                 .collect(Collectors.toList());

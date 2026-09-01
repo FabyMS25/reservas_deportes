@@ -1,5 +1,6 @@
 package com.gamq.deportes.service.implement;
 
+import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaPuntualFilter;
@@ -31,7 +32,10 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
@@ -39,6 +43,8 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaPuntualServiceImpl implements ReservaPuntualService {
+
+    private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
 
     @Autowired
     private ReservaPuntualRepository reservaPuntualRepository;
@@ -49,6 +55,11 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     private ReservaRepository reservaRepository;
     @Autowired
     private ReservaAuditoriaRepository reservaAuditoriaRepository;
+    @Autowired
+    private ReservaNotificacionService reservaNotificacionService;
+
+    @Autowired
+    private NotificacionDestinatariosReservaService destinatariosService;
 
     public Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable) {
         Specification<ReservaPuntual> spec = Specification.where(null);
@@ -135,16 +146,16 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Override
     @Transactional
-    public List<ReservaPuntualDto> checkAndUpdateExpiredReservations(int horasTimeout) {
-        LocalDateTime expirationThreshold = LocalDateTime.now().minusHours(horasTimeout);
+    public List<ReservaPuntualDto> checkAndUpdateExpiredReservations() {
+        LocalDateTime now = LocalDateTime.now();
 
         System.out.println("=== DEBUG: Checking expired reservations ===");
-        System.out.println("Current time: " + LocalDateTime.now());
-        System.out.println("Expiration threshold: " + expirationThreshold);
+        System.out.println("Current time: " + now);
+        System.out.println("Using fecha_limite_pago as expiration deadline");
         System.out.println("Looking for reservations with estado: PENDIENTE");
 
         List<ReservaPuntual> expiredReservas = reservaPuntualRepository
-                .findExpiredPendingReservations(expirationThreshold, "PENDIENTE");
+                .findExpiredPendingReservations(now, "PENDIENTE");
 
         System.out.println("Found " + expiredReservas.size() + " expired reservations");
 
@@ -160,6 +171,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                 String originalEstado = reserva.getReserva().getEstadoReserva();
 
                 reserva.getReserva().setEstadoReserva("EXPIRADA");
+                reserva.getReserva().setAnuladoPor(null);
                 reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
                 reserva.getReserva().setFechaRechazo(LocalDateTime.now());
 
@@ -176,6 +188,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                             "Reserva puntual expirada por falta de pago",
                             null
                     );
+                    reservaNotificacionService.notificarExpirada(updatedReserva);
                     updatedReservas.add(ReservaPuntualMapper.toDto(reserva, true));
                     System.out.println("Successfully updated reservation to EXPIRADA");
                 }
@@ -458,6 +471,9 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
         if (reservaPuntualOptional.isPresent()) {
             ReservaPuntual reservaPuntualExistente = reservaPuntualOptional.get();
+            LocalDate fechaUsoAnterior = reservaPuntualExistente.getFechaUso();
+            LocalTime horaInicioAnterior = reservaPuntualExistente.getHoraInicio();
+            LocalTime horaFinAnterior = reservaPuntualExistente.getHoraFin();
 
             // Update fields
             ReservaPuntualMapper.updateEntityFromDto(reservaPuntualDto, reservaPuntualExistente);
@@ -475,6 +491,9 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             }
 
             ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntualExistente);
+            boolean horarioCambiado = !Objects.equals(fechaUsoAnterior, reservaPuntualActualizada.getFechaUso())
+                    || !Objects.equals(horaInicioAnterior, reservaPuntualActualizada.getHoraInicio())
+                    || !Objects.equals(horaFinAnterior, reservaPuntualActualizada.getHoraFin());
             registrarAuditoria(
                     reservaPuntualActualizada.getReserva(),
                     "UPDATE_PUNTUAL",
@@ -484,6 +503,9 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                     "Detalle de reserva puntual actualizado",
                     buildReservaPuntualSnapshot(reservaPuntualActualizada)
             );
+            if (horarioCambiado) {
+                notificarCambioHorario(reservaPuntualActualizada, fechaUsoAnterior, horaInicioAnterior, horaFinAnterior);
+            }
             return ReservaPuntualMapper.toDto(reservaPuntualActualizada, true);
         } else {
             throw new NotFoundException(RESERVA_PUNTUAL, reservaPuntualDto.getUuid());
@@ -589,4 +611,55 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     private String safeValue(Object value) {
         return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
+
+    private void notificarCambioHorario(ReservaPuntual reservaPuntual,
+                                        LocalDate fechaUsoAnterior,
+                                        LocalTime horaInicioAnterior,
+                                        LocalTime horaFinAnterior) {
+        Reserva reserva = reservaPuntual.getReserva();
+        if (reserva == null || reserva.getContribuyente() == null || reserva.getContribuyente().getUuid() == null) {
+            return;
+        }
+
+        String horarioAnterior = formatHorario(fechaUsoAnterior, horaInicioAnterior, horaFinAnterior);
+        String horarioNuevo = formatHorario(reservaPuntual.getFechaUso(), reservaPuntual.getHoraInicio(), reservaPuntual.getHoraFin());
+        NotificacionDto contribuyente = new NotificacionDto()
+                .setTipo("NOTIFICAR_CAMBIO_HORARIO")
+                .setTitulo("Cambio de horario")
+                .setMensaje("El horario de tu reserva " + safeValue(reserva.getNumeroReserva())
+                        + " cambió de " + horarioAnterior + " a " + horarioNuevo + ".")
+                .setPrioridad("INFO")
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(reservaPuntual.getUuid())
+                .setAccionUrl(obtenerRutaReserva(reserva))
+                .setMetadataJson("{\"horarioAnterior\":\"" + horarioAnterior
+                        + "\",\"horarioNuevo\":\"" + horarioNuevo + "\"}");
+        NotificacionDto interno = new NotificacionDto()
+                .setTipo("NOTIFICAR_CAMBIO_HORARIO")
+                .setTitulo("Cambio de horario")
+                .setMensaje("El horario de la reserva " + safeValue(reserva.getNumeroReserva())
+                        + " de " + safeValue(reserva.getContribuyente().getNombreCompleto())
+                        + " cambió de " + horarioAnterior + " a " + horarioNuevo + ".")
+                .setPrioridad("INFO")
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(reservaPuntual.getUuid())
+                .setAccionUrl(obtenerRutaReserva(reserva))
+                .setMetadataJson("{\"horarioAnterior\":\"" + horarioAnterior
+                        + "\",\"horarioNuevo\":\"" + horarioNuevo + "\"}");
+        destinatariosService.publicar(
+                "NOTIFICAR_CAMBIO_HORARIO", reserva, contribuyente, interno, null);
+    }
+
+    private String formatHorario(LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin) {
+        return safeValue(fechaUso) + " " + safeValue(horaInicio) + "-" + safeValue(horaFin);
+    }
+
+    private String obtenerRutaReserva(Reserva reserva) {
+        return "recurrente".equalsIgnoreCase(reserva.getTipoReserva())
+                ? "/reservations/recurrent"
+                : "/reservations/one-time";
+    }
+
 }

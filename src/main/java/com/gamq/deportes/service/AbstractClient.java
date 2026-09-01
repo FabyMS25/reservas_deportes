@@ -3,7 +3,10 @@ package com.gamq.deportes.service;
 import com.gamq.deportes.model.login.LoginRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Collections;
 
 public abstract class AbstractClient {
 
@@ -18,7 +21,8 @@ public abstract class AbstractClient {
 
     protected HttpHeaders datosLogin(LoginRequest login) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         //headers.set("Authorization", "Bearer " + token);
         headers.set("usuario",login.getUsuario());
         headers.set("clave",login.getClave());
@@ -27,7 +31,8 @@ public abstract class AbstractClient {
 
     protected HttpHeaders loguearse(String token){
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", "Bearer " + token);
         return headers;
     }

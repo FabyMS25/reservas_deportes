@@ -30,10 +30,16 @@ public class    ReservaDto {
     private LocalDateTime fechaActualizacion;
 
     private LocalDateTime fechaReserva;
+    private LocalDateTime fechaLimitePago;
+    private Boolean cancelacionAutomatica;
+    private String motivoCancelacionAutomatica;
+    private String autorizadoPor;
     private LocalDateTime fechaAprobacion;
     private LocalDateTime fechaRechazo;
     private String motivoRechazo;
     private String aprobadoPor;
+    private String creadoPor;
+    private String anuladoPor;
     private String estadoValidacion; // "PENDIENTE", "APROBADA", "RECHAZADA"
 
     private String estadoReserva;
@@ -53,14 +59,13 @@ public class    ReservaDto {
     private String motivoGratuidad;
 
     private OrganizacionDto organizacionDto;
-    private EstudianteEscuelaDto estudianteEscuelaDto;
     private ContribuyenteDto contribuyenteDto;
     private CampoDeportivoDto campoDeportivoDto;
     private TarifaDto tarifaDto;
 
     private ReservaPuntualDto reservaPuntualDto;
     private ReservaRecurrenteDto reservaRecurrenteDto;
-    private ReservaPeriodoDto reservaPeriodoDto;
+    private List<ReservaPeriodoDto> reservasPeriodoDtoList = new ArrayList<>();
 
     public List<PagoDto> pagosDtoList = new ArrayList<>();
     public List<ReservaAuditoriaDto> auditoriasDtoList = new ArrayList<>();

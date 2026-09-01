@@ -22,7 +22,8 @@ import java.util.UUID;
         @Index(name = "idx_notificacion_uuid", columnList = "uuid", unique = true),
         @Index(name = "idx_notificacion_usuario", columnList = "usuario_uuid"),
         @Index(name = "idx_notificacion_usuario_lectura", columnList = "usuario_uuid, estado_lectura"),
-        @Index(name = "idx_notificacion_referencia", columnList = "referencia_tipo, referencia_uuid")
+        @Index(name = "idx_notificacion_referencia", columnList = "referencia_tipo, referencia_uuid"),
+        @Index(name = "uk_notificacion_entrega_admin", columnList = "usuario_uuid, notificacion_admin_uuid", unique = true)
 })
 @SQLDelete(sql = "UPDATE notificaciones SET estado = true WHERE id_notificacion = ?")
 @Where(clause = "estado = false")
@@ -89,6 +90,9 @@ public class Notificacion {
 
     @Column(name = "metadata_json", columnDefinition = "TEXT")
     private String metadataJson;
+
+    @Column(name = "notificacion_admin_uuid", length = 50)
+    private String notificacionAdminUuid;
 
     public Notificacion(String uuid) {
         this.uuid = uuid;

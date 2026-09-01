@@ -1,6 +1,5 @@
 package com.gamq.deportes.service.implement;
 
-import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.PagoMapper;
 
 import com.gamq.deportes.dto.PagoDto;
@@ -10,13 +9,12 @@ import com.gamq.deportes.model.Pago;
 
 import com.gamq.deportes.repository.PagoRepository;
 import com.gamq.deportes.repository.ReservaRepository;
-import com.gamq.deportes.service.NotificacionService;
 import com.gamq.deportes.service.PagoService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -27,9 +25,6 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Component
 public class PagoServiceImpl implements PagoService {
 
-    private static final String NOTIFICAR_PAGO_PENDIENTE = "NOTIFICAR_PAGO_PENDIENTE";
-    private static final String NOTIFICAR_PAGO_CONFIRMADO = "NOTIFICAR_PAGO_CONFIRMADO";
-
     @Autowired
     PagoRepository pagosRepository;
 
@@ -37,7 +32,7 @@ public class PagoServiceImpl implements PagoService {
     ReservaRepository reservasRepository;
 
     @Autowired
-    NotificacionService notificacionService;
+    PagoNotificacionService pagoNotificacionService;
 
     public PagoDto findByUuid(String uuid){
 
@@ -52,13 +47,9 @@ public class PagoServiceImpl implements PagoService {
     public List<PagoDto> obtenerPagos(){
         List<Pago> pagos = pagosRepository.findAll();
 
-        if (!pagos.isEmpty()) {
-            return pagos.stream().map(pag -> {
-                return PagoMapper.toDto(pag, true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(PAGOS);
-        }
+        return pagos.stream().map(pag -> {
+            return PagoMapper.toDto(pag, true);
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -66,13 +57,9 @@ public class PagoServiceImpl implements PagoService {
 
         List<Pago> pagos = pagosRepository.findByFechaPago(fechaIni, fechaFin);
 
-        if (!pagos.isEmpty()) {
-            return pagos.stream().map(pagos1 -> {
-                return PagoMapper.toDto(pagos1, true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(PAGOS);
-        }
+        return pagos.stream().map(pagos1 -> {
+            return PagoMapper.toDto(pagos1, true);
+        }).collect(Collectors.toList());
     }
 //    public PagoDto crearPago(PagoDto pagosDto){
 //
@@ -86,6 +73,7 @@ public class PagoServiceImpl implements PagoService {
 //            throw new NullReferenceException(PAGOS);
 //        }
 //    }
+    @Transactional
     public PagoDto crearPago(PagoDto pagosDto){
         if (pagosDto != null) {
             String reservaUuid = pagosDto.getReservaDto().getUuid();
@@ -102,12 +90,13 @@ public class PagoServiceImpl implements PagoService {
             Reserva reservas = obtenerReserva(reservaUuid);
             newPago.setReserva(reservas);
             Pago pagoGuardado = pagosRepository.save(newPago);
-            notificarPago(pagoGuardado);
+            pagoNotificacionService.notificarDespuesDeConfirmar(pagoGuardado.getUuid());
             return PagoMapper.toDto(pagoGuardado, true);
         } else {
             throw new NullReferenceException(PAGOS);
         }
     }
+    @Transactional
     public PagoDto actualizarPago(PagoDto pagosDto){
 
         if (pagosDto != null) {
@@ -119,7 +108,7 @@ public class PagoServiceImpl implements PagoService {
                 pagosModificado.setReserva(reservas);
 
                 Pago pagoGuardado = pagosRepository.save(pagosModificado);
-                notificarPago(pagoGuardado);
+                pagoNotificacionService.notificarDespuesDeConfirmar(pagoGuardado.getUuid());
                 return PagoMapper.toDto(pagoGuardado,true);
             } else {
                 throw new NotFoundException(PAGOS, pagosDto.getUuid());
@@ -142,39 +131,4 @@ public class PagoServiceImpl implements PagoService {
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
     }
 
-    private void notificarPago(Pago pago) {
-        if (pago.getReserva() == null
-                || pago.getReserva().getContribuyente() == null
-                || pago.getReserva().getContribuyente().getUuid() == null) {
-            return;
-        }
-
-        String estadoPago = pago.getEstadoPago() == null ? "pendiente" : pago.getEstadoPago();
-        boolean confirmado = "confirmado".equalsIgnoreCase(estadoPago)
-                || "pagado".equalsIgnoreCase(estadoPago)
-                || "PAGADO".equals(estadoPago);
-
-        String tipo = confirmado ? NOTIFICAR_PAGO_CONFIRMADO : NOTIFICAR_PAGO_PENDIENTE;
-        String titulo = confirmado ? "Pago confirmado" : "Pago pendiente";
-        String mensaje = confirmado
-                ? "El pago de la reserva " + safeValue(pago.getReserva().getNumeroReserva()) + " fue confirmado."
-                : "Tienes un pago pendiente para la reserva " + safeValue(pago.getReserva().getNumeroReserva()) + ".";
-        String prioridad = confirmado ? "SUCCESS" : "WARNING";
-
-        NotificacionDto notificacion = new NotificacionDto()
-                .setUsuarioUuid(pago.getReserva().getContribuyente().getUuid())
-                .setTipo(tipo)
-                .setTitulo(titulo)
-                .setMensaje(mensaje)
-                .setPrioridad(prioridad)
-                .setCanal("APP")
-                .setReferenciaTipo("PAGO")
-                .setReferenciaUuid(pago.getUuid())
-                .setAccionUrl("/pagos/" + pago.getUuid());
-        notificacionService.crearNotificacionSiHabilitada(tipo, notificacion);
-    }
-
-    private String safeValue(Object value) {
-        return value == null ? "" : String.valueOf(value);
-    }
 }

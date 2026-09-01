@@ -8,7 +8,6 @@ import com.gamq.deportes.repository.TarifaConceptoRepository;
 import com.gamq.deportes.repository.TarifaRepository;
 import com.gamq.deportes.service.SistemaAuditoriaService;
 import com.gamq.deportes.service.TarifaConceptoService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,26 +47,18 @@ public class TarifaConceptoServiceImpl implements TarifaConceptoService {
     public List<TarifaConceptoDto> obtenerConceptos() {
         List<TarifaConcepto> conceptos = tarifaConceptoRepository.findAll();
 
-        if (!conceptos.isEmpty()) {
-            return conceptos.stream()
-                    .map(TarifaConceptoMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(TARIFA_CONCEPTO);
-        }
+        return conceptos.stream()
+                .map(TarifaConceptoMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<TarifaConceptoDto> findConceptosByTarifa(String uuidTarifa) {
         List<TarifaConcepto> conceptos = tarifaConceptoRepository.findByTarifaUuid(uuidTarifa);
 
-        if (!conceptos.isEmpty()) {
-            return conceptos.stream()
-                    .map(TarifaConceptoMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(TARIFA_CONCEPTO);
-        }
+        return conceptos.stream()
+                .map(TarifaConceptoMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -8,8 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -33,7 +31,7 @@ public class ReservaPeriodoDto {
     private String disciplina;
     private String entrenador;
 
-    private LocalDate fechaPago;
+    private EstudianteEscuelaDto estudianteEscuelaDto;
 
     private ReservaDto reservaDto;
 }

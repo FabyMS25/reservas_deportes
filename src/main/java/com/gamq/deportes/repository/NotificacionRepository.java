@@ -16,6 +16,10 @@ import java.util.Optional;
 @Repository
 public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
 
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM notificaciones WHERE usuario_uuid = :usuarioUuid AND notificacion_admin_uuid = :eventoUuid", nativeQuery = true)
+    boolean existsEntregaAdminIncluyendoEliminadas(@Param("usuarioUuid") String usuarioUuid,
+                                                    @Param("eventoUuid") String eventoUuid);
+
     @Query("SELECT n FROM Notificacion n WHERE n.uuid = :uuid")
     Optional<Notificacion> findByUuid(@Param("uuid") String uuid);
 

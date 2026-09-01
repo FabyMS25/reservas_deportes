@@ -20,7 +20,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "configuracion_sistema", indexes = {
         @Index(name = "idx_configuracion_uuid", columnList = "uuid", unique = true),
-        @Index(name = "idx_configuracion_clave", columnList = "clave", unique = true),
+        @Index(name = "idx_configuracion_clave", columnList = "clave"),
+        @Index(name = "idx_configuracion_scope", columnList = "clave, aplica_a, referencia_uuid"),
         @Index(name = "idx_configuracion_categoria", columnList = "categoria")
 })
 @SQLDelete(sql = "UPDATE configuracion_sistema SET estado = true WHERE id_configuracion = ?")
@@ -45,7 +46,7 @@ public class ConfiguracionSistema {
     private LocalDateTime fechaActualizacion;
 
     // Identification
-    @Column(name = "clave", nullable = false, unique = true, length = 100)
+    @Column(name = "clave", nullable = false, length = 100)
     private String clave;
 
     @Column(name = "categoria", nullable = false, length = 50)

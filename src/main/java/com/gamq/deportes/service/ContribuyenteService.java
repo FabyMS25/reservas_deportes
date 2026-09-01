@@ -16,6 +16,9 @@ public interface ContribuyenteService {
     ContribuyenteDto actualizarContribuyente(ContribuyenteDto contribuyenteDto);
     String eliminarContribuyente(String uuid);
     ContribuyenteDto loginContribuyente(login login);
+    boolean existsByNumeroDocumento(String numeroDocumento);
+    boolean existsByEmail(String email);
+    boolean existsByUserName(String userName);
 
     String delete(String uuid);
 }

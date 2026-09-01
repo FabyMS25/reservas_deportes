@@ -6,7 +6,6 @@ import com.gamq.deportes.dto.TarifaDto;
 import com.gamq.deportes.dto.mapper.TarifaConceptoMapper;
 import com.gamq.deportes.dto.mapper.TarifaMapper;
 
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.exception.OperationNotAllowedException;
@@ -64,13 +63,9 @@ public class TarifasServiceImpl implements TarifasService {
 
     public List<TarifaDto> obtenerTarifas(){
         List<Tarifa> Tarifass = tarifaRepository.findAll();
-        if (!Tarifass.isEmpty()) {
-            return Tarifass.stream().map(tarifa -> {
-                return TarifaMapper.toDto(tarifa, true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(TARIFA);
-        }
+        return Tarifass.stream().map(tarifa -> {
+            return TarifaMapper.toDto(tarifa, true);
+        }).collect(Collectors.toList());
     }
 
     public TarifaDto crearTarifa(TarifaDto tarifaDto){

@@ -20,15 +20,21 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
     Optional<ReservaPeriodo> findByUuid(String uuid);
 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.uuid = ?1")
-    Optional<ReservaPeriodo> findByReservaUuid(String reservaUuid);
+    List<ReservaPeriodo> findByReservaUuid(String reservaUuid);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.mes = ?1")
-    List<ReservaPeriodo> findByPeriodo(String periodo);
+    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.año = :anio AND rp.mes = :mes")
+    List<ReservaPeriodo> findByPeriodo(@Param("anio") Integer anio, @Param("mes") Integer mes);
 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.contribuyente.uuid = ?1")
     List<ReservaPeriodo> findByContribuyenteUuid(String contribuyenteUuid);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp join rp.reserva r join r.estudianteEscuela e WHERE e.uuid = :estudianteUuid order by rp.año desc, rp.mes desc, rp.fechaCreacion desc")
+    @Query("SELECT rp FROM ReservaPeriodo rp " +
+            "JOIN rp.estudianteEscuela e " +
+            "JOIN rp.reserva r " +
+            "WHERE e.uuid = :estudianteUuid " +
+            "AND UPPER(COALESCE(r.estadoReserva, '')) NOT IN " +
+            "('ANULADO', 'ANULADA', 'CANCELADA', 'EXPIRADA') " +
+            "ORDER BY rp.año DESC, rp.mes DESC, rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByEstudianteUuid(@Param("estudianteUuid") String estudianteUuid);
     @Query("SELECT r FROM Reserva r WHERE r.numeroReserva = :numeroReserva AND r.estado = false")
     Optional<Reserva> findByNumeroReserva(@Param("numeroReserva") String numeroReserva);

@@ -13,7 +13,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
-@RequestMapping("/api/campoDeportivo")
+@RequestMapping({"/api/campoDeportivo", "/api/sports-fields"})
 @Tag(name = "Canchas", description = "Canchas deportivas del GAMQ ")
 public class canchasController {
     @Autowired

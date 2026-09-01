@@ -18,12 +18,18 @@ import java.util.Optional;
 public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurrente, Long> ,
         JpaSpecificationExecutor<ReservaRecurrente> {
 
+    @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.reserva.estadoReserva = 'SOLICITADA' " +
+            "AND rr.reserva.estadoValidacion = 'PENDIENTE' AND rr.fechaInicio < :fecha")
+    List<ReservaRecurrente> findSolicitudesVencidas(@Param("fecha") LocalDate fecha);
+
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.tipoRecurrencia = :tipoRecurrencia")
     Page<ReservaRecurrente> findByTipoRecurrencia(@Param("tipoRecurrencia") String tipoRecurrencia, Pageable pageable);
-    @Query("SELECT rp FROM ReservaRecurrente rp WHERE rp.reserva.fechaCreacion < :expirationThreshold " +
-            "AND rp.reserva.estadoReserva = :estadoReserva")
+    @Query("SELECT rp FROM ReservaRecurrente rp WHERE rp.reserva.estadoReserva = :estadoReserva " +
+            "AND COALESCE(rp.reserva.cancelacionAutomatica, true) = true " +
+            "AND rp.reserva.fechaLimitePago IS NOT NULL " +
+            "AND rp.reserva.fechaLimitePago < :now")
     List<ReservaRecurrente> findExpiredPendingReservations(
-            @Param("expirationThreshold") LocalDateTime expirationThreshold,
+            @Param("now") LocalDateTime now,
             @Param("estadoReserva") String estadoReserva);
         @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.reserva.campoDeportivo.uuid = :campoUuid AND rr.activo = true AND rr.fechaInicio <= :fechaUso AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fechaUso)    AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
         List<ReservaRecurrente> findActivasEnFechaPorCampoEntity(
@@ -33,6 +39,15 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
 
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.uuid = ?1")
     Optional<ReservaRecurrente> findByUuid(String uuid);
+
+    @Query("SELECT rr FROM ReservaRecurrente rr " +
+            "WHERE rr.activo = true " +
+            "AND rr.fechaInicio <= :fechaFin " +
+            "AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fechaInicio) " +
+            "AND rr.reserva.estadoReserva IN ('PAGADA', 'EN_CURSO')")
+    List<ReservaRecurrente> findHabilitadasParaRecordatorio(
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin);
 
     // Date range queries
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.fechaInicio = :fechaInicio")

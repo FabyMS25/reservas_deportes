@@ -5,7 +5,6 @@ import com.gamq.deportes.dto.mapper.ClasificadorRuatMapper;
 import com.gamq.deportes.model.ClasificadorRuat;
 import com.gamq.deportes.repository.ClasificadorRuatRepository;
 import com.gamq.deportes.service.ClasificadorRuatService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,26 +49,18 @@ public class ClasificadorRuatServiceImpl implements ClasificadorRuatService {
     public List<ClasificadorRuatDto> obtenerClasificadores() {
         List<ClasificadorRuat> clasificadores = clasificadorRuatRepository.findAll();
 
-        if (!clasificadores.isEmpty()) {
-            return clasificadores.stream()
-                    .map(ClasificadorRuatMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(CLASIFICADOR_RUAT);
-        }
+        return clasificadores.stream()
+                .map(ClasificadorRuatMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ClasificadorRuatDto> obtenerClasificadoresActivos() {
         List<ClasificadorRuat> clasificadores = clasificadorRuatRepository.findByActivoTrue();
 
-        if (!clasificadores.isEmpty()) {
-            return clasificadores.stream()
-                    .map(ClasificadorRuatMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(CLASIFICADOR_RUAT);
-        }
+        return clasificadores.stream()
+                .map(ClasificadorRuatMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 //    @Override

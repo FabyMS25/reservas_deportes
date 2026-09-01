@@ -10,7 +10,6 @@ import com.gamq.deportes.dto.mapper.ReservaTarifaDetalleMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.ReservaService;
-import com.gamq.deportes.service.NotificacionService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.slf4j.Logger;
@@ -19,12 +18,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.gamq.deportes.security.DeportesPrincipal;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
@@ -34,11 +43,29 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 public class ReservaServiceImpl implements ReservaService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaServiceImpl.class);
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("HH:mm");
 
-    private static final String NOTIFICAR_RESERVA_CREADA = "NOTIFICAR_RESERVA_CREADA";
-    private static final String NOTIFICAR_SOLICITUD_APROBADA = "NOTIFICAR_SOLICITUD_APROBADA";
-    private static final String NOTIFICAR_SOLICITUD_RECHAZADA = "NOTIFICAR_SOLICITUD_RECHAZADA";
-    private static final String NOTIFICAR_RESERVA_CANCELADA = "NOTIFICAR_RESERVA_CANCELADA";
+    private static final String NOTIFICAR_REGISTRO_RESERVA = "NOTIFICAR_REGISTRO_RESERVA";
+    private static final String NOTIFICAR_RESULTADO_SOLICITUD = "NOTIFICAR_RESULTADO_SOLICITUD";
+    private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
+    private static final String HORAS_VALIDACION_PAGO = "HORAS_VALIDACION_PAGO";
+    private static final String HORAS_VALIDACION_PAGO_EVENTOS = "HORAS_VALIDACION_PAGO_EVENTOS";
+    private static final String HORAS_VALIDACION_PAGO_RECURRENTES = "HORAS_VALIDACION_PAGO_RECURRENTES";
+    private static final int HORAS_VALIDACION_PAGO_DEFAULT = 4;
+    private static final String HABILITAR_RESERVAS_EVENTOS = "HABILITAR_RESERVAS_EVENTOS";
+    private static final String HABILITAR_RESERVAS_ORGANIZACIONES = "HABILITAR_RESERVAS_ORGANIZACIONES";
+    private static final String HABILITAR_RESERVAS_RECURRENTES = "HABILITAR_RESERVAS_RECURRENTES";
+    private static final String HABILITAR_SOLICITUD_RESERVAS_EVENTOS = "HABILITAR_SOLICITUD_RESERVAS_EVENTOS";
+    private static final String HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES = "HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES";
+    private static final String HABILITAR_SOLICITUD_RESERVAS_RECURRENTES = "HABILITAR_SOLICITUD_RESERVAS_RECURRENTES";
+    private static final String HORAS_ANTICIPACION_RESERVAS_PUNTUALES = "HORAS_ANTICIPACION_RESERVAS_PUNTUALES";
+    private static final String HORAS_ANTICIPACION_RECURRENTES = "HORAS_ANTICIPACION_RECURRENTES";
+    private static final String DIAS_ANTICIPACION_EVENTOS = "DIAS_ANTICIPACION_EVENTOS";
+    private static final String DURACION_MINIMA_RESERVA = "DURACION_MINIMA_RESERVA";
+    private static final String DURACION_MAXIMA_PUNTUALES = "DURACION_MAXIMA_PUNTUALES";
+    private static final String DURACION_MAXIMA_EVENTOS = "DURACION_MAXIMA_EVENTOS";
+    private static final String DURACION_MAXIMA_RECURRENTES = "DURACION_MAXIMA_RECURRENTES";
 
     @Autowired
     private ReservaRepository reservaRepository;
@@ -80,13 +107,94 @@ public class ReservaServiceImpl implements ReservaService {
     private TableroRepository tableroRepository;
 
     @Autowired
+    private ConfiguracionSistemaRepository configuracionSistemaRepository;
+
+    @Autowired
     private ReservationNumberService reservationNumberService;
 
     @Autowired
-    private NotificacionService notificacionService;
+    private ReservaPeriodoMapper reservaPeriodoMapper; // Add this
 
     @Autowired
-    private ReservaPeriodoMapper reservaPeriodoMapper; // Add this
+    private ReservaNotificacionService reservaNotificacionService;
+
+    @Autowired
+    private NotificacionDestinatariosReservaService destinatariosService;
+
+    @Override
+    public Page<ReservaDto> obtenerReservas(
+            Pageable pageable,
+            Integer tab,
+            String searchTerm,
+            String typeReserva,
+            String estadoReserva,
+            String estadoValidacion,
+            Boolean esReservaGratuita,
+            String organization,
+            Integer mesFiltro,
+            Integer anioFiltro
+    ) {
+
+        // Quick filters from the tabs
+        if (tab != null) {
+            switch (tab) {
+                case 1: // Pendientes de Pago
+                    estadoReserva = "PENDIENTE";
+                    break;
+
+                case 2: // Pagadas
+                    estadoReserva = "PAGADA";
+                    break;
+
+                case 3: // Vigentes
+                    estadoReserva = "EN_CURSO";
+                    break;
+
+                case 4: // Completadas
+                    estadoReserva = "COMPLETADA";
+                    break;
+
+                case 5: // Canceladas
+                case 6: // Canceladas (legacy frontend tab id)
+                    estadoReserva = "CANCELADA";
+                    break;
+
+                case 0: // Todo
+                default:
+                    break;
+            }
+        }
+
+        return reservaRepository.buscarReservas(
+                searchTerm,
+                typeReserva,
+                estadoReserva,
+                estadoValidacion,
+                esReservaGratuita,
+                organization,
+                mesFiltro,
+                anioFiltro,
+                pageable
+        ).map(ReservaMapper::toDto);
+    }
+//    @Override
+//    public List<ReservaDto> obtenerReservas() {
+//        List<Reserva> reservas = reservaRepository.findAll();
+//
+//        if (reservas.isEmpty()) {
+//            return List.of();
+//        }
+//
+//        return reservas.stream()
+//                .map(ReservaMapper::toDto)
+//                .collect(Collectors.toList());
+//    }
+
+    public Page<ReservaDto> obtenerReservas(Pageable pageable) {
+        return reservaRepository.findAll(pageable)
+                .map(ReservaMapper::toDto);
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -108,24 +216,6 @@ public class ReservaServiceImpl implements ReservaService {
         } else {
             throw new NotFoundException(RESERVA, numeroReserva);
         }
-    }
-
-    @Override
-    public List<ReservaDto> obtenerReservas() {
-        List<Reserva> reservas = reservaRepository.findAll();
-
-        if (reservas.isEmpty()) {
-            return List.of();
-        }
-
-        return reservas.stream()
-                .map(ReservaMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    public Page<ReservaDto> obtenerReservas(Pageable pageable) {
-        return reservaRepository.findAll(pageable)
-                .map(ReservaMapper::toDto);
     }
 
     @Override
@@ -257,9 +347,16 @@ public class ReservaServiceImpl implements ReservaService {
         if (reservaDto.getTipoReserva() == null || reservaDto.getTipoReserva().trim().isEmpty()) {
             throw new IllegalArgumentException("El tipo de reserva es requerido");
         }
+        validarPoliticasConfiguradasParaContribuyente(reservaDto);
+
+        boolean esPeriodo = "periodo".equalsIgnoreCase(reservaDto.getTipoReserva());
+        if (esPeriodo) {
+            validarCabeceraPeriodo(reservaDto);
+        }
 
         CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
         Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
+        validateTaxpayerEligibleForReservation(contribuyente);
 
         // Handle tarifa - can be null for periodo reservations
         Tarifa tarifa = null;
@@ -299,14 +396,9 @@ public class ReservaServiceImpl implements ReservaService {
             nuevaReserva.setOrganizacion(organizacion);
         }
 
-        // Handle estudiante escuela for periodo reservations
-        if (reservaDto.getEstudianteEscuelaDto() != null && reservaDto.getEstudianteEscuelaDto().getUuid() != null) {
-            EstudianteEscuela estudianteEscuela = getEstudianteEscuela(reservaDto.getEstudianteEscuelaDto().getUuid());
-            nuevaReserva.setEstudianteEscuela(estudianteEscuela);
-        }
-
         nuevaReserva.setFechaCreacion(LocalDateTime.now());
         nuevaReserva.setFechaActualizacion(LocalDateTime.now());
+        aplicarPoliticaPago(nuevaReserva);
 
         // Don't generate again if we already have a number
         // Removed: if (nuevaReserva.getNumeroReserva() == null) {
@@ -331,11 +423,8 @@ public class ReservaServiceImpl implements ReservaService {
             nuevaReserva.setReservaRecurrente(recurrente);
         }
 
-        // Add periodo handling
-        if ("periodo".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaPeriodoDto() != null) {
-            ReservaPeriodo periodo = reservaPeriodoMapper.toEntity(reservaDto.getReservaPeriodoDto());
-            periodo.setReserva(nuevaReserva);
-            nuevaReserva.setReservaPeriodo(periodo);
+        if (esPeriodo) {
+            agregarDetallesPeriodo(nuevaReserva, reservaDto.getReservasPeriodoDtoList());
         }
 
         if (reservaDto.getTarifaDetallesDtoList() != null && !reservaDto.getTarifaDetallesDtoList().isEmpty()) {
@@ -361,14 +450,35 @@ public class ReservaServiceImpl implements ReservaService {
                 "CREATE",
                 null,
                 reservaGuardada.getEstadoReserva(),
-                reservaGuardada.getAprobadoPor(),
+                reservaGuardada.getCreadoPor(),
                 "Reserva creada",
                 buildReservaSnapshot(reservaGuardada)
         );
-        notificarReserva(reservaGuardada, NOTIFICAR_RESERVA_CREADA, "Reserva creada",
-                "Tu reserva " + safeValue(reservaGuardada.getNumeroReserva()) + " fue creada correctamente.",
+        boolean esSolicitud = "SOLICITADA".equalsIgnoreCase(reservaGuardada.getEstadoReserva())
+                || "PENDIENTE".equalsIgnoreCase(reservaGuardada.getEstadoValidacion());
+        notificarReserva(reservaGuardada, NOTIFICAR_REGISTRO_RESERVA,
+                esSolicitud ? "Solicitud registrada" : "Reserva creada",
+                esSolicitud
+                        ? "Tu solicitud de reserva " + safeValue(reservaGuardada.getNumeroReserva())
+                            + " fue registrada y está pendiente de revisión."
+                            + detalleNotificacion(reservaGuardada)
+                        : "Tu reserva " + safeValue(reservaGuardada.getNumeroReserva())
+                            + " fue creada correctamente."
+                            + detalleNotificacion(reservaGuardada),
                 "SUCCESS");
         return ReservaMapper.toDto(reservaGuardada);
+    }
+
+    private void validateTaxpayerEligibleForReservation(Contribuyente contribuyente) {
+        if (Boolean.TRUE.equals(contribuyente.getEstaSancionado())
+                || "SANCIONADO".equalsIgnoreCase(contribuyente.getEstadoUsuario())) {
+            throw new IllegalStateException(
+                    "El contribuyente no puede realizar nuevas reservas mientras su cuenta esté sancionada");
+        }
+        if (!contribuyente.estaActivo()) {
+            throw new IllegalStateException(
+                    "El contribuyente debe tener una cuenta activa para realizar nuevas reservas");
+        }
     }
     @Override
     public ReservaDto actualizarReserva(ReservaDto reservaDto) {
@@ -384,6 +494,15 @@ public class ReservaServiceImpl implements ReservaService {
             String estadoValidacionAnterior = reservaExistente.getEstadoValidacion();
 
             ReservaMapper.updateEntityFromDto(reservaDto, reservaExistente);
+
+            if (!Objects.equals(estadoValidacionAnterior, reservaExistente.getEstadoValidacion())
+                    && "RECHAZADA".equalsIgnoreCase(reservaExistente.getEstadoValidacion())) {
+                validarMotivo(reservaExistente.getMotivoRechazo(), "El motivo de rechazo es requerido");
+            }
+            if (!Objects.equals(estadoAnterior, reservaExistente.getEstadoReserva())
+                    && "CANCELADA".equalsIgnoreCase(reservaExistente.getEstadoReserva())) {
+                validarMotivo(reservaExistente.getMotivoRechazo(), "El motivo de cancelación es requerido");
+            }
 
             if (reservaDto.getCampoDeportivoDto() != null) {
                 CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
@@ -405,12 +524,15 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaExistente.setOrganizacion(organizacion);
             }
 
-            if (reservaDto.getEstudianteEscuelaDto() != null) {
-                EstudianteEscuela estudianteEscuela = getEstudianteEscuela(reservaDto.getEstudianteEscuelaDto().getUuid());
-                reservaExistente.setEstudianteEscuela(estudianteEscuela);
+            if ("periodo".equalsIgnoreCase(reservaExistente.getTipoReserva())
+                    && reservaDto.getReservasPeriodoDtoList() != null
+                    && !reservaDto.getReservasPeriodoDtoList().isEmpty()) {
+                reservaExistente.getReservasPeriodoList().clear();
+                agregarDetallesPeriodo(reservaExistente, reservaDto.getReservasPeriodoDtoList());
             }
 
             reservaExistente.setFechaActualizacion(LocalDateTime.now());
+            aplicarPoliticaPago(reservaExistente);
 
             Reserva reservaActualizada = reservaRepository.save(reservaExistente);
             registrarAuditoria(
@@ -454,8 +576,9 @@ public class ReservaServiceImpl implements ReservaService {
                 "{\"estadoValidacionAnterior\":\"" + safeValue(estadoValidacionAnterior)
                         + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaAprobada.getEstadoValidacion()) + "\"}"
         );
-        notificarReserva(reservaAprobada, NOTIFICAR_SOLICITUD_APROBADA, "Solicitud aprobada",
-                "Tu solicitud de reserva " + safeValue(reservaAprobada.getNumeroReserva()) + " fue aprobada.",
+        notificarReserva(reservaAprobada, NOTIFICAR_RESULTADO_SOLICITUD, "Solicitud aprobada",
+                "Tu solicitud de reserva " + safeValue(reservaAprobada.getNumeroReserva())
+                        + " fue aprobada." + detalleNotificacion(reservaAprobada),
                 "SUCCESS");
         return ReservaMapper.toDto(reservaAprobada);
     }
@@ -463,6 +586,7 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     @Transactional
     public ReservaDto rechazarReserva(String uuid, String motivoRechazo, String aprobadoPor) {
+        validarMotivo(motivoRechazo, "El motivo de rechazo es requerido");
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
         String estadoAnterior = reserva.getEstadoReserva();
@@ -485,21 +609,24 @@ public class ReservaServiceImpl implements ReservaService {
                 "{\"estadoValidacionAnterior\":\"" + safeValue(estadoValidacionAnterior)
                         + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaRechazada.getEstadoValidacion()) + "\"}"
         );
-        notificarReserva(reservaRechazada, NOTIFICAR_SOLICITUD_RECHAZADA, "Solicitud rechazada",
-                "Tu solicitud de reserva " + safeValue(reservaRechazada.getNumeroReserva()) + " fue rechazada.",
+        notificarReserva(reservaRechazada, NOTIFICAR_RESULTADO_SOLICITUD, "Solicitud rechazada",
+                "Tu solicitud de reserva " + safeValue(reservaRechazada.getNumeroReserva())
+                        + " fue rechazada. Motivo: " + safeValue(motivoRechazo) + ".",
                 "WARNING");
         return ReservaMapper.toDto(reservaRechazada);
     }
 
     @Override
     @Transactional
-    public ReservaDto cancelarReserva(String uuid, String motivo) {
+    public ReservaDto cancelarReserva(String uuid, String motivo, String anuladoPor) {
+        validarMotivo(motivo, "El motivo de cancelación es requerido");
         Reserva reserva = reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
         String estadoAnterior = reserva.getEstadoReserva();
 
         reserva.setEstadoReserva("CANCELADA");
         reserva.setMotivoRechazo(motivo);
+        reserva.setAnuladoPor(anuladoPor);
         reserva.setFechaActualizacion(LocalDateTime.now());
 
         Reserva reservaCancelada = reservaRepository.save(reserva);
@@ -508,13 +635,11 @@ public class ReservaServiceImpl implements ReservaService {
                 "CANCEL",
                 estadoAnterior,
                 reservaCancelada.getEstadoReserva(),
-                null,
+                anuladoPor,
                 "Reserva cancelada: " + motivo,
                 null
         );
-        notificarReserva(reservaCancelada, NOTIFICAR_RESERVA_CANCELADA, "Reserva cancelada",
-                "Tu reserva " + safeValue(reservaCancelada.getNumeroReserva()) + " fue cancelada.",
-                "WARNING");
+        reservaNotificacionService.notificarCancelada(reservaCancelada);
         return ReservaMapper.toDto(reservaCancelada);
     }
 
@@ -588,6 +713,207 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new NotFoundException(ESTUDIANTE_ESCUELA, uuid));
     }
 
+    private void validarCabeceraPeriodo(ReservaDto dto) {
+        if (dto.getOrganizacionDto() == null || dto.getOrganizacionDto().getUuid() == null) {
+            throw new IllegalArgumentException("La escuela es requerida para una reserva tipo periodo");
+        }
+        if (dto.getTarifaDto() == null || dto.getTarifaDto().getUuid() == null) {
+            throw new IllegalArgumentException("La tarifa es requerida para una reserva tipo periodo");
+        }
+        if (dto.getMontoTotal() == null || dto.getMontoTotal().signum() < 0) {
+            throw new IllegalArgumentException("El monto total de la tasa es requerido");
+        }
+        if (dto.getReservasPeriodoDtoList() == null || dto.getReservasPeriodoDtoList().isEmpty()) {
+            throw new IllegalArgumentException("La reserva tipo periodo requiere al menos un detalle");
+        }
+    }
+
+    private void agregarDetallesPeriodo(Reserva reserva, List<com.gamq.deportes.dto.ReservaPeriodoDto> detallesDto) {
+        for (com.gamq.deportes.dto.ReservaPeriodoDto detalleDto : detallesDto) {
+            if (detalleDto.getMes() == null || detalleDto.getMes() < 1 || detalleDto.getMes() > 12
+                    || detalleDto.getAño() == null) {
+                throw new IllegalArgumentException("Cada detalle debe tener un mes (1-12) y año válidos");
+            }
+            if (detalleDto.getEstudianteEscuelaDto() == null
+                    || detalleDto.getEstudianteEscuelaDto().getUuid() == null) {
+                throw new IllegalArgumentException("Cada detalle de periodo debe identificar un estudiante");
+            }
+            ReservaPeriodo periodo = ReservaPeriodoMapper.toEntity(detalleDto);
+            periodo.setReserva(reserva);
+            periodo.setEstudianteEscuela(
+                    getEstudianteEscuela(detalleDto.getEstudianteEscuelaDto().getUuid()));
+            reserva.getReservasPeriodoList().add(periodo);
+        }
+    }
+
+    private void validarPoliticasConfiguradasParaContribuyente(ReservaDto dto) {
+        if (!isContributorRequest()) {
+            return;
+        }
+
+        boolean solicitud = "PENDIENTE".equalsIgnoreCase(dto.getEstadoValidacion())
+                || "SOLICITADA".equalsIgnoreCase(dto.getEstadoReserva());
+        boolean recurrente = "recurrente".equalsIgnoreCase(dto.getTipoReserva());
+        boolean organizacion = dto.getOrganizacionDto() != null
+                && dto.getOrganizacionDto().getUuid() != null;
+        boolean evento = dto.getTarifaDto() != null
+                && "por_evento".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
+
+        if (recurrente) {
+            requireEnabled(solicitud
+                    ? HABILITAR_SOLICITUD_RESERVAS_RECURRENTES
+                    : HABILITAR_RESERVAS_RECURRENTES);
+        }
+        if (evento) {
+            requireEnabled(solicitud
+                    ? HABILITAR_SOLICITUD_RESERVAS_EVENTOS
+                    : HABILITAR_RESERVAS_EVENTOS);
+        }
+        if (organizacion) {
+            requireEnabled(solicitud
+                    ? HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES
+                    : HABILITAR_RESERVAS_ORGANIZACIONES);
+        }
+
+        if (recurrente && dto.getReservaRecurrenteDto() != null) {
+            validarReservaRecurrente(dto);
+        } else if (dto.getReservaPuntualDto() != null) {
+            validarReservaPuntual(dto, evento);
+        }
+    }
+
+    private void validarReservaPuntual(ReservaDto dto, boolean evento) {
+        LocalDate fecha = dto.getReservaPuntualDto().getFechaUso();
+        LocalTime inicio = dto.getReservaPuntualDto().getHoraInicio();
+        LocalTime fin = dto.getReservaPuntualDto().getHoraFin();
+        if (fecha == null || inicio == null || fin == null) {
+            return;
+        }
+
+        LocalDateTime comienzo = LocalDateTime.of(fecha, inicio);
+        double anticipacion = numericPolicy(
+                evento ? DIAS_ANTICIPACION_EVENTOS : HORAS_ANTICIPACION_RESERVAS_PUNTUALES,
+                0D);
+        LocalDateTime minimo = evento
+                ? LocalDateTime.now().plusMinutes(Math.round(anticipacion * 24D * 60D))
+                : LocalDateTime.now().plusMinutes(Math.round(anticipacion * 60D));
+        if (comienzo.isBefore(minimo)) {
+            throw new IllegalArgumentException("La reserva no cumple la anticipación mínima configurada");
+        }
+
+        double duracion = Duration.between(inicio, fin).toMinutes() / 60D;
+        double minima = numericPolicy(DURACION_MINIMA_RESERVA, 1D);
+        double maxima = numericPolicy(
+                evento ? DURACION_MAXIMA_EVENTOS : DURACION_MAXIMA_PUNTUALES,
+                evento ? 8D : 8D);
+        if (duracion < minima || duracion > maxima) {
+            throw new IllegalArgumentException(
+                    "La duración de la reserva debe estar entre " + minima + " y " + maxima + " horas");
+        }
+    }
+
+    private void validarReservaRecurrente(ReservaDto dto) {
+        LocalDate inicio = dto.getReservaRecurrenteDto().getFechaInicio();
+        LocalDate fin = dto.getReservaRecurrenteDto().getFechaFin();
+        if (inicio == null || fin == null) {
+            return;
+        }
+        double anticipacion = numericPolicy(HORAS_ANTICIPACION_RECURRENTES, 0D);
+        if (inicio.atStartOfDay().isBefore(
+                LocalDateTime.now().plusMinutes(Math.round(anticipacion * 60D)))) {
+            throw new IllegalArgumentException(
+                    "La reserva recurrente no cumple la anticipación mínima configurada");
+        }
+        double maximoDias = numericPolicy(DURACION_MAXIMA_RECURRENTES, 90D);
+        long dias = ChronoUnit.DAYS.between(inicio, fin) + 1;
+        if (dias < 1 || dias > maximoDias) {
+            throw new IllegalArgumentException(
+                    "La reserva recurrente no puede abarcar más de " + maximoDias + " días");
+        }
+        Integer duracionSesion = dto.getReservaRecurrenteDto().getDuracionSesionHoras();
+        double minima = numericPolicy(DURACION_MINIMA_RESERVA, 1D);
+        if (duracionSesion != null && duracionSesion < minima) {
+            throw new IllegalArgumentException(
+                    "Cada sesión debe durar al menos " + minima + " horas");
+        }
+    }
+
+    private void requireEnabled(String key) {
+        boolean enabled = configuracionSistemaRepository
+                .findEffectiveCandidates(key, "contribuyente", null)
+                .stream()
+                .findFirst()
+                .map(ConfiguracionSistema::getValorBoolean)
+                .orElse(false);
+        if (!enabled) {
+            throw new IllegalArgumentException("La funcionalidad " + key + " está deshabilitada");
+        }
+    }
+
+    private double numericPolicy(String key, double fallback) {
+        return configuracionSistemaRepository
+                .findEffectiveCandidates(key, "contribuyente", null)
+                .stream()
+                .findFirst()
+                .map(ConfiguracionSistema::getValorNumerico)
+                .filter(Objects::nonNull)
+                .orElse(fallback);
+    }
+
+    private boolean isContributorRequest() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null
+                && authentication.getPrincipal() instanceof DeportesPrincipal
+                && "TAXPAYER".equalsIgnoreCase(
+                        ((DeportesPrincipal) authentication.getPrincipal()).getUserType());
+    }
+
+    private void aplicarPoliticaPago(Reserva reserva) {
+        if (reserva.getCancelacionAutomatica() == null) {
+            reserva.setCancelacionAutomatica(true);
+        }
+
+        if (Boolean.TRUE.equals(reserva.getCancelacionAutomatica())) {
+            reserva.setMotivoCancelacionAutomatica(null);
+            reserva.setAutorizadoPor(null);
+            if (reserva.getFechaLimitePago() == null) {
+                reserva.setFechaLimitePago(LocalDateTime.now().plusHours(obtenerHorasValidacionPago(reserva)));
+            }
+            return;
+        }
+
+        reserva.setFechaLimitePago(null);
+        if (reserva.getMotivoCancelacionAutomatica() == null || reserva.getMotivoCancelacionAutomatica().trim().isEmpty()) {
+            throw new IllegalArgumentException("El motivo para no anular automaticamente la reserva por falta de pago es requerido");
+        }
+    }
+
+    private int obtenerHorasValidacionPago(Reserva reserva) {
+        String clave = obtenerClaveValidacionPago(reserva);
+        return obtenerValorNumericoActivo(clave)
+                .or(() -> obtenerValorNumericoActivo(HORAS_VALIDACION_PAGO))
+                .orElse(HORAS_VALIDACION_PAGO_DEFAULT);
+    }
+
+    private String obtenerClaveValidacionPago(Reserva reserva) {
+        if ("recurrente".equalsIgnoreCase(reserva.getTipoReserva())
+                || "periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return HORAS_VALIDACION_PAGO_RECURRENTES;
+        }
+        if (reserva.getTarifa() != null && "por_evento".equalsIgnoreCase(reserva.getTarifa().getTipoCobro())) {
+            return HORAS_VALIDACION_PAGO_EVENTOS;
+        }
+        return HORAS_VALIDACION_PAGO;
+    }
+
+    private java.util.Optional<Integer> obtenerValorNumericoActivo(String clave) {
+        return configuracionSistemaRepository.findByClaveAndEstadoFalse(clave)
+                .filter(config -> Boolean.TRUE.equals(config.getActivo()))
+                .map(ConfiguracionSistema::getValorNumerico)
+                .filter(value -> value != null && value > 0)
+                .map(Double::intValue);
+    }
+
     private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
                                     String usuarioUuid, String observaciones, String datosCambio) {
         ReservaAuditoria auditoria = new ReservaAuditoria();
@@ -620,6 +946,8 @@ public class ReservaServiceImpl implements ReservaService {
                 + "\",\"tipoReserva\":\"" + safeValue(reserva.getTipoReserva())
                 + "\",\"estadoReserva\":\"" + safeValue(reserva.getEstadoReserva())
                 + "\",\"estadoValidacion\":\"" + safeValue(reserva.getEstadoValidacion())
+                + "\",\"fechaLimitePago\":\"" + safeValue(reserva.getFechaLimitePago())
+                + "\",\"cancelacionAutomatica\":\"" + safeValue(reserva.getCancelacionAutomatica())
                 + "\",\"montoTotal\":\"" + safeValue(reserva.getMontoTotal()) + "\"}";
     }
 
@@ -627,8 +955,7 @@ public class ReservaServiceImpl implements ReservaService {
         if (reserva.getContribuyente() == null || reserva.getContribuyente().getUuid() == null) {
             return;
         }
-        NotificacionDto notificacion = new NotificacionDto()
-                .setUsuarioUuid(reserva.getContribuyente().getUuid())
+        NotificacionDto contribuyente = new NotificacionDto()
                 .setTipo(tipo)
                 .setTitulo(titulo)
                 .setMensaje(mensaje)
@@ -636,11 +963,87 @@ public class ReservaServiceImpl implements ReservaService {
                 .setCanal("APP")
                 .setReferenciaTipo("RESERVA")
                 .setReferenciaUuid(reserva.getUuid())
-                .setAccionUrl("/reservas/" + reserva.getUuid());
-        try {
-            notificacionService.crearNotificacionSiHabilitada(tipo, notificacion);
-        } catch (RuntimeException ex) {
-            logger.error("No se pudo crear notificacion {} para reserva {}", tipo, reserva.getUuid(), ex);
+                .setAccionUrl(obtenerRutaReserva(reserva));
+        String nombreContribuyente = safeValue(reserva.getContribuyente().getNombreCompleto());
+        NotificacionDto interno = new NotificacionDto()
+                .setTipo(tipo)
+                .setTitulo(titulo)
+                .setMensaje(mensaje.startsWith("Tu ")
+                        ? mensaje.replaceFirst("Tu ", "La solicitud o reserva de " + nombreContribuyente + " ")
+                        : mensaje + " Contribuyente: " + nombreContribuyente + ".")
+                .setPrioridad(prioridad)
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(reserva.getUuid())
+                .setAccionUrl(obtenerRutaReserva(reserva));
+        destinatariosService.publicar(tipo, reserva, contribuyente, interno, null);
+    }
+
+    private String obtenerRutaReserva(Reserva reserva) {
+        if ("recurrente".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return "/reservations/recurrent";
+        }
+        if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return "/reservations/schools";
+        }
+        return "/reservations/one-time";
+    }
+
+    private String detalleNotificacion(Reserva reserva) {
+        StringBuilder detalle = new StringBuilder();
+        if (reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank()) {
+            detalle.append(" Número de tasa: ").append(safeValue(reserva.getNumeroTasa())).append(".");
+        }
+        if (reserva.getCampoDeportivo() != null) {
+            detalle.append(" Lugar: ").append(safeValue(reserva.getCampoDeportivo().getNombre()));
+            if (reserva.getCampoDeportivo().getComplejo() != null) {
+                detalle.append(", complejo ")
+                        .append(safeValue(reserva.getCampoDeportivo().getComplejo().getNombre()));
+            }
+            detalle.append(".");
+        }
+        if (reserva.getReservaPuntual() != null) {
+            ReservaPuntual puntual = reserva.getReservaPuntual();
+            if (puntual.getFechaUso() != null) {
+                detalle.append(" Fecha: ").append(puntual.getFechaUso().format(FORMATO_FECHA)).append(".");
+            }
+            if (puntual.getHoraInicio() != null) {
+                detalle.append(" Horario: ").append(puntual.getHoraInicio().format(FORMATO_HORA));
+                if (puntual.getHoraFin() != null) {
+                    detalle.append(" a ").append(puntual.getHoraFin().format(FORMATO_HORA));
+                }
+                detalle.append(".");
+            }
+        } else if (reserva.getReservaRecurrente() != null) {
+            ReservaRecurrente recurrente = reserva.getReservaRecurrente();
+            if (recurrente.getFechaInicio() != null) {
+                detalle.append(" Periodo: ")
+                        .append(recurrente.getFechaInicio().format(FORMATO_FECHA));
+                if (recurrente.getFechaFin() != null) {
+                    detalle.append(" al ").append(recurrente.getFechaFin().format(FORMATO_FECHA));
+                }
+                detalle.append(".");
+            }
+            if (recurrente.getDiasSemana() != null && !recurrente.getDiasSemana().isBlank()) {
+                detalle.append(" Días: ").append(safeValue(recurrente.getDiasSemana())).append(".");
+            }
+        } else if (reserva.getReservasPeriodoList() != null
+                && !reserva.getReservasPeriodoList().isEmpty()) {
+            String periodos = reserva.getReservasPeriodoList().stream()
+                    .filter(periodo -> periodo.getMes() != null && periodo.getAño() != null)
+                    .map(periodo -> periodo.getMes() + "/" + periodo.getAño())
+                    .distinct()
+                    .collect(Collectors.joining(", "));
+            if (!periodos.isEmpty()) {
+                detalle.append(" Periodo: ").append(periodos).append(".");
+            }
+        }
+        return detalle.toString();
+    }
+
+    private void validarMotivo(String motivo, String mensaje) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException(mensaje);
         }
     }
 

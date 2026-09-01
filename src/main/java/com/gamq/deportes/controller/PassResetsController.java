@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/passresets")
@@ -63,6 +64,9 @@ public class PassResetsController {
     @PostMapping()
     public Response crearPass(@RequestBody PassDto PassDto) {
         try{
+            if (PassDto.getToken() == null || PassDto.getToken().isBlank()) {
+                PassDto.setToken(UUID.randomUUID().toString());
+            }
             return Response.ok().setPayload(passResetsService.crearPassResets(PassDto));
         } catch (Exception ex) {
             return  Response.unprocessableEntity().setPayload(ex.getMessage());

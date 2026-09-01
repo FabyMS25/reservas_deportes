@@ -2,7 +2,6 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.TarifaCategoriaDto;
 import com.gamq.deportes.dto.mapper.TarifaCategoriaMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.CategoriaDeportiva;
@@ -45,13 +44,9 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
 
     public List<TarifaCategoriaDto> obtenerTarifaCategorias(){
         List<TarifaCategoria> TarifaCategoriass =tarifaCategoriaRepository.findAll();
-        if (!TarifaCategoriass.isEmpty()) {
-            return TarifaCategoriass.stream().map(TarifaCatego -> {
-                return TarifaCategoriaMapper.toDto(TarifaCatego,true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(TARIFACATEGORIA);
-        }
+        return TarifaCategoriass.stream().map(TarifaCatego -> {
+            return TarifaCategoriaMapper.toDto(TarifaCatego,true);
+        }).collect(Collectors.toList());
 
     }
 

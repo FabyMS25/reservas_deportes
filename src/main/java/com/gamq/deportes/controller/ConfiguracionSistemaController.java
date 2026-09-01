@@ -13,7 +13,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
-@RequestMapping("/api/configuracionSistema")
+@RequestMapping({"/api/configuracionSistema", "/api/system-configurations"})
 @Tag(name = "Complejos", description = "Complejos del GAMQ ")
 public class ConfiguracionSistemaController {
 
@@ -50,6 +50,7 @@ public class ConfiguracionSistemaController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+
     @Operation(summary = "Buscar Configuracion por Categoria")
     @GetMapping("/categoria/{categoria}")
     public Response buscarConfiguracionesPorCategoria(@Parameter(description = "Categoría para búsqueda de configuraciones")

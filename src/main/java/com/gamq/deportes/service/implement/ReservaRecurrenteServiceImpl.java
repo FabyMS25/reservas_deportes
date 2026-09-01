@@ -1,5 +1,6 @@
 package com.gamq.deportes.service.implement;
 
+import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
@@ -32,7 +33,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
@@ -40,6 +44,8 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
+    private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
+
     @Autowired
     private ReservaRecurrenteRepository reservaRecurrenteRepository;
     @Autowired
@@ -48,6 +54,10 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private ReservaAuditoriaRepository reservaAuditoriaRepository;
     @Autowired
     private TableroRepository tableroRepository;
+    @Autowired
+    private ReservaNotificacionService reservaNotificacionService;
+    @Autowired
+    private NotificacionDestinatariosReservaService destinatariosService;
 
     @Override
     public List<ReservaRecurrenteDto> obtenerReservas() {
@@ -149,11 +159,11 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     }
     @Override
     @Transactional
-    public List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout) {
-        LocalDateTime expirationThreshold = LocalDateTime.now().minusHours(horasTimeout);
+    public List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations() {
+        LocalDateTime now = LocalDateTime.now();
 
         List<ReservaRecurrente> expiredReservas = reservaRecurrenteRepository
-                .findExpiredPendingReservations(expirationThreshold, "PENDIENTE");
+                .findExpiredPendingReservations(now, "PENDIENTE");
 
         List<ReservaRecurrenteDto> updatedReservas = new ArrayList<>();
 
@@ -163,6 +173,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                 String contribuyenteUuid = reserva.getReserva().getContribuyente().getUuid();
 
                 reserva.getReserva().setEstadoReserva("EXPIRADA");
+                reserva.getReserva().setAnuladoPor(null);
                 reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
                 reserva.getReserva().setFechaRechazo(LocalDateTime.now());
 
@@ -179,6 +190,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                             "Reserva recurrente expirada por falta de pago",
                             null
                     );
+                    reservaNotificacionService.notificarExpirada(updatedReserva);
                     updatedReservas.add(ReservaRecurrenteMapper.toDto(reserva, true));
                 }
             } catch (Exception e) {
@@ -356,6 +368,11 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
         if (reservaRecurrenteOptional.isPresent()) {
             ReservaRecurrente reservaRecurrenteExistente = reservaRecurrenteOptional.get();
+            LocalDate fechaInicioAnterior = reservaRecurrenteExistente.getFechaInicio();
+            LocalDate fechaFinAnterior = reservaRecurrenteExistente.getFechaFin();
+            String diasSemanaAnteriores = reservaRecurrenteExistente.getDiasSemana();
+            String tableroAnterior = reservaRecurrenteExistente.getTablero() == null
+                    ? null : reservaRecurrenteExistente.getTablero().getUuid();
             ReservaRecurrenteMapper.updateEntityFromDto(reservaRecurrenteDto, reservaRecurrenteExistente);
             if (reservaRecurrenteDto.getReservaDto() != null) {
                 Reserva reserva = getReserva(reservaRecurrenteDto.getReservaDto().getUuid());
@@ -367,6 +384,13 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             } else {
                 reservaRecurrenteExistente.setTablero(null);
             }
+            String tableroNuevo = reservaRecurrenteExistente.getTablero() == null
+                    ? null : reservaRecurrenteExistente.getTablero().getUuid();
+            boolean horarioCambiado =
+                    !Objects.equals(fechaInicioAnterior, reservaRecurrenteExistente.getFechaInicio())
+                    || !Objects.equals(fechaFinAnterior, reservaRecurrenteExistente.getFechaFin())
+                    || !Objects.equals(diasSemanaAnteriores, reservaRecurrenteExistente.getDiasSemana())
+                    || !Objects.equals(tableroAnterior, tableroNuevo);
             if (reservaRecurrenteDto.getFechaFin() != null &&
                     reservaRecurrenteDto.getFechaInicio().isAfter(reservaRecurrenteDto.getFechaFin())) {
                 throw new IllegalArgumentException("Fecha de inicio no puede ser después de la fecha de fin");
@@ -381,6 +405,9 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                     "Detalle de reserva recurrente actualizado",
                     buildReservaRecurrenteSnapshot(reservaRecurrenteActualizada)
             );
+            if (horarioCambiado) {
+                notificarCambioHorario(reservaRecurrenteActualizada);
+            }
             return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
         } else {
             throw new NotFoundException(RESERVA_RECURRENTE, reservaRecurrenteDto.getUuid());
@@ -406,6 +433,34 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                 buildReservaRecurrenteSnapshot(reservaRecurrenteActualizada)
         );
         return ReservaRecurrenteMapper.toDto(reservaRecurrenteActualizada, true);
+    }
+
+    private void notificarCambioHorario(ReservaRecurrente recurrente) {
+        Reserva reserva = recurrente.getReserva();
+        if (reserva == null || reserva.getContribuyente() == null) return;
+        String numero = safeValue(reserva.getNumeroReserva());
+        String contribuyente = safeValue(reserva.getContribuyente().getNombreCompleto());
+        destinatariosService.publicar(
+                "NOTIFICAR_CAMBIO_HORARIO",
+                reserva,
+                notificacionCambio(recurrente,
+                        "El horario de tu reserva recurrente " + numero + " fue actualizado."),
+                notificacionCambio(recurrente,
+                        "El horario de la reserva recurrente " + numero + " de "
+                                + contribuyente + " fue actualizado."),
+                null);
+    }
+
+    private NotificacionDto notificacionCambio(ReservaRecurrente recurrente, String mensaje) {
+        return new NotificacionDto()
+                .setTipo("NOTIFICAR_CAMBIO_HORARIO")
+                .setTitulo("Cambio de horario")
+                .setMensaje(mensaje)
+                .setPrioridad("INFO")
+                .setCanal("APP")
+                .setReferenciaTipo("RESERVA")
+                .setReferenciaUuid(recurrente.getUuid())
+                .setAccionUrl("/reservations/recurrent");
     }
 
     @Override
@@ -502,4 +557,5 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private String safeValue(Object value) {
         return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
     }
+
 }

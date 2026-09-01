@@ -1,57 +1,73 @@
 services:
   be-deportes:
-    depends_on:
-      - db-deportes
-    image: 'deportes-be'
-    container_name: 'deportes-be'
+    image: deportes-be
+    container_name: deportes-be
     build: .
     ports:
-      - '8085:8085'
+      - "127.0.0.1:8085:8085"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
-      - SPRING_DATASOURCE_USERNAME=deportes
-      - SPRING_DATASOURCE_PASSWORD=deportes123
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
+#      - SPRING_DATASOURCE_USERNAME=deportes
+#      - SPRING_DATASOURCE_PASSWORD=deportes123
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      SERVER_PORT: 8085
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-deportes:5432/db_deportes
+      SPRING_DATASOURCE_USERNAME: deportes
+      SPRING_DATASOURCE_PASSWORD: deportes123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      RUAT_BASE_URL: https://aplicaciones.ruat.gob.bo
+      UPLOAD_REQUISITO_PATH: /opt/uploads/licencias/requisitos/
+      UPLOAD_INSPECCION_PATH: /opt/uploads/licencias/inspecciones/
+      UPLOAD_PUBLICIDAD_PATH: /opt/uploads/licencias/letreros/
+    volumes:
+      - uploads:/opt/uploads/licencias
+    depends_on:
+      - db-deportes
     restart: always
 
   db-deportes:
     image: postgis/postgis:14-3.2-alpine
-#    image: postgres:14-alpine
-    container_name: 'deportes-db'
+    container_name: deportes-db
     environment:
-      - POSTGRES_USER=deportes
-      - POSTGRES_PASSWORD=deportes123
-      - POSTGRES_DB=db_deportes
+      POSTGRES_USER: deportes
+      POSTGRES_PASSWORD: deportes123
+      POSTGRES_DB: db_deportes
+#        - POSTGRES_USER=deportes
+#        - POSTGRES_PASSWORD=deportes123
+#        - POSTGRES_DB=db_deportes
     ports:
-      - '5438:5432'
+      - "127.0.0.1:5438:5432"
     volumes:
       - db:/var/lib/postgresql/data
     restart: always
 
   pg-deportes:
     image: dpage/pgadmin4
-    container_name: 'deportes-pg'
+    container_name: deportes-pg
     ports:
-      - "5055:80"
+      - "127.0.0.1:5055:80"
     environment:
-      - PGADMIN_DEFAULT_EMAIL=deportes@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=deportes123
+      PGADMIN_DEFAULT_EMAIL: deportes@admin.com
+      PGADMIN_DEFAULT_PASSWORD: deportes123
+#        - PGADMIN_DEFAULT_EMAIL=deportes@admin.com
+#        - PGADMIN_DEFAULT_PASSWORD=deportes123
     depends_on:
       - db-deportes
     volumes:
       - pg:/var/lib/pgadmin
     restart: always
+
   fe-deportes:
-    image: 'deportes-fe'
-    container_name: 'deportes-fe'
+    image: deportes-fe
+    container_name: deportes-fe
     ports:
-      - '127.0.0.1:4205:80'
-#    ports:
-#      - '4205:80'
-#    depends_on:
-#      - be-deportes
+      - "127.0.0.1:4205:80"
+    #    depends_on:
+    #      - be-deportes
     restart: always
 
 volumes:
   db:
   pg:
+  uploads:

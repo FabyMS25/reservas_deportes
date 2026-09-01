@@ -87,8 +87,8 @@ public class EstudianteEscuela {
 //    @JoinColumn(name = "id_organizacion", nullable = false)
 //    private Organizacion organizacionDto;
 
-    @OneToMany(mappedBy = "estudianteEscuela", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Reserva> mensualidadesDtoList = new ArrayList<>();
+    @OneToMany(mappedBy = "estudianteEscuela", fetch = FetchType.LAZY)
+    private List<ReservaPeriodo> mensualidadesDtoList = new ArrayList<>();
 
     public EstudianteEscuela(String uuid) {
         this.uuid = uuid;

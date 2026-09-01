@@ -4,7 +4,6 @@ import com.gamq.deportes.dto.PassDto;
 import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.dto.mapper.PassMapper;
 import com.gamq.deportes.dto.mapper.ContribuyenteMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Pass;
@@ -69,13 +68,9 @@ public class PassResetsServiceImpl implements PassResetsService {
    public List<PassDto> obtenerPassResets(){
        List<Pass> passResetsses = passRepository.findAll();
 
-       if (!passResetsses.isEmpty()) {
-           return passResetsses.stream().map(Pass -> {
-               return PassMapper.toDto(Pass);
-           }).collect(Collectors.toList());
-       } else {
-           throw new NoResultException(PASSRESETS);
-       }
+       return passResetsses.stream().map(Pass -> {
+           return PassMapper.toDto(Pass);
+       }).collect(Collectors.toList());
    }
     public PassDto crearPassResets(PassDto PassDto){
         if (PassDto != null) {

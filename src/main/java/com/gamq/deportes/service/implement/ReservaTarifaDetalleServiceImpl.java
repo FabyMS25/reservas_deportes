@@ -2,7 +2,6 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaTarifaDetalleDto;
 import com.gamq.deportes.dto.mapper.ReservaTarifaDetalleMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Reserva;
@@ -51,25 +50,17 @@ public class ReservaTarifaDetalleServiceImpl implements ReservaTarifaDetalleServ
     @Override
     public List<ReservaTarifaDetalleDto> obtenerReservaTarifaDetalles() {
         List<ReservaTarifaDetalle> detalles = reservaTarifaDetalleRepository.findAll();
-        if (!detalles.isEmpty()) {
-            return detalles.stream()
-                    .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_TARIFA_DETALLE);
-        }
+        return detalles.stream()
+                .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, true))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ReservaTarifaDetalleDto> findByReservaUuid(String reservaUuid) {
         List<ReservaTarifaDetalle> detalles = reservaTarifaDetalleRepository.findByReservaUuid(reservaUuid);
-        if (!detalles.isEmpty()) {
-            return detalles.stream()
-                    .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_TARIFA_DETALLE);
-        }
+        return detalles.stream()
+                .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, true))
+                .collect(Collectors.toList());
     }
 
     @Override

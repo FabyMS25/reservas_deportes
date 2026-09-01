@@ -31,7 +31,7 @@
 		join campos_deportivos as ca on ca.id_campo = re.id_campo
 		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
 		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
-		join estudiantes_escuela as ES on ES.id_estudiante = re.id_estudiante_escuela 
+		join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
 		join organizaciones as ORG on org.id_organizacion = re.id_organizacion
 		WHERE RE.fecha_reserva BETWEEN $P{fechaini} AND $P{fechafin}
 		AND ES.matricula LIKE  $P{matricula} and Es.nombre_completo LIKE $P{alumno} 

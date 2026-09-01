@@ -34,16 +34,19 @@ public class EstudianteEscuelaMapper {
         dto.setMatricula(estudiante.getMatricula());
         dto.setActivo(estudiante.getActivo() != null ? estudiante.getActivo() : false);
 
-        if (includeRelations) {
-            // Include contribuyente (representante o tutor)
-            if (estudiante.getContribuyenteDto() != null) {
-                dto.setContribuyenteDto(ContribuyenteMapper.toDto(estudiante.getContribuyenteDto(), false));
-            }
+        // Always include the representative/tutor summary. The monthly payment form needs
+        // the RUAT codigoContribuyente from the student record to create a valid tasa.
+        if (estudiante.getContribuyenteDto() != null) {
+            dto.setContribuyenteDto(includeRelations
+                    ? ContribuyenteMapper.toDto(estudiante.getContribuyenteDto(), false)
+                    : ContribuyenteMapper.toSimpleDto(estudiante.getContribuyenteDto()));
+        }
 
+        if (includeRelations) {
             // Include monthly payments (reservas as mensualidades)
             if (estudiante.getMensualidadesDtoList() != null && !estudiante.getMensualidadesDtoList().isEmpty()) {
                 dto.setMensualidadesDtoList(estudiante.getMensualidadesDtoList().stream()
-                        .map(ReservaMapper::toDto)
+                        .map(periodo -> ReservaPeriodoMapper.toDto(periodo, true))
                         .collect(Collectors.toList()));
             }
         }

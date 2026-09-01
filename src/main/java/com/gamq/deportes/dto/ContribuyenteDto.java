@@ -2,6 +2,7 @@ package com.gamq.deportes.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gamq.deportes.model.Organizacion;
 import com.gamq.deportes.model.Reserva;
 import lombok.Getter;
@@ -34,6 +35,8 @@ public class ContribuyenteDto {
     private LocalDateTime fechaActualizacion;
 
     private String userName;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
     private String password;
     private String estadoUsuario;
 

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reservatarifadetalles")
+@RequestMapping({"/api/reservatarifadetalles", "/api/reservation-tariff-details"})
 @Tag(name = "Reserva Tarifa Detalles", description = "API para gestion de detalles historicos de tarifas de reservas")
 public class ReservaTarifaDetalleController {
     @Autowired

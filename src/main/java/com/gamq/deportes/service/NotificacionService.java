@@ -15,11 +15,11 @@ public interface NotificacionService {
     List<NotificacionDto> obtenerNoLeidas(String usuarioUuid);
     Long contarNoLeidas(String usuarioUuid);
     NotificacionDto crearNotificacion(NotificacionDto notificacionDto);
-    NotificacionDto crearNotificacionSiHabilitada(String claveConfiguracion, NotificacionDto notificacionDto);
+    void crearNotificacionAdminSiHabilitada(String claveConfiguracion, NotificacionDto notificacionDto, String usuarioExcluidoUuid);
+    List<NotificacionDto> sincronizarNotificacionesAdmin(String usuarioUuid);
+    int limpiarNotificacionesAdminAntiguas(int diasRetencion);
     NotificacionDto marcarComoLeida(String uuid);
     List<NotificacionDto> marcarTodasComoLeidas(String usuarioUuid);
-    NotificacionDto marcarComoEnviada(String uuid);
-    NotificacionDto actualizarEstadoLectura(String uuid, String estadoLectura);
     String eliminarNotificacion(String uuid);
     boolean estaHabilitada(String claveConfiguracion);
 }

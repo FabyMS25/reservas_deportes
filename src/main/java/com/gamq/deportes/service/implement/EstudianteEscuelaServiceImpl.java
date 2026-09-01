@@ -9,7 +9,6 @@ import com.gamq.deportes.repository.ContribuyenteRepository;
 import com.gamq.deportes.repository.EstudianteEscuelaRepository;
 import com.gamq.deportes.repository.OrganizacionRepository;
 import com.gamq.deportes.service.EstudianteEscuelaService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,25 +68,17 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     @Override
     public List<EstudianteEscuelaDto> obtenerEstudiantes() {
         List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findAll();
-        if (!estudiantes.isEmpty()) {
-            return estudiantes.stream()
-                    .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(ESTUDIANTE_ESCUELA);
-        }
+        return estudiantes.stream()
+                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, true))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<EstudianteEscuelaDto> findByContribuyenteUuid(String uuidContribuyente) {
         List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByContribuyenteUuid(uuidContribuyente);
-        if (!estudiantes.isEmpty()) {
-            return estudiantes.stream()
-                    .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(ESTUDIANTE_ESCUELA);
-        }
+        return estudiantes.stream()
+                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
+                .collect(Collectors.toList());
     }
 
 //    @Override
@@ -105,13 +96,9 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     @Override
     public List<EstudianteEscuelaDto> findByActivoTrue() {
         List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByActivoTrue();
-        if (!estudiantes.isEmpty()) {
-            return estudiantes.stream()
-                    .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(ESTUDIANTE_ESCUELA);
-        }
+        return estudiantes.stream()
+                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
+                .collect(Collectors.toList());
     }
 
 //    @Override

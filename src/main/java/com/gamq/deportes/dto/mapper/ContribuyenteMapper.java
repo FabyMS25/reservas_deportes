@@ -19,7 +19,6 @@ public class ContribuyenteMapper {
 
         // Authentication
         dto.setUserName(contribuyente.getUserName());
-        dto.setPassword(contribuyente.getPassword());
         dto.setEstadoUsuario(contribuyente.getEstadoUsuario());
 
         // RUAT Integration
@@ -294,6 +293,10 @@ public class ContribuyenteMapper {
         dto.setEmail(contribuyente.getEmail());
         dto.setTelefono(contribuyente.getTelefono());
         dto.setNumeroDocumento(contribuyente.getNumeroDocumento());
+        dto.setCodigoContribuyente(contribuyente.getCodigoContribuyente());
+        dto.setTipoContribuyente(contribuyente.getTipoContribuyente());
+        dto.setEstadoRuat(contribuyente.getEstadoRuat());
+        dto.setVerificadoRuat(contribuyente.getVerificadoRuat());
         dto.setEstadoUsuario(contribuyente.getEstadoUsuario());
         dto.setNombreCompleto(contribuyente.getNombreCompleto());
         dto.setEstaActivo(contribuyente.estaActivo());

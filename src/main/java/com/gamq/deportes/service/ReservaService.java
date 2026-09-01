@@ -12,7 +12,20 @@ import java.util.List;
 
 @Service
 public interface ReservaService {
-
+    Page<ReservaDto> obtenerReservas(
+            Pageable pageable,
+            Integer tab,
+            String searchTerm,
+            String typeReserva,
+            String estadoReserva,
+            String estadoValidacion,
+            Boolean esReservaGratuita,
+            String organization,
+            Integer mesFiltro,
+            Integer anioFiltro
+    );
+//    List<ReservaDto> obtenerReservas();
+//    Page<ReservaDto> obtenerReservas(Pageable pageable);
     ReservaDto findByUuid(String uuid);
     List<ReservaDto> findReservasByCampoDeportivo(String uuid);
     List<ReservaDto> findReservasByContribuyente(String uuid);
@@ -20,8 +33,6 @@ public interface ReservaService {
     ReservaDto findByNumeroReserva(String numeroReserva);
     List<ReservaDto> findByEstadoReserva(String estadoReserva);
     List<ReservaDto> findByTipoReserva(String tipoReserva);
-    List<ReservaDto> obtenerReservas();
-    Page<ReservaDto> obtenerReservas(Pageable pageable);
     List<ReservaDto> buscarPorFechaReserva(LocalDateTime fechaIni, LocalDateTime fechaFin);
     Page<ReservaDto> buscarPorFechaReserva(LocalDateTime fechaIni, LocalDateTime fechaFin, Pageable pageable);
     List<ReservaDto> findReservasActivasPorCampoYFecha(String uuidCampo, LocalDateTime fechaIni, LocalDateTime fechaFin);
@@ -31,6 +42,6 @@ public interface ReservaService {
     ReservaDto actualizarReserva(ReservaDto reservasDto);
     ReservaDto aprobarReserva(String uuid, String aprobadoPor);
     ReservaDto rechazarReserva(String uuid, String motivoRechazo, String aprobadoPor);
-    ReservaDto cancelarReserva(String uuid, String motivo);
+    ReservaDto cancelarReserva(String uuid, String motivo, String anuladoPor);
     String eliminarReserva(String uuid);
 }

@@ -39,4 +39,5 @@ public class NotificacionDto {
     private LocalDateTime leidaEn;
     private LocalDateTime expiraEn;
     private String metadataJson;
+    private String notificacionAdminUuid;
 }

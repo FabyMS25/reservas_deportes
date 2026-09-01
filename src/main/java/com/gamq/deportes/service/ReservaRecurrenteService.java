@@ -13,7 +13,7 @@ public interface ReservaRecurrenteService {
     List<ReservaRecurrenteDto> obtenerReservas();
     Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable);
     Page<ReservaRecurrenteDto> obtenerReservasConFiltros(ReservaRecurrenteFilter filter, Pageable pageable);
-    List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations(int horasTimeout);
+    List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations();
     ReservaRecurrenteDto findByUuid(String uuid);
     ReservaRecurrenteDto findByReservaUuid(String reservaUuid);
     List<ReservaRecurrenteDto> findByTipoRecurrencia(String tipoRecurrencia);

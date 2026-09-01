@@ -7,11 +7,14 @@ import com.gamq.deportes.model.*;
 import com.gamq.deportes.model.login.login;
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.ContribuyenteService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import com.gamq.deportes.exception.DuplicateTaxpayerException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -22,6 +25,8 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class ContribuyenteServiceImpl implements ContribuyenteService {
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     ContribuyenteRepository contribuyentesRepository;
@@ -55,26 +60,25 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     @Override
     public List<ContribuyenteDto> obtenerContribuyentes(){
         List<Contribuyente> contribuyentes = contribuyentesRepository.findAll();
-        if (!contribuyentes.isEmpty()) {
-            return contribuyentes.stream().map(contri -> {
-                return ContribuyenteMapper.toDto(contri,true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(CONTRIBUYENTE);
-        }
+        return contribuyentes.stream().map(contri -> {
+            return ContribuyenteMapper.toDto(contri,true);
+        }).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public ContribuyenteDto crearContribuyente(ContribuyenteDto contribuyenteDto){
         if (contribuyenteDto != null) {
+            validateRequiredRegistrationFields(contribuyenteDto);
+            validateUniqueRegistrationFields(contribuyenteDto);
+            contribuyenteDto.setPassword(encodePassword(contribuyenteDto.getPassword()));
             Contribuyente newContri = ContribuyenteMapper.toEntity(contribuyenteDto);
-            Contribuyente contribuyenteGuardado = contribuyentesRepository.save(newContri);
-            if (contribuyenteDto.getOrganizacionesRepresentadas() != null && !contribuyenteDto.getOrganizacionesRepresentadas().isEmpty()) {
-                crearOrganizacionesParaContribuyente(contribuyenteGuardado, contribuyenteDto.getOrganizacionesRepresentadas());
-            }
-            if (contribuyenteDto.getEstudianteEnEscuelas() != null && !contribuyenteDto.getEstudianteEnEscuelas().isEmpty()) {
-                crearEstudiantesParaContribuyente(contribuyenteGuardado, contribuyenteDto.getEstudianteEnEscuelas());
+            Contribuyente contribuyenteGuardado;
+            try {
+                contribuyenteGuardado = contribuyentesRepository.saveAndFlush(newContri);
+            } catch (DataIntegrityViolationException ex) {
+                throw new DuplicateTaxpayerException(Collections.singletonList(
+                        "alguno de sus datos de identificación"));
             }
             return ContribuyenteMapper.toDto(contribuyenteGuardado, true);
         } else {
@@ -90,6 +94,9 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
             if (contribuyenteOptional.isPresent()) {
                 Contribuyente contribuyenteExistente = contribuyenteOptional.get();
+                if (contribuyenteDto.getPassword() != null && !contribuyenteDto.getPassword().isBlank()) {
+                    contribuyenteDto.setPassword(encodePassword(contribuyenteDto.getPassword()));
+                }
                 ContribuyenteMapper.updateEntityFromDto(contribuyenteDto, contribuyenteExistente);
                 Contribuyente contribuyenteActualizado = contribuyentesRepository.save(contribuyenteExistente);
                 if (contribuyenteDto.getOrganizacionesRepresentadas() != null) {
@@ -118,15 +125,90 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     }
 
     public ContribuyenteDto loginContribuyente(login login){
-
-        if ((login.getUser()!= null)&&(login.getPass()!= null)) {
-            Optional<Contribuyente> contribuyenteOptional = contribuyentesRepository.Login(login.getUser(), login.getPass());
-
-            return ContribuyenteMapper.toDto(contribuyenteOptional.get(),true);
-        } else {
-            throw new NotFoundException(CONTRIBUYENTE, login.getUser());
-
+        if (login == null || login.getUser() == null || login.getPass() == null) {
+            throw new NotFoundException(CONTRIBUYENTE, login == null ? null : login.getUser());
         }
+
+        Contribuyente contribuyente = contribuyentesRepository.findByUserName(login.getUser())
+                .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, login.getUser()));
+
+        String storedPassword = contribuyente.getPassword();
+        boolean validPassword = isBcryptHash(storedPassword)
+                ? passwordEncoder.matches(login.getPass(), storedPassword)
+                : login.getPass().equals(storedPassword);
+
+        if (!validPassword) {
+            throw new NotFoundException(CONTRIBUYENTE, login.getUser());
+        }
+
+        // Transparently migrate legacy plaintext passwords after a successful login.
+        if (!isBcryptHash(storedPassword)) {
+            contribuyente.setPassword(passwordEncoder.encode(login.getPass()));
+            contribuyentesRepository.save(contribuyente);
+        }
+
+        return ContribuyenteMapper.toDto(contribuyente, true);
+    }
+
+    @Override
+    public boolean existsByNumeroDocumento(String numeroDocumento) {
+        return hasText(numeroDocumento) && contribuyentesRepository.existsAnyByNumeroDocumento(numeroDocumento.trim());
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return hasText(email) && contribuyentesRepository.existsAnyByEmail(email.trim());
+    }
+
+    @Override
+    public boolean existsByUserName(String userName) {
+        return hasText(userName) && contribuyentesRepository.existsAnyByUserName(userName.trim());
+    }
+
+    private void validateRequiredRegistrationFields(ContribuyenteDto dto) {
+        List<String> missing = new ArrayList<>();
+        if (!hasText(dto.getUserName())) missing.add("usuario");
+        if (!hasText(dto.getPassword())) missing.add("contraseña");
+        if (!hasText(dto.getTipoContribuyente())) missing.add("tipo de contribuyente");
+        if (!hasText(dto.getTipoDocumento())) missing.add("tipo de documento");
+        if (!hasText(dto.getNumeroDocumento())) missing.add("número de documento");
+        if (!hasText(dto.getNombre())) missing.add("nombre");
+        if (!hasText(dto.getPrimerApellido())) missing.add("primer apellido");
+        if (!hasText(dto.getEmail())) missing.add("correo electrónico");
+        if (!missing.isEmpty()) {
+            throw new IllegalArgumentException("Faltan campos requeridos: " + String.join(", ", missing) + ".");
+        }
+    }
+
+    private void validateUniqueRegistrationFields(ContribuyenteDto dto) {
+        List<String> duplicates = new ArrayList<>();
+        if (contribuyentesRepository.existsAnyByNumeroDocumento(dto.getNumeroDocumento().trim()))
+            duplicates.add("el número de documento " + dto.getNumeroDocumento().trim());
+        if (contribuyentesRepository.existsAnyByUserName(dto.getUserName().trim()))
+            duplicates.add("el usuario " + dto.getUserName().trim());
+        if (contribuyentesRepository.existsAnyByEmail(dto.getEmail().trim()))
+            duplicates.add("el correo " + dto.getEmail().trim());
+        if (hasText(dto.getCodigoContribuyente())
+                && contribuyentesRepository.existsAnyByCodigoContribuyente(dto.getCodigoContribuyente().trim()))
+            duplicates.add("el código RUAT " + dto.getCodigoContribuyente().trim());
+        if (hasText(dto.getNroNit()) && contribuyentesRepository.existsAnyByNroNit(dto.getNroNit().trim()))
+            duplicates.add("el NIT " + dto.getNroNit().trim());
+        if (!duplicates.isEmpty()) throw new DuplicateTaxpayerException(duplicates);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private String encodePassword(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        return isBcryptHash(rawPassword) ? rawPassword : passwordEncoder.encode(rawPassword);
+    }
+
+    private boolean isBcryptHash(String password) {
+        return password != null && password.matches("^\\$2[aby]\\$\\d{2}\\$.{53}$");
     }
     @Override
     @Transactional

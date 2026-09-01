@@ -16,6 +16,18 @@ import java.util.Optional;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
+    @Query("SELECT DISTINCT r FROM Reserva r LEFT JOIN r.contribuyente c LEFT JOIN r.organizacion o LEFT JOIN r.campoDeportivo cd LEFT JOIN r.reservasPeriodoList rp  WHERE (:typeReserva IS NULL OR r.tipoReserva = :typeReserva) AND (:estadoReserva IS NULL OR r.estadoReserva = :estadoReserva) AND (:estadoValidacion IS NULL OR r.estadoValidacion = :estadoValidacion) AND (:esReservaGratuita IS NULL OR r.esReservaGratuita = :esReservaGratuita) AND (:organization IS NULL OR o.uuid = :organization) AND (:mesFiltro IS NULL OR (r.tipoReserva = 'periodo' AND rp.mes = :mesFiltro)) AND (:anioFiltro IS NULL OR (r.tipoReserva = 'periodo' AND rp.año = :anioFiltro )) AND (:searchTerm IS NULL OR LOWER(CONCAT( COALESCE(c.nombre,''),' ', COALESCE(c.primerApellido,''),' ', COALESCE(c.segundoApellido,''))) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(o.nombre) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(cd.nombre) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.numeroReserva) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.numeroTasa) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.motivoRechazo) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.motivoGratuidad) LIKE LOWER(CONCAT('%',:searchTerm,'%')))")
+    Page<Reserva> buscarReservas(
+            @Param("searchTerm") String searchTerm,
+            @Param("typeReserva") String typeReserva,
+            @Param("estadoReserva") String estadoReserva,
+            @Param("estadoValidacion") String estadoValidacion,
+            @Param("esReservaGratuita") Boolean esReservaGratuita,
+            @Param("organization") String organization,
+            @Param("mesFiltro") Integer mesFiltro,
+            @Param("anioFiltro") Integer anioFiltro,
+            Pageable pageable
+    );
 
     @Query("SELECT c FROM Reserva c WHERE c.uuid = ?1")
     Optional<Reserva> findByUuid(String uuid);

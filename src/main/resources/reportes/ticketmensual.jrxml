@@ -27,6 +27,10 @@
                telefono_principal as tel,
                numero_tasa,
                monto_total,
+               CAST(
+                   monto_total / NULLIF(COUNT(*) OVER (PARTITION BY RE.id_reserva), 0)
+                   AS double precision
+               ) AS monto_detalle,
                numero_reserva,
                codigo,
                tipo_reserva,
@@ -47,9 +51,10 @@
         join campos_deportivos as CA on CA.id_campo = RE.id_campo
         join complejos_deportivos as COM on COM.id_complejo = CA.id_complejo
         join contribuyentes AS CON on CON.id_contribuyente = RE.id_contribuyente
-        left join estudiantes_escuela as ES on ES.id_estudiante = RE.id_estudiante_escuela
+        left join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
         left join organizaciones as ORG on ORG.id_organizacion = RE.id_organizacion
         where RE.uuid = $P{uuid}
+        order by ES.nombre_completo, RP.año, RP.mes
         ]]>
 	</queryString>
 
@@ -61,6 +66,7 @@
 	<field name="tel" class="java.lang.String"/>
 	<field name="numero_tasa" class="java.lang.String"/>
 	<field name="monto_total" class="java.lang.Double"/>
+	<field name="monto_detalle" class="java.lang.Double"/>
 	<field name="numero_reserva" class="java.lang.String"/>
 	<field name="codigo" class="java.lang.String"/>
 	<field name="comp" class="java.lang.String"/>
@@ -70,7 +76,7 @@
 	<field name="ci" class="java.lang.String"/>
 	<field name="estu" class="java.lang.String"/>
 	<field name="mes" class="java.lang.Integer"/>
-	<field name="gestion" class="java.lang.String"/>
+	<field name="gestion" class="java.lang.Integer"/>
 	<field name="disciplina" class="java.lang.String"/>
 	<field name="entrenador" class="java.lang.String"/>
 	<field name="matricula" class="java.lang.String"/>
@@ -194,7 +200,7 @@
 	</pageHeader>
 
 	<columnHeader>
-		<band height="190" splitType="Stretch">
+		<band height="130" splitType="Stretch">
 			<!-- BLOQUE DATOS DEL SOLICITANTE -->
 			<rectangle radius="3">
 				<reportElement x="0" y="0" width="555" height="60" backcolor="#F8F9FA"/>
@@ -311,9 +317,7 @@
 				<textFieldExpression><![CDATA[
                     "Tengo a bien autorizar el pago de mensualidad de la escuela municipal <b>" +
                     ($F{escuela} == null ? "-" : $F{escuela}) +
-                    "</b>, correspondiente al estudiante <b>" +
-                    ($F{estu} == null ? "-" : $F{estu}) +
-                    "</b>, para el escenario deportivo <b>" +
+                    "</b>, correspondiente a los estudiantes y períodos detallados a continuación, para el escenario deportivo <b>" +
                     ($F{comp} == null ? "" : $F{comp}) + " - " +
                     ($F{cancha} == null ? "" : $F{cancha}) +
                     "</b>."
@@ -365,7 +369,7 @@
 				<textElement textAlignment="Center">
 					<font fontName="SansSerif" size="9" isBold="true"/>
 				</textElement>
-				<text><![CDATA[TOTAL Bs.]]></text>
+				<text><![CDATA[MENSUALIDAD]]></text>
 			</staticText>
 
 			<staticText>
@@ -376,202 +380,54 @@
 				<text><![CDATA[ESTADO]]></text>
 			</staticText>
 
-			<!-- FILA TABLA -->
-			<textField textAdjust="StretchHeight" isStretchWithOverflow="true">
-				<reportElement x="1" y="133" width="118" height="26"/>
-				<textElement verticalAlignment="Top" textAlignment="Center">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[
-                    ($F{estu} == null ? "-" : $F{estu})
-                ]]></textFieldExpression>
-			</textField>
+		</band>
+	</columnHeader>
 
-			<textField isBlankWhenNull="true">
-				<reportElement x="121" y="132" width="80" height="26"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[
-                    $F{matricula} == null || $F{matricula}.trim().isEmpty() ? "-" : $F{matricula}
-                ]]></textFieldExpression>
+	<detail>
+		<band height="30" splitType="Prevent">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="1" y="2" width="118" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement verticalAlignment="Middle" textAlignment="Center"><font fontName="SansSerif" size="9"/></textElement>
+				<textFieldExpression><![CDATA[$F{estu} == null ? "-" : $F{estu}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true">
-				<reportElement x="203" y="133" width="125" height="26"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="121" y="2" width="80" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="SansSerif" size="9"/></textElement>
+				<textFieldExpression><![CDATA[$F{matricula} == null || $F{matricula}.trim().isEmpty() ? "-" : $F{matricula}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="203" y="2" width="125" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html"><font fontName="SansSerif" size="9"/></textElement>
 				<textFieldExpression><![CDATA[
 					"<b>" + ($F{disciplina} == null ? "-" : $F{disciplina}) + "</b><br/>" +
 					"<span style='font-size:8px;'>Prof.: " + ($F{entrenador} == null ? "-" : $F{entrenador}) + "</span>"
 				]]></textFieldExpression>
 			</textField>
-
-			<textField isBlankWhenNull="true">
-				<reportElement x="330" y="132" width="80" height="26"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="330" y="2" width="80" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="SansSerif" size="9"/></textElement>
 				<textFieldExpression><![CDATA[
-                    (
-                        $F{mes} == null ? "-" :
-                        (
-                            $F{mes}.intValue() == 1 ? "Enero" :
-                            $F{mes}.intValue() == 2 ? "Febrero" :
-                            $F{mes}.intValue() == 3 ? "Marzo" :
-                            $F{mes}.intValue() == 4 ? "Abril" :
-                            $F{mes}.intValue() == 5 ? "Mayo" :
-                            $F{mes}.intValue() == 6 ? "Junio" :
-                            $F{mes}.intValue() == 7 ? "Julio" :
-                            $F{mes}.intValue() == 8 ? "Agosto" :
-                            $F{mes}.intValue() == 9 ? "Septiembre" :
-                            $F{mes}.intValue() == 10 ? "Octubre" :
-                            $F{mes}.intValue() == 11 ? "Noviembre" :
-                            $F{mes}.intValue() == 12 ? "Diciembre" : "-"
-                        )
-                    ) + " " + ($F{gestion} == null ? "" : $F{gestion})
-                ]]></textFieldExpression>
+					($F{mes} == null ? "-" : new java.text.DateFormatSymbols(new java.util.Locale("es", "BO")).getMonths()[$F{mes} - 1])
+					+ " " + ($F{gestion} == null ? "" : String.valueOf($F{gestion}))
+				]]></textFieldExpression>
 			</textField>
-
-			<textField>
-				<reportElement x="412" y="132" width="70" height="26"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="412" y="2" width="70" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="SansSerif" size="9"/></textElement>
 				<textFieldExpression><![CDATA[
-                    ($F{monto_total} != null && $F{monto_total}.doubleValue() == 0.0) ?
-                    "GRATUITA" :
-                    ($F{monto_total} == null ? "0.00 Bs." : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_total}))
-                ]]></textFieldExpression>
+					$F{monto_detalle} == null ? "0.00 Bs." :
+					($F{monto_detalle}.doubleValue() == 0.0 ? "GRATUITA" : String.format(java.util.Locale.US, "%.2f Bs.", $F{monto_detalle}))
+				]]></textFieldExpression>
 			</textField>
-
-			<textField textAdjust="StretchHeight" isStretchWithOverflow="true">
-				<reportElement x="484" y="132" width="70" height="26"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[
-                    $F{estado_reserva} == null ? "-" : $F{estado_reserva}
-                ]]></textFieldExpression>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="484" y="2" width="70" height="26" stretchType="RelativeToTallestObject"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="SansSerif" size="8"/></textElement>
+				<textFieldExpression><![CDATA[$F{estado_reserva} == null ? "-" : $F{estado_reserva}]]></textFieldExpression>
 			</textField>
-
-			<!-- ESCENARIO -->
-			<rectangle radius="3">
-				<reportElement x="0" y="162" width="555" height="28" backcolor="#F8F9FA"/>
-				<graphicElement>
-					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#D9D9D9"/>
-				</graphicElement>
-			</rectangle>
-
-			<textField isBlankWhenNull="true">
-				<reportElement x="10" y="170" width="145" height="14"/>
-				<textElement>
-					<font fontName="SansSerif" size="9" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[
-                    ($F{escuela} == null ? "-" : $F{escuela}) +":"
-                ]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="155" y="170" width="390" height="14"/>
-				<textElement>
-					<font fontName="SansSerif" size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[
-                    ($F{comp} == null ? "-" : $F{comp}) + " - " + ($F{cancha} == null ? "-" : $F{cancha})
-                ]]></textFieldExpression>
-			</textField>
-		</band>
-	</columnHeader>
-
-	<detail>
-		<band height="180" splitType="Stretch">
-			<frame>
-				<reportElement x="0" y="3" width="555" height="55" positionType="Float"/>
-				<staticText>
-					<reportElement x="0" y="1" width="555" height="12"/>
-					<textElement textAlignment="Left">
-						<font fontName="SansSerif" size="9" isBold="true"/>
-					</textElement>
-					<text><![CDATA[DETALLE TARIFARIO]]></text>
-				</staticText>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement x="0" y="16" width="555" height="36"/>
-					<textElement>
-						<font fontName="SansSerif" size="8"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$P{detalle_tarifario}]]></textFieldExpression>
-				</textField>
-			</frame>
-			<frame>
-				<reportElement x="0" y="63" width="555" height="77" positionType="Float"/>
-<!--				<staticText>-->
-<!--					<reportElement x="0" y="1" width="555" height="12"/>-->
-<!--					<textElement textAlignment="Left">-->
-<!--						<font fontName="SansSerif" size="9" isBold="true"/>-->
-<!--					</textElement>-->
-<!--					<text><![CDATA[CONDICIONES DE USO]]></text>-->
-<!--				</staticText>-->
-<!--				<staticText>-->
-<!--					<reportElement x="0" y="14" width="555" height="62"/>-->
-<!--					<textElement textAlignment="Justified">-->
-<!--						<font fontName="SansSerif" size="8"/>-->
-<!--						<paragraph lineSpacing="Single"/>-->
-<!--					</textElement>-->
-<!--					<text><![CDATA[Mencionar y aclarar que esta autorización puede ser modificada en caso de que ocurra algún evento de improviso o repentino que tenga que cubrir el Gobierno Autónomo Municipal de Quillacollo. La parte solicitante será responsable de cualquier daño o perjuicio ocasionado u ocurrido dentro del mismo y deberá dejar los ambientes deportivos solicitados en buen estado de limpieza. Ser puntuales en el horario de ingreso, así como también en el horario de salida. Se prohíbe terminantemente el cobro del ingreso a dicho escenario deportivo por parte del solicitante según ordenanza municipal N° 128/2013. En todo caso se aplicará el art. 14 del Reglamento para la administración de infraestructuras deportivas, equivalente al 10% del total recaudado, así mismo la venta de cualquier alimento o producto dentro del campo deportivo.]]></text>-->
-<!--				</staticText>-->
-				<staticText>
-					<reportElement x="0" y="14" width="555" height="28"/>
-					<textElement textAlignment="Justified">
-						<font fontName="SansSerif" size="9"/>
-					</textElement>
-					<text><![CDATA[Este documento acredita el registro de la mensualidad correspondiente a escuela municipal dentro del Sistema de Gestión de Reservas de Campos Deportivos del Gobierno Autónomo Municipal de Quillacollo.]]></text>
-				</staticText>
-			</frame>
-			<frame>
-				<reportElement x="0" y="146" width="555" height="34" positionType="Float"/>
-				<line>
-					<reportElement x="40" y="0" width="200" height="1"/>
-				</line>
-				<line>
-					<reportElement x="315" y="0" width="200" height="1"/>
-				</line>
-				<staticText>
-					<reportElement x="40" y="2" width="200" height="14"/>
-					<textElement textAlignment="Center">
-						<font fontName="SansSerif" size="10" isBold="true"/>
-					</textElement>
-					<text><![CDATA[RESPONSABLE DE DEPORTES]]></text>
-				</staticText>
-
-				<staticText>
-					<reportElement x="315" y="2" width="200" height="14"/>
-					<textElement textAlignment="Center">
-						<font fontName="SansSerif" size="10" isBold="true"/>
-					</textElement>
-					<text><![CDATA[CONTRIBUYENTE]]></text>
-				</staticText>
-				<textField>
-					<reportElement x="315" y="16" width="200" height="14"/>
-					<textElement textAlignment="Center">
-						<font fontName="SansSerif" size="10"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
-				</textField>
-<!--				<line>-->
-<!--					<reportElement x="180" y="72" width="190" height="1"/>-->
-<!--					<graphicElement>-->
-<!--						<pen lineWidth="0.7" lineStyle="Solid"/>-->
-<!--					</graphicElement>-->
-<!--				</line>-->
-<!--				<staticText>-->
-<!--					<reportElement x="165" y="76" width="220" height="14"/>-->
-<!--					<textElement textAlignment="Center">-->
-<!--						<font fontName="SansSerif" size="9" isBold="true"/>-->
-<!--					</textElement>-->
-<!--					<text><![CDATA[FIRMA Y SELLO AUTORIZADO]]></text>-->
-<!--				</staticText>-->
-			</frame>
+			<line>
+				<reportElement x="0" y="29" width="555" height="1" positionType="Float"/>
+				<graphicElement><pen lineWidth="0.25" lineColor="#D9D9D9"/></graphicElement>
+			</line>
 		</band>
 	</detail>
 
@@ -594,7 +450,71 @@
 	</pageFooter>
 
 	<summary>
-		<band height="1"/>
+		<band height="195" splitType="Stretch">
+			<rectangle radius="3">
+				<reportElement x="0" y="5" width="555" height="28" backcolor="#F8F9FA"/>
+				<graphicElement><pen lineWidth="0.5" lineColor="#D9D9D9"/></graphicElement>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="10" y="12" width="145" height="14"/>
+				<textElement><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+				<textFieldExpression><![CDATA[($F{escuela} == null ? "-" : $F{escuela}) + ":"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="155" y="12" width="285" height="14"/>
+				<textElement><font fontName="SansSerif" size="9"/></textElement>
+				<textFieldExpression><![CDATA[
+					($F{comp} == null ? "-" : $F{comp}) + " - " + ($F{cancha} == null ? "-" : $F{cancha})
+				]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="440" y="12" width="55" height="14"/>
+				<textElement textAlignment="Right"><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+				<text><![CDATA[TOTAL:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="497" y="12" width="55" height="14"/>
+				<textElement textAlignment="Right"><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+				<textFieldExpression><![CDATA[
+					$F{monto_total} == null ? "0.00" : String.format(java.util.Locale.US, "%.2f", $F{monto_total})
+				]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement x="0" y="42" width="555" height="12" positionType="Float"/>
+				<textElement><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+				<text><![CDATA[DETALLE TARIFARIO]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement x="0" y="58" width="555" height="32" positionType="Float"/>
+				<textElement><font fontName="SansSerif" size="8"/></textElement>
+				<textFieldExpression><![CDATA[$P{detalle_tarifario}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement x="0" y="98" width="555" height="28" positionType="Float"/>
+				<textElement textAlignment="Justified"><font fontName="SansSerif" size="9"/></textElement>
+				<text><![CDATA[Este documento acredita el registro de las mensualidades detalladas para la escuela municipal dentro del Sistema de Gestión de Reservas de Campos Deportivos del Gobierno Autónomo Municipal de Quillacollo.]]></text>
+			</staticText>
+
+			<line><reportElement x="40" y="155" width="200" height="1" positionType="Float"/></line>
+			<line><reportElement x="315" y="155" width="200" height="1" positionType="Float"/></line>
+			<staticText>
+				<reportElement x="40" y="159" width="200" height="14" positionType="Float"/>
+				<textElement textAlignment="Center"><font fontName="SansSerif" size="10" isBold="true"/></textElement>
+				<text><![CDATA[RESPONSABLE DE DEPORTES]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="315" y="159" width="200" height="14" positionType="Float"/>
+				<textElement textAlignment="Center"><font fontName="SansSerif" size="10" isBold="true"/></textElement>
+				<text><![CDATA[CONTRIBUYENTE]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="315" y="175" width="200" height="14" positionType="Float"/>
+				<textElement textAlignment="Center"><font fontName="SansSerif" size="9"/></textElement>
+				<textFieldExpression><![CDATA[$F{contri}]]></textFieldExpression>
+			</textField>
+		</band>
 	</summary>
 
 </jasperReport>

@@ -1,5 +1,6 @@
 package com.gamq.deportes.model.Pagos;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 
 @Data
@@ -11,6 +12,8 @@ public class PagoTasa {
     private String fechaPago;
     private String entidadFinanciera;
     private String montoPago;
+    @JsonAlias({"observaciones", "Observaciones"})
     private String observacion;
+    private String estado;
 
 }

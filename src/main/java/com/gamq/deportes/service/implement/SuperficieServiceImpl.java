@@ -2,7 +2,6 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.SuperficieDto;
 import com.gamq.deportes.dto.mapper.SuperficieMapper;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import com.gamq.deportes.model.Superficie;
@@ -42,13 +41,9 @@ public class SuperficieServiceImpl implements SuperficieService {
     public List<SuperficieDto> obtenerSuperficies(){
         List<Superficie> Superficies = superficieRepository.findAll();
 
-        if (!Superficies.isEmpty()) {
-            return Superficies.stream().map(Superfi -> {
-                return SuperficieMapper.toDto(Superfi);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(SUPERFICIE);
-        }
+        return Superficies.stream().map(Superfi -> {
+            return SuperficieMapper.toDto(Superfi);
+        }).collect(Collectors.toList());
 
     }
     public SuperficieDto crearSuperficie(SuperficieDto SuperficieDto){

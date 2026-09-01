@@ -16,7 +16,7 @@ public interface ReservaPeriodoService {
     Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable);
     List<ReservaPeriodoDto> findByEstudianteUuid(String estudianteUuid);
     ReservaPeriodoDto findByUuid(String uuid);
-    ReservaPeriodoDto findByReservaUuid(String reservaUuid);
+    List<ReservaPeriodoDto> findByReservaUuid(String reservaUuid);
     List<ReservaPeriodoDto> findByPeriodo(String periodo);
     List<ReservaPeriodoDto> findByContribuyenteUuid(String contribuyenteUuid);
     List<ReservaPeriodoDto> findByOrganizacionUuid(String organizacionUuid);

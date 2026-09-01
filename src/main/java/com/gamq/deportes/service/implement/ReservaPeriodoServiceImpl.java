@@ -8,8 +8,8 @@ import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaAuditoriaRepository;
 import com.gamq.deportes.repository.ReservaPeriodoRepository;
 import com.gamq.deportes.repository.ReservaRepository;
+import com.gamq.deportes.repository.EstudianteEscuelaRepository;
 import com.gamq.deportes.service.ReservaPeriodoService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.RESERVA_PERIODO;
 import static com.gamq.deportes.exception.enums.EntityType.RESERVA;
+import static com.gamq.deportes.exception.enums.EntityType.ESTUDIANTE_ESCUELA;
 
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
@@ -45,27 +46,22 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     @Autowired
     private ReservaAuditoriaRepository reservaAuditoriaRepository;
 
+    @Autowired
+    private EstudianteEscuelaRepository estudianteEscuelaRepository;
+
     @Override
     public List<ReservaPeriodoDto> obtenerTodos() {
         List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findAll();
-        if (!reservasPeriodo.isEmpty()) {
-            return reservasPeriodo.stream()
-                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_PERIODO);
-        }
+        return reservasPeriodo.stream()
+                .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                .collect(Collectors.toList());
     }
     @Override
     public List<ReservaPeriodoDto> findByEstudianteUuid(String estudianteUuid) {
         List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByEstudianteUuid(estudianteUuid);
-        if (!reservasPeriodo.isEmpty()) {
-            return reservasPeriodo.stream()
-                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_PERIODO);
-        }
+        return reservasPeriodo.stream()
+                .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                .collect(Collectors.toList());
     }
     @Override
     public Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
@@ -152,15 +148,13 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
             String searchTerm = "%" + filter.getSearchTerm().toLowerCase() + "%";
             spec = spec.and((root, query, cb) -> {
                 Join<ReservaPeriodo, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
-                Join<Reserva, EstudianteEscuela> estudianteJoin = reservaJoin.join("estudianteEscuela", JoinType.LEFT);
+                Join<ReservaPeriodo, EstudianteEscuela> estudianteJoin = root.join("estudianteEscuela", JoinType.LEFT);
                 Join<Reserva, Organizacion> organizacionJoin = reservaJoin.join("organizacion", JoinType.LEFT);
                 Join<Reserva, CampoDeportivo> campoJoin = reservaJoin.join("campoDeportivo", JoinType.LEFT);
                 Join<CampoDeportivo, ComplejoDeportivo> complejoJoin = campoJoin.join("complejo", JoinType.LEFT);
                 return cb.or(
                         // Estudiante fields - FIXED: nombreCompleto is transient, use individual fields
-                        cb.like(cb.lower(estudianteJoin.get("nombre")), searchTerm),
-                        cb.like(cb.lower(estudianteJoin.get("primerApellido")), searchTerm),
-                        cb.like(cb.lower(estudianteJoin.get("segundoApellido")), searchTerm),
+                        cb.like(cb.lower(estudianteJoin.get("nombreCompleto")), searchTerm),
                         cb.like(cb.lower(estudianteJoin.get("matricula")), searchTerm),
                         cb.like(cb.lower(estudianteJoin.get("numeroDocumento")), searchTerm),
                         // Organización fields
@@ -195,50 +189,54 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     }
 
     @Override
-    public ReservaPeriodoDto findByReservaUuid(String reservaUuid) {
-        Optional<ReservaPeriodo> reservaPeriodoOptional = reservaPeriodoRepository.findByReservaUuid(reservaUuid);
-        if (reservaPeriodoOptional.isPresent()) {
-            return ReservaPeriodoMapper.toDto(reservaPeriodoOptional.get(),false);
-        } else {
+    public List<ReservaPeriodoDto> findByReservaUuid(String reservaUuid) {
+        List<ReservaPeriodo> detalles = reservaPeriodoRepository.findByReservaUuid(reservaUuid);
+        if (detalles.isEmpty()) {
             throw new NotFoundException(RESERVA_PERIODO, reservaUuid);
         }
+        return detalles.stream()
+                .map(detalle -> ReservaPeriodoMapper.toDto(detalle, false))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ReservaPeriodoDto> findByPeriodo(String periodo) {
-        List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByPeriodo(periodo);
-        if (!reservasPeriodo.isEmpty()) {
-            return reservasPeriodo.stream()
-                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_PERIODO);
+        String[] partes = periodo == null ? new String[0] : periodo.split("-");
+        if (partes.length != 2) {
+            throw new IllegalArgumentException("El periodo debe tener formato YYYY-MM");
         }
+        final int anio;
+        final int mes;
+        try {
+            anio = Integer.parseInt(partes[0]);
+            mes = Integer.parseInt(partes[1]);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("El periodo debe tener formato YYYY-MM", ex);
+        }
+        if (mes < 1 || mes > 12) {
+            throw new IllegalArgumentException("El mes del periodo debe estar entre 1 y 12");
+        }
+        List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByPeriodo(anio, mes);
+        return reservasPeriodo.stream()
+                .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                .collect(Collectors.toList());
     }
 
 
     @Override
     public List<ReservaPeriodoDto> findByContribuyenteUuid(String contribuyenteUuid) {
         List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByContribuyenteUuid(contribuyenteUuid);
-        if (!reservasPeriodo.isEmpty()) {
-            return reservasPeriodo.stream()
-                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_PERIODO);
-        }
+        return reservasPeriodo.stream()
+                .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ReservaPeriodoDto> findByOrganizacionUuid(String organizacionUuid) {
         List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findByOrganizacionUuid(organizacionUuid);
-        if (!reservasPeriodo.isEmpty()) {
-            return reservasPeriodo.stream()
-                    .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NoResultException(RESERVA_PERIODO);
-        }
+        return reservasPeriodo.stream()
+                .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
+                .collect(Collectors.toList());
     }
 
 
@@ -253,6 +251,10 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
                 ReservaPeriodo nuevaReservaPeriodo = ReservaPeriodoMapper.toEntity(reservaPeriodoDto);
                 nuevaReservaPeriodo.setReserva(reserva);
+                if (!"periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
+                    throw new IllegalArgumentException("Los detalles de periodo solo pueden pertenecer a reservas tipo periodo");
+                }
+                nuevaReservaPeriodo.setEstudianteEscuela(resolveEstudiante(reservaPeriodoDto));
 
                 ReservaPeriodo reservaPeriodoGuardada = reservaPeriodoRepository.save(nuevaReservaPeriodo);
                 registrarAuditoria(
@@ -282,6 +284,9 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
             if (reservaPeriodoOptional.isPresent()) {
                 ReservaPeriodo reservaPeriodoExistente = reservaPeriodoOptional.get();
                 ReservaPeriodoMapper.updateEntityFromDto(reservaPeriodoDto, reservaPeriodoExistente);
+                if (reservaPeriodoDto.getEstudianteEscuelaDto() != null) {
+                    reservaPeriodoExistente.setEstudianteEscuela(resolveEstudiante(reservaPeriodoDto));
+                }
 
                 ReservaPeriodo reservaPeriodoActualizada = reservaPeriodoRepository.save(reservaPeriodoExistente);
                 registrarAuditoria(
@@ -347,5 +352,16 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
     private String safeValue(Object value) {
         return value == null ? "" : String.valueOf(value).replace("\"", "\\\"");
+    }
+
+    private EstudianteEscuela resolveEstudiante(ReservaPeriodoDto dto) {
+        if (dto.getEstudianteEscuelaDto() == null
+                || dto.getEstudianteEscuelaDto().getUuid() == null
+                || dto.getEstudianteEscuelaDto().getUuid().trim().isEmpty()) {
+            throw new IllegalArgumentException("El estudiante es requerido en cada detalle de periodo");
+        }
+        return estudianteEscuelaRepository.findByUuid(dto.getEstudianteEscuelaDto().getUuid())
+                .orElseThrow(() -> new NotFoundException(
+                        ESTUDIANTE_ESCUELA, dto.getEstudianteEscuelaDto().getUuid()));
     }
 }

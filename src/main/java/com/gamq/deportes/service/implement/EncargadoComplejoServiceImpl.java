@@ -6,7 +6,6 @@ import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ComplejoDeportivoRepository;
 import com.gamq.deportes.repository.EncargadoComplejoRepository;
 import com.gamq.deportes.service.EncargadoComplejoService;
-import com.gamq.deportes.exception.NoResultException;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,13 +52,9 @@ public class EncargadoComplejoServiceImpl implements EncargadoComplejoService {
 
         List<EncargadoComplejo> encargadoComplejos = encargadoComplejoRepository.findAll();
 
-        if (!encargadoComplejos.isEmpty()) {
-            return encargadoComplejos.stream().map(ENCARGADOCOMPLEJO -> {
-                return EncargadoComplejoMapper.toDto(ENCARGADOCOMPLEJO,true);
-            }).collect(Collectors.toList());
-        } else {
-            throw new NoResultException(ENCARGADOCOMPLEJO);
-        }
+        return encargadoComplejos.stream().map(ENCARGADOCOMPLEJO -> {
+            return EncargadoComplejoMapper.toDto(ENCARGADOCOMPLEJO,true);
+        }).collect(Collectors.toList());
     }
 
     public EncargadoComplejoDto crearEncargadoComplejo(EncargadoComplejoDto encargadoComplejoDto){
