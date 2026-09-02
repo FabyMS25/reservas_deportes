@@ -26,13 +26,16 @@ public class PagoNotificacionService {
     private final PagoRepository pagoRepository;
     private final NotificacionDestinatariosReservaService destinatariosService;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificacionOperativaService notificacionOperativaService;
 
     public PagoNotificacionService(PagoRepository pagoRepository,
                                    NotificacionDestinatariosReservaService destinatariosService,
-                                   ApplicationEventPublisher eventPublisher) {
+                                   ApplicationEventPublisher eventPublisher,
+                                   NotificacionOperativaService notificacionOperativaService) {
         this.pagoRepository = pagoRepository;
         this.destinatariosService = destinatariosService;
         this.eventPublisher = eventPublisher;
+        this.notificacionOperativaService = notificacionOperativaService;
     }
 
     public void notificarDespuesDeConfirmar(String pagoUuid) {
@@ -51,6 +54,7 @@ public class PagoNotificacionService {
                     "El pago {} ya fue confirmado, pero fallo la preparacion de sus notificaciones",
                     event.getPagoUuid(),
                     ex);
+            notificacionOperativaService.error("Notificación de pago confirmado", ex.getMessage());
         }
     }
 
@@ -69,17 +73,15 @@ public class PagoNotificacionService {
             return;
         }
 
-        String titulo = "Pago confirmado";
-        String mensajeContribuyente = "El pago de tu reserva " + valor(reserva.getNumeroReserva())
-                + " fue confirmado." + detallePago(pago, false);
-        String mensajeInterno = "El pago de la reserva " + valor(reserva.getNumeroReserva())
-                + " de " + valor(reserva.getContribuyente().getNombreCompleto())
-                + " fue confirmado." + detallePago(pago, true);
+        String titulo = ReservaNotificacionFormatter.titulo("Pago confirmado", reserva);
+        String mensaje = ReservaNotificacionFormatter.mensaje(
+                reserva, "El pago fue confirmado" + detallePago(pago));
+        NotificacionDto comun = base(pago, titulo, mensaje);
         destinatariosService.publicar(
                 NOTIFICAR_PAGO_CONFIRMADO,
                 reserva,
-                base(pago, titulo, mensajeContribuyente),
-                base(pago, titulo, mensajeInterno),
+                comun,
+                comun,
                 null);
     }
 
@@ -92,7 +94,7 @@ public class PagoNotificacionService {
                 .setCanal("APP")
                 .setReferenciaTipo("PAGO")
                 .setReferenciaUuid(pago.getUuid())
-                .setAccionUrl(ruta(pago.getReserva()));
+                .setAccionUrl(ReservaNotificacionFormatter.ruta(pago.getReserva()));
     }
 
     private String ruta(Reserva reserva) {
@@ -105,22 +107,11 @@ public class PagoNotificacionService {
         return "/reservations/one-time";
     }
 
-    private String detallePago(Pago pago, boolean incluirLugar) {
+    private String detallePago(Pago pago) {
         Reserva reserva = pago.getReserva();
         StringBuilder detalle = new StringBuilder();
         if (reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank()) {
             detalle.append(" Número de tasa: ").append(valor(reserva.getNumeroTasa())).append(".");
-        }
-        if (reserva.getMontoTotal() != null) {
-            detalle.append(" Monto: Bs ").append(reserva.getMontoTotal()).append(".");
-        }
-        if (incluirLugar && reserva.getCampoDeportivo() != null) {
-            detalle.append(" Lugar: ").append(valor(reserva.getCampoDeportivo().getNombre()));
-            if (reserva.getCampoDeportivo().getComplejo() != null) {
-                detalle.append(", complejo ")
-                        .append(valor(reserva.getCampoDeportivo().getComplejo().getNombre()));
-            }
-            detalle.append(".");
         }
         return detalle.toString();
     }

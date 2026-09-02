@@ -211,7 +211,8 @@ public class NotificacionServiceImpl implements NotificacionService {
         if (claveConfiguracion == null || claveConfiguracion.trim().isEmpty()) {
             return true;
         }
-        Optional<ConfiguracionSistema> config = configuracionSistemaRepository.findByClaveAndEstadoFalse(claveConfiguracion);
+        Optional<ConfiguracionSistema> config = configuracionSistemaRepository
+                .findNotificationConfigsByClave(claveConfiguracion).stream().findFirst();
         if (config.isEmpty() || !Boolean.TRUE.equals(config.get().getActivo())) {
             return false;
         }
@@ -224,7 +225,7 @@ public class NotificacionServiceImpl implements NotificacionService {
     }
 
     private boolean ambitoGlobal(String claveConfiguracion) {
-        return configuracionSistemaRepository.findByClaveAndEstadoFalse(claveConfiguracion)
+        return configuracionSistemaRepository.findNotificationConfigsByClave(claveConfiguracion).stream().findFirst()
                 .map(config -> "global".equalsIgnoreCase(config.getAplicaA()))
                 .orElse(false);
     }

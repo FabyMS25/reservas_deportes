@@ -22,6 +22,11 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
     Optional<ConfiguracionSistema> findByClaveAndEstadoFalse(@Param("clave") String clave);
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false AND c.activo = true " +
+            "AND c.aplicaA IN ('global', 'contribuyente') " +
+            "ORDER BY CASE WHEN c.aplicaA = 'global' THEN 0 ELSE 1 END")
+    List<ConfiguracionSistema> findNotificationConfigsByClave(@Param("clave") String clave);
+
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false AND c.activo = true " +
             "AND ((c.aplicaA = :aplicaA AND c.referenciaUuid = :referenciaUuid) " +
             "OR (c.aplicaA = :aplicaA AND c.referenciaUuid IS NULL) " +
             "OR (c.aplicaA = 'global' AND c.referenciaUuid IS NULL)) " +

@@ -438,23 +438,20 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private void notificarCambioHorario(ReservaRecurrente recurrente) {
         Reserva reserva = recurrente.getReserva();
         if (reserva == null || reserva.getContribuyente() == null) return;
-        String numero = safeValue(reserva.getNumeroReserva());
-        String contribuyente = safeValue(reserva.getContribuyente().getNombreCompleto());
+        NotificacionDto comun = notificacionCambio(recurrente,
+                ReservaNotificacionFormatter.mensaje(reserva, "El horario recurrente fue actualizado"));
         destinatariosService.publicar(
                 "NOTIFICAR_CAMBIO_HORARIO",
                 reserva,
-                notificacionCambio(recurrente,
-                        "El horario de tu reserva recurrente " + numero + " fue actualizado."),
-                notificacionCambio(recurrente,
-                        "El horario de la reserva recurrente " + numero + " de "
-                                + contribuyente + " fue actualizado."),
+                comun,
+                comun,
                 null);
     }
 
     private NotificacionDto notificacionCambio(ReservaRecurrente recurrente, String mensaje) {
         return new NotificacionDto()
                 .setTipo("NOTIFICAR_CAMBIO_HORARIO")
-                .setTitulo("Cambio de horario")
+                .setTitulo(ReservaNotificacionFormatter.titulo("Cambio de horario", recurrente.getReserva()))
                 .setMensaje(mensaje)
                 .setPrioridad("INFO")
                 .setCanal("APP")

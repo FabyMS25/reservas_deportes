@@ -44,17 +44,20 @@ public class NotificacionRecordatorioScheduler {
     private final ReservaPuntualRepository reservaPuntualRepository;
     private final ReservaRecurrenteRepository reservaRecurrenteRepository;
     private final NotificacionDestinatariosReservaService destinatariosService;
+    private final NotificacionOperativaService notificacionOperativaService;
 
     public NotificacionRecordatorioScheduler(ConfiguracionSistemaRepository configuracionSistemaRepository,
                                              ReservaRepository reservaRepository,
                                              ReservaPuntualRepository reservaPuntualRepository,
                                              ReservaRecurrenteRepository reservaRecurrenteRepository,
-                                             NotificacionDestinatariosReservaService destinatariosService) {
+                                             NotificacionDestinatariosReservaService destinatariosService,
+                                             NotificacionOperativaService notificacionOperativaService) {
         this.configuracionSistemaRepository = configuracionSistemaRepository;
         this.reservaRepository = reservaRepository;
         this.reservaPuntualRepository = reservaPuntualRepository;
         this.reservaRecurrenteRepository = reservaRecurrenteRepository;
         this.destinatariosService = destinatariosService;
+        this.notificacionOperativaService = notificacionOperativaService;
     }
 
     @Scheduled(fixedDelayString = "${gamq.notificaciones.recordatorios.fixed-delay-ms:60000}")
@@ -70,6 +73,7 @@ public class NotificacionRecordatorioScheduler {
             tarea.run();
         } catch (RuntimeException ex) {
             logger.error("No se pudieron generar recordatorios de {}", proceso, ex);
+            notificacionOperativaService.error("Recordatorios de " + proceso, ex.getMessage());
         }
     }
 
@@ -282,27 +286,20 @@ public class NotificacionRecordatorioScheduler {
                                    String mensaje,
                                    String prioridad,
                                    String metadataJson) {
-        NotificacionDto contribuyente = new NotificacionDto()
+        String mensajeComun = mensaje
+                .replaceFirst("^Tu reserva", "La reserva")
+                .replaceFirst("^Tu sesión", "La sesión");
+        NotificacionDto comun = new NotificacionDto()
                 .setTipo(tipo)
-                .setTitulo(titulo)
-                .setMensaje(mensaje)
+                .setTitulo(ReservaNotificacionFormatter.titulo(titulo, reserva))
+                .setMensaje(ReservaNotificacionFormatter.mensaje(reserva, mensajeComun))
                 .setPrioridad(prioridad)
                 .setCanal("APP")
                 .setReferenciaTipo("RESERVA")
                 .setReferenciaUuid(referenciaUuid)
-                .setAccionUrl(obtenerRutaReserva(reserva))
+                .setAccionUrl(ReservaNotificacionFormatter.ruta(reserva))
                 .setMetadataJson(metadataJson);
-        NotificacionDto interno = new NotificacionDto()
-                .setTipo(tipo)
-                .setTitulo(titulo)
-                .setMensaje(mensajeInterno(reserva, mensaje))
-                .setPrioridad(prioridad)
-                .setCanal("APP")
-                .setReferenciaTipo("RESERVA")
-                .setReferenciaUuid(referenciaUuid)
-                .setAccionUrl(obtenerRutaReserva(reserva))
-                .setMetadataJson(metadataJson);
-        destinatariosService.publicar(tipo, reserva, contribuyente, interno, null);
+        destinatariosService.publicar(tipo, reserva, comun, comun, null);
     }
 
     private String obtenerRutaReserva(Reserva reserva) {
@@ -316,7 +313,8 @@ public class NotificacionRecordatorioScheduler {
     }
 
     private Double numericConfigActiva(String clave) {
-        Optional<ConfiguracionSistema> config = configuracionSistemaRepository.findByClaveAndEstadoFalse(clave);
+        Optional<ConfiguracionSistema> config = configuracionSistemaRepository
+                .findNotificationConfigsByClave(clave).stream().findFirst();
         if (config.isEmpty()
                 || !config.get().isConfiguracionActiva()) {
             return null;

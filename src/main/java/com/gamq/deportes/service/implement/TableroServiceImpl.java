@@ -95,24 +95,16 @@ public class TableroServiceImpl implements TableroService {
         Reserva reserva = recurrente.getReserva();
         if (reserva == null || reserva.getContribuyente() == null) return;
 
-        String numero = reserva.getNumeroReserva() == null ? "" : reserva.getNumeroReserva();
-        String contribuyente = reserva.getContribuyente().getNombreCompleto();
-        NotificacionDto personal = base(
-                recurrente,
-                "El horario de tu reserva recurrente " + numero + " fue actualizado.");
-        NotificacionDto interno = base(
-                recurrente,
-                "El horario de la reserva recurrente " + numero + " de "
-                        + (contribuyente == null ? "el contribuyente" : contribuyente)
-                        + " fue actualizado.");
+        NotificacionDto comun = base(recurrente,
+                ReservaNotificacionFormatter.mensaje(reserva, "El horario recurrente fue actualizado"));
         destinatariosService.publicar(
-                "NOTIFICAR_CAMBIO_HORARIO", reserva, personal, interno, null);
+                "NOTIFICAR_CAMBIO_HORARIO", reserva, comun, comun, null);
     }
 
     private NotificacionDto base(ReservaRecurrente recurrente, String mensaje) {
         return new NotificacionDto()
                 .setTipo("NOTIFICAR_CAMBIO_HORARIO")
-                .setTitulo("Cambio de horario")
+                .setTitulo(ReservaNotificacionFormatter.titulo("Cambio de horario", recurrente.getReserva()))
                 .setMensaje(mensaje)
                 .setPrioridad("INFO")
                 .setCanal("APP")

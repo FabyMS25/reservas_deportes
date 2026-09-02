@@ -17,8 +17,8 @@ import com.gamq.deportes.security.DeportesPrincipal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,6 +28,10 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
 
     private static final String CATEGORIA_RUAT = "RUAT";
     private static final String GLOBAL = "global";
+    private static final Set<String> AMBITOS_PERMITIDOS = Set.of(
+            GLOBAL, "contribuyente", "organizacion", "complejo", "campo_deportivo");
+    private static final Set<String> AMBITOS_CON_REFERENCIA = Set.of(
+            "organizacion", "complejo", "campo_deportivo");
 
     private final ConfiguracionSistemaRepository configuracionSistemaRepository;
     private final ObjectMapper objectMapper;
@@ -145,13 +149,6 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con UUID: " + configuracionDto.getUuid()));
 
         normalizeAndValidate(configuracionDto);
-        if (Boolean.TRUE.equals(configuracionExistente.getRequiereAprobacion())
-                && hasValueChange(configuracionExistente, configuracionDto)) {
-            throw new IllegalStateException(
-                    "La configuración " + configuracionExistente.getClave()
-                            + " requiere aprobación y no admite actualización directa");
-        }
-
         ConfiguracionSistema configuracionActualizada = ConfiguracionSistemaMapper.updateEntityFromDto(configuracionDto, configuracionExistente);
         configuracionActualizada.setUltimaModificacion(LocalDateTime.now());
         configuracionActualizada.setModificadoPor(currentActor());
@@ -305,8 +302,16 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         dto.setClave(dto.getClave().trim());
         dto.setAplicaA(normalizeScope(dto.getAplicaA()));
         dto.setReferenciaUuid(normalizeReference(dto.getReferenciaUuid()));
-        if (GLOBAL.equals(dto.getAplicaA()) && dto.getReferenciaUuid() != null) {
-            throw new IllegalArgumentException("Una configuración global no puede tener referenciaUuid");
+        if (!AMBITOS_PERMITIDOS.contains(dto.getAplicaA())) {
+            throw new IllegalArgumentException("Ámbito de configuración no permitido: " + dto.getAplicaA());
+        }
+        if (!AMBITOS_CON_REFERENCIA.contains(dto.getAplicaA()) && dto.getReferenciaUuid() != null) {
+            throw new IllegalArgumentException(
+                    "El ámbito " + dto.getAplicaA() + " no puede tener referenciaUuid");
+        }
+        if (AMBITOS_CON_REFERENCIA.contains(dto.getAplicaA()) && dto.getReferenciaUuid() == null) {
+            throw new IllegalArgumentException(
+                    "El ámbito " + dto.getAplicaA() + " requiere referenciaUuid");
         }
         validateValueShape(dto);
     }
@@ -340,9 +345,20 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
             if (dto.getValorMaximo() != null && dto.getValorNumerico() > dto.getValorMaximo()) {
                 throw new IllegalArgumentException("El valor numérico es mayor al máximo permitido");
             }
+            if (isWholePositiveHoursConfiguration(dto.getClave())
+                    && (dto.getValorNumerico() <= 0 || dto.getValorNumerico() % 1 != 0)) {
+                throw new IllegalArgumentException(
+                        "Las horas de validación de pago deben ser un número entero positivo");
+            }
         }
         validateJson(dto.getValorJson(), "valorJson");
         validateJson(dto.getValoresPosibles(), "valoresPosibles");
+    }
+
+    private boolean isWholePositiveHoursConfiguration(String clave) {
+        return "HORAS_VALIDACION_PAGO".equals(clave)
+                || "HORAS_VALIDACION_PAGO_EVENTOS".equals(clave)
+                || "HORAS_VALIDACION_PAGO_RECURRENTES".equals(clave);
     }
 
     private void validateJson(String value, String field) {
@@ -352,13 +368,6 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         } catch (Exception ex) {
             throw new IllegalArgumentException(field + " debe contener JSON válido");
         }
-    }
-
-    private boolean hasValueChange(ConfiguracionSistema existing, ConfiguracionSistemaDto dto) {
-        return !Objects.equals(existing.getValorTexto(), dto.getValorTexto())
-                || !Objects.equals(existing.getValorNumerico(), dto.getValorNumerico())
-                || !Objects.equals(existing.getValorBoolean(), dto.getValorBoolean())
-                || !Objects.equals(existing.getValorJson(), dto.getValorJson());
     }
 
     private String normalizeScope(String aplicaA) {

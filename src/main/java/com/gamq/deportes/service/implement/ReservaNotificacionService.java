@@ -21,16 +21,20 @@ public class ReservaNotificacionService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaNotificacionService.class);
     private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
+    private static final String NOTIFICAR_RESERVA_EXPIRADA = "NOTIFICAR_RESERVA_EXPIRADA";
     private final ReservaRepository reservaRepository;
     private final NotificacionDestinatariosReservaService destinatariosService;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificacionOperativaService notificacionOperativaService;
 
     public ReservaNotificacionService(ReservaRepository reservaRepository,
                                       NotificacionDestinatariosReservaService destinatariosService,
-                                      ApplicationEventPublisher eventPublisher) {
+                                      ApplicationEventPublisher eventPublisher,
+                                      NotificacionOperativaService notificacionOperativaService) {
         this.reservaRepository = reservaRepository;
         this.destinatariosService = destinatariosService;
         this.eventPublisher = eventPublisher;
+        this.notificacionOperativaService = notificacionOperativaService;
     }
 
     public void notificarCancelada(Reserva reserva) {
@@ -62,6 +66,7 @@ public class ReservaNotificacionService {
                     event.getReservaUuid(),
                     event.getTipo(),
                     ex);
+            notificacionOperativaService.error("Notificación de reserva " + event.getTipo(), ex.getMessage());
         }
     }
 
@@ -72,11 +77,21 @@ public class ReservaNotificacionService {
         }
 
         if (contribuyenteUuid == null) return;
-        destinatariosService.publicar(
-                NOTIFICAR_RESERVA_ANULADA,
+        String resumen = expirada
+                ? "La reserva expiró porque no se confirmó el pago dentro del plazo establecido"
+                : "La reserva fue cancelada. Motivo: " + valor(reserva.getMotivoRechazo());
+        NotificacionDto comun = base(
                 reserva,
-                base(reserva, titulo, mensajeContribuyente(reserva, expirada), prioridad),
-                base(reserva, titulo, mensajeInterno(reserva, expirada), prioridad),
+                ReservaNotificacionFormatter.titulo(titulo, reserva),
+                ReservaNotificacionFormatter.mensaje(reserva, resumen),
+                prioridad);
+        String tipo = expirada ? NOTIFICAR_RESERVA_EXPIRADA : NOTIFICAR_RESERVA_ANULADA;
+        comun.setTipo(tipo);
+        destinatariosService.publicar(
+                tipo,
+                reserva,
+                comun,
+                comun,
                 usuarioExcluidoUuid);
     }
 
@@ -89,7 +104,7 @@ public class ReservaNotificacionService {
                 .setCanal("APP")
                 .setReferenciaTipo("RESERVA")
                 .setReferenciaUuid(reserva.getUuid())
-                .setAccionUrl(ruta(reserva));
+                .setAccionUrl(ReservaNotificacionFormatter.ruta(reserva));
     }
 
     private String mensajeContribuyente(Reserva reserva, boolean expirada) {

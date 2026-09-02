@@ -15,13 +15,16 @@ public class ReservaExpiracionScheduler {
     private final ReservaPuntualService reservaPuntualService;
     private final ReservaRecurrenteService reservaRecurrenteService;
     private final ReservaValidacionExpiracionService validacionExpiracionService;
+    private final NotificacionOperativaService notificacionOperativaService;
 
     public ReservaExpiracionScheduler(ReservaPuntualService reservaPuntualService,
                                       ReservaRecurrenteService reservaRecurrenteService,
-                                      ReservaValidacionExpiracionService validacionExpiracionService) {
+                                      ReservaValidacionExpiracionService validacionExpiracionService,
+                                      NotificacionOperativaService notificacionOperativaService) {
         this.reservaPuntualService = reservaPuntualService;
         this.reservaRecurrenteService = reservaRecurrenteService;
         this.validacionExpiracionService = validacionExpiracionService;
+        this.notificacionOperativaService = notificacionOperativaService;
     }
 
     @Scheduled(fixedDelayString = "${gamq.reservas.expiracion.fixed-delay-ms:60000}")
@@ -36,6 +39,7 @@ public class ReservaExpiracionScheduler {
             tarea.run();
         } catch (RuntimeException ex) {
             logger.error("No se pudieron procesar las reservas {} expiradas", tipo, ex);
+            notificacionOperativaService.error("Expiración de reservas " + tipo, ex.getMessage());
         }
     }
 }

@@ -623,33 +623,20 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
         String horarioAnterior = formatHorario(fechaUsoAnterior, horaInicioAnterior, horaFinAnterior);
         String horarioNuevo = formatHorario(reservaPuntual.getFechaUso(), reservaPuntual.getHoraInicio(), reservaPuntual.getHoraFin());
-        NotificacionDto contribuyente = new NotificacionDto()
+        NotificacionDto comun = new NotificacionDto()
                 .setTipo("NOTIFICAR_CAMBIO_HORARIO")
-                .setTitulo("Cambio de horario")
-                .setMensaje("El horario de tu reserva " + safeValue(reserva.getNumeroReserva())
-                        + " cambió de " + horarioAnterior + " a " + horarioNuevo + ".")
+                .setTitulo(ReservaNotificacionFormatter.titulo("Cambio de horario", reserva))
+                .setMensaje(ReservaNotificacionFormatter.mensaje(reserva,
+                        "El horario cambió de " + horarioAnterior + " a " + horarioNuevo))
                 .setPrioridad("INFO")
                 .setCanal("APP")
                 .setReferenciaTipo("RESERVA")
                 .setReferenciaUuid(reservaPuntual.getUuid())
-                .setAccionUrl(obtenerRutaReserva(reserva))
-                .setMetadataJson("{\"horarioAnterior\":\"" + horarioAnterior
-                        + "\",\"horarioNuevo\":\"" + horarioNuevo + "\"}");
-        NotificacionDto interno = new NotificacionDto()
-                .setTipo("NOTIFICAR_CAMBIO_HORARIO")
-                .setTitulo("Cambio de horario")
-                .setMensaje("El horario de la reserva " + safeValue(reserva.getNumeroReserva())
-                        + " de " + safeValue(reserva.getContribuyente().getNombreCompleto())
-                        + " cambió de " + horarioAnterior + " a " + horarioNuevo + ".")
-                .setPrioridad("INFO")
-                .setCanal("APP")
-                .setReferenciaTipo("RESERVA")
-                .setReferenciaUuid(reservaPuntual.getUuid())
-                .setAccionUrl(obtenerRutaReserva(reserva))
+                .setAccionUrl(ReservaNotificacionFormatter.ruta(reserva))
                 .setMetadataJson("{\"horarioAnterior\":\"" + horarioAnterior
                         + "\",\"horarioNuevo\":\"" + horarioNuevo + "\"}");
         destinatariosService.publicar(
-                "NOTIFICAR_CAMBIO_HORARIO", reserva, contribuyente, interno, null);
+                "NOTIFICAR_CAMBIO_HORARIO", reserva, comun, comun, null);
     }
 
     private String formatHorario(LocalDate fechaUso, LocalTime horaInicio, LocalTime horaFin) {

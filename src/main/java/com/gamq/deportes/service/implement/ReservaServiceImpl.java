@@ -459,12 +459,8 @@ public class ReservaServiceImpl implements ReservaService {
         notificarReserva(reservaGuardada, NOTIFICAR_REGISTRO_RESERVA,
                 esSolicitud ? "Solicitud registrada" : "Reserva creada",
                 esSolicitud
-                        ? "Tu solicitud de reserva " + safeValue(reservaGuardada.getNumeroReserva())
-                            + " fue registrada y está pendiente de revisión."
-                            + detalleNotificacion(reservaGuardada)
-                        : "Tu reserva " + safeValue(reservaGuardada.getNumeroReserva())
-                            + " fue creada correctamente."
-                            + detalleNotificacion(reservaGuardada),
+                        ? "La solicitud fue registrada y está pendiente de revisión"
+                        : "La reserva fue creada correctamente",
                 "SUCCESS");
         return ReservaMapper.toDto(reservaGuardada);
     }
@@ -576,8 +572,7 @@ public class ReservaServiceImpl implements ReservaService {
                         + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaAprobada.getEstadoValidacion()) + "\"}"
         );
         notificarReserva(reservaAprobada, NOTIFICAR_RESULTADO_SOLICITUD, "Solicitud aprobada",
-                "Tu solicitud de reserva " + safeValue(reservaAprobada.getNumeroReserva())
-                        + " fue aprobada." + detalleNotificacion(reservaAprobada),
+                "La solicitud fue aprobada",
                 "SUCCESS");
         return ReservaMapper.toDto(reservaAprobada);
     }
@@ -609,8 +604,7 @@ public class ReservaServiceImpl implements ReservaService {
                         + "\",\"estadoValidacionNuevo\":\"" + safeValue(reservaRechazada.getEstadoValidacion()) + "\"}"
         );
         notificarReserva(reservaRechazada, NOTIFICAR_RESULTADO_SOLICITUD, "Solicitud rechazada",
-                "Tu solicitud de reserva " + safeValue(reservaRechazada.getNumeroReserva())
-                        + " fue rechazada. Motivo: " + safeValue(motivoRechazo) + ".",
+                "La solicitud fue rechazada. Motivo: " + safeValue(motivoRechazo),
                 "WARNING");
         return ReservaMapper.toDto(reservaRechazada);
     }
@@ -817,12 +811,9 @@ public class ReservaServiceImpl implements ReservaService {
         if (inicio == null || fin == null) {
             return;
         }
-        double anticipacion = numericPolicy(HORAS_ANTICIPACION_RECURRENTES, 0D);
-        if (inicio.atStartOfDay().isBefore(
-                LocalDateTime.now().plusMinutes(Math.round(anticipacion * 60D)))) {
-            throw new IllegalArgumentException(
-                    "La reserva recurrente no cumple la anticipación mínima configurada");
-        }
+        // La anticipación recurrente se valida en el selector de horarios, que sí
+        // conoce la fecha y hora de la primera sesión. Este DTO solo trae fechas;
+        // compararlo contra medianoche rechazaría reservas válidas.
         double maximoDias = numericPolicy(DURACION_MAXIMA_RECURRENTES, 90D);
         long dias = ChronoUnit.DAYS.between(inicio, fin) + 1;
         if (dias < 1 || dias > maximoDias) {
@@ -954,28 +945,16 @@ public class ReservaServiceImpl implements ReservaService {
         if (reserva.getContribuyente() == null || reserva.getContribuyente().getUuid() == null) {
             return;
         }
-        NotificacionDto contribuyente = new NotificacionDto()
+        NotificacionDto comun = new NotificacionDto()
                 .setTipo(tipo)
-                .setTitulo(titulo)
-                .setMensaje(mensaje)
+                .setTitulo(ReservaNotificacionFormatter.titulo(titulo, reserva))
+                .setMensaje(ReservaNotificacionFormatter.mensaje(reserva, mensaje))
                 .setPrioridad(prioridad)
                 .setCanal("APP")
                 .setReferenciaTipo("RESERVA")
                 .setReferenciaUuid(reserva.getUuid())
-                .setAccionUrl(obtenerRutaReserva(reserva));
-        String nombreContribuyente = safeValue(reserva.getContribuyente().getNombreCompleto());
-        NotificacionDto interno = new NotificacionDto()
-                .setTipo(tipo)
-                .setTitulo(titulo)
-                .setMensaje(mensaje.startsWith("Tu ")
-                        ? mensaje.replaceFirst("Tu ", "La solicitud o reserva de " + nombreContribuyente + " ")
-                        : mensaje + " Contribuyente: " + nombreContribuyente + ".")
-                .setPrioridad(prioridad)
-                .setCanal("APP")
-                .setReferenciaTipo("RESERVA")
-                .setReferenciaUuid(reserva.getUuid())
-                .setAccionUrl(obtenerRutaReserva(reserva));
-        destinatariosService.publicar(tipo, reserva, contribuyente, interno, null);
+                .setAccionUrl(ReservaNotificacionFormatter.ruta(reserva));
+        destinatariosService.publicar(tipo, reserva, comun, comun, null);
     }
 
     private String obtenerRutaReserva(Reserva reserva) {

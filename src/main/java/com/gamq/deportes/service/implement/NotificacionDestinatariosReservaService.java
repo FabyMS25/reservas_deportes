@@ -39,9 +39,10 @@ public class NotificacionDestinatariosReservaService {
                          NotificacionDto mensajeContribuyente,
                          NotificacionDto mensajeInterno,
                          String usuarioExcluidoUuid) {
-        ConfiguracionSistema config = configuracionRepository.findByClaveAndEstadoFalse(clave)
+        ConfiguracionSistema config = configuracionRepository.findNotificationConfigsByClave(clave).stream()
                 .filter(ConfiguracionSistema::isConfiguracionActiva)
                 .filter(this::tieneValorHabilitado)
+                .findFirst()
                 .orElse(null);
         if (config == null || reserva == null) {
             return;
