@@ -29,8 +29,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -429,7 +427,22 @@ public class ReservaServiceImpl implements ReservaService {
             agregarDetallesPeriodo(nuevaReserva, reservaDto.getReservasPeriodoDtoList());
         }
 
-        normalizarDetallesTarifarios(nuevaReserva, reservaDto, tarifa);
+        if (reservaDto.getTarifaDetallesDtoList() != null && !reservaDto.getTarifaDetallesDtoList().isEmpty()) {
+            reservaDto.getTarifaDetallesDtoList().forEach(detalleDto -> {
+                ReservaTarifaDetalle detalle = ReservaTarifaDetalleMapper.toEntity(detalleDto);
+                detalle.setReserva(nuevaReserva);
+
+                if (detalleDto.getTarifaDto() != null && detalleDto.getTarifaDto().getUuid() != null) {
+                    detalle.setTarifa(getTarifa(detalleDto.getTarifaDto().getUuid()));
+                }
+
+                if (detalleDto.getTarifaConceptoDto() != null && detalleDto.getTarifaConceptoDto().getUuid() != null) {
+                    detalle.setTarifaConcepto(getTarifaConcepto(detalleDto.getTarifaConceptoDto().getUuid()));
+                }
+
+                nuevaReserva.getTarifaDetallesList().add(detalle);
+            });
+        }
 
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
         registrarAuditoria(
@@ -479,8 +492,6 @@ public class ReservaServiceImpl implements ReservaService {
             Reserva reservaExistente = reservaOptional.get();
             String estadoAnterior = reservaExistente.getEstadoReserva();
             String estadoValidacionAnterior = reservaExistente.getEstadoValidacion();
-            BigDecimal montoAnterior = reservaExistente.getMontoTotal();
-
             ReservaMapper.updateEntityFromDto(reservaDto, reservaExistente);
 
             if (!Objects.equals(estadoValidacionAnterior, reservaExistente.getEstadoValidacion())
@@ -510,17 +521,6 @@ public class ReservaServiceImpl implements ReservaService {
             if (reservaDto.getOrganizacionDto() != null) {
                 Organizacion organizacion = getOrganizacion(reservaDto.getOrganizacionDto().getUuid());
                 reservaExistente.setOrganizacion(organizacion);
-            }
-
-            if (reservaDto.getTarifaDetallesDtoList() != null
-                    && !reservaDto.getTarifaDetallesDtoList().isEmpty()) {
-                reservaExistente.getTarifaDetallesList().clear();
-                normalizarDetallesTarifarios(reservaExistente, reservaDto, reservaExistente.getTarifa());
-            } else if (Boolean.TRUE.equals(reservaExistente.getEsReservaGratuita())) {
-                reservaExistente.setMontoTotal(BigDecimal.ZERO.setScale(2));
-            } else {
-                // A partial update cannot silently replace the authoritative amount.
-                reservaExistente.setMontoTotal(montoAnterior);
             }
 
             if ("periodo".equalsIgnoreCase(reservaExistente.getTipoReserva())
@@ -743,92 +743,6 @@ public class ReservaServiceImpl implements ReservaService {
                     getEstudianteEscuela(detalleDto.getEstudianteEscuelaDto().getUuid()));
             reserva.getReservasPeriodoList().add(periodo);
         }
-    }
-
-    private void normalizarDetallesTarifarios(Reserva reserva, ReservaDto dto, Tarifa tarifa) {
-        boolean gratuita = Boolean.TRUE.equals(reserva.getEsReservaGratuita());
-        if (gratuita) {
-            reserva.setMontoTotal(BigDecimal.ZERO.setScale(2));
-        }
-
-        if (dto.getTarifaDetallesDtoList() == null || dto.getTarifaDetallesDtoList().isEmpty()) {
-            if (!gratuita && tarifa != null) {
-                throw new IllegalArgumentException("La reserva con cobro requiere detalle tarifario");
-            }
-            return;
-        }
-        if (tarifa == null) {
-            throw new IllegalArgumentException("El detalle tarifario requiere una tarifa válida");
-        }
-
-        BigDecimal total = BigDecimal.ZERO;
-        for (com.gamq.deportes.dto.ReservaTarifaDetalleDto detalleDto : dto.getTarifaDetallesDtoList()) {
-            BigDecimal cantidad = detalleDto.getCantidad();
-            if (cantidad == null || cantidad.signum() < 0) {
-                throw new IllegalArgumentException("La cantidad del detalle tarifario no puede ser negativa");
-            }
-
-            ReservaTarifaDetalle detalle = ReservaTarifaDetalleMapper.toEntity(detalleDto);
-            detalle.setReserva(reserva);
-            detalle.setTarifa(tarifa);
-            detalle.setCantidad(cantidad.setScale(2, RoundingMode.HALF_UP));
-
-            boolean lineaBase = "BASE".equalsIgnoreCase(detalleDto.getTipoLinea());
-            boolean lineaConcepto = "CONCEPTO".equalsIgnoreCase(detalleDto.getTipoLinea());
-            if (!lineaBase && !lineaConcepto) {
-                throw new IllegalArgumentException("Tipo de línea tarifaria no válido");
-            }
-
-            TarifaConcepto concepto = null;
-            if (lineaConcepto) {
-                if (detalleDto.getTarifaConceptoDto() == null
-                        || detalleDto.getTarifaConceptoDto().getUuid() == null) {
-                    throw new IllegalArgumentException("El concepto tarifario es requerido");
-                }
-                concepto = getTarifaConcepto(detalleDto.getTarifaConceptoDto().getUuid());
-                if (concepto.getTarifa() == null
-                        || !Objects.equals(concepto.getTarifa().getIdTarifa(), tarifa.getIdTarifa())
-                        || !Boolean.TRUE.equals(concepto.getActivo())) {
-                    throw new IllegalArgumentException("El concepto no pertenece a la tarifa seleccionada o está inactivo");
-                }
-                detalle.setTarifaConcepto(concepto);
-            }
-
-            BigDecimal subtotal;
-            if (gratuita) {
-                detalle.setPrecioUnitario(BigDecimal.ZERO.setScale(2));
-                subtotal = BigDecimal.ZERO.setScale(2);
-            } else if (lineaBase) {
-                detalle.setPrecioUnitario(tarifa.getPrecioBase().setScale(2, RoundingMode.HALF_UP));
-                subtotal = tarifa.getPrecioBase().multiply(cantidad).setScale(2, RoundingMode.HALF_UP);
-            } else {
-                detalle.setPrecioUnitario(concepto.getValor().setScale(2, RoundingMode.HALF_UP));
-                String tipo = concepto.getTipo() == null ? "" : concepto.getTipo().toLowerCase();
-                switch (tipo) {
-                    case "porcentaje":
-                        subtotal = total.multiply(concepto.getValor())
-                                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-                        break;
-                    case "fijo":
-                    case "monto_fijo":
-                        subtotal = concepto.getValor().setScale(2, RoundingMode.HALF_UP);
-                        break;
-                    case "por_hora":
-                    case "por_sesion":
-                    case "mensualidad":
-                        subtotal = concepto.getValor().multiply(cantidad).setScale(2, RoundingMode.HALF_UP);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Tipo de cálculo tarifario no soportado: " + tipo);
-                }
-            }
-
-            detalle.setSubtotal(subtotal);
-            total = total.add(subtotal);
-            reserva.getTarifaDetallesList().add(detalle);
-        }
-
-        reserva.setMontoTotal(gratuita ? BigDecimal.ZERO.setScale(2) : total.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void validarPoliticasConfiguradasParaContribuyente(ReservaDto dto) {
