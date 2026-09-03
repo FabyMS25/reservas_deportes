@@ -62,7 +62,12 @@ public class EstudianteEscuelaMapper {
     public static Estudiante toEstudiante(EstudianteEscuelaDto dto) {
         Estudiante estudiante = new Estudiante();
         estudiante.setUuid(dto.getEstudianteUuid());
-        estudiante.setNombreCompleto(dto.getNombreCompleto());
+        return updatePersonalDataFromDto(dto, estudiante);
+    }
+
+    public static Estudiante updatePersonalDataFromDto(EstudianteEscuelaDto dto, Estudiante estudiante) {
+        if (dto == null || estudiante == null) return estudiante;
+        if (dto.getNombreCompleto() != null) estudiante.setNombreCompleto(dto.getNombreCompleto());
         estudiante.setFechaNacimiento(dto.getFechaNacimiento());
         estudiante.setGenero(emptyToNull(dto.getGenero()));
         estudiante.setNumeroDocumento(emptyToNull(dto.getNumeroDocumento()));
@@ -74,12 +79,7 @@ public class EstudianteEscuelaMapper {
     public static EstudianteEscuela updateEntityFromDto(EstudianteEscuelaDto dto, EstudianteEscuela inscripcion) {
         if (dto == null || inscripcion == null) return inscripcion;
         Estudiante estudiante = inscripcion.getEstudiante();
-        if (dto.getNombreCompleto() != null) estudiante.setNombreCompleto(dto.getNombreCompleto());
-        estudiante.setFechaNacimiento(dto.getFechaNacimiento());
-        estudiante.setGenero(emptyToNull(dto.getGenero()));
-        estudiante.setNumeroDocumento(emptyToNull(dto.getNumeroDocumento()));
-        estudiante.setTelefono(emptyToNull(dto.getTelefono()));
-        estudiante.setEmail(emptyToNull(dto.getEmail()));
+        updatePersonalDataFromDto(dto, estudiante);
         if (dto.getFechaInscripcion() != null) inscripcion.setFechaInscripcion(dto.getFechaInscripcion());
         if (dto.getActivo() != null) inscripcion.setActivo(dto.getActivo());
         inscripcion.setMotivoBaja(dto.getMotivoBaja());

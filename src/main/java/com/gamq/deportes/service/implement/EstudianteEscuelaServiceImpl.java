@@ -137,6 +137,10 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
                 .orElseThrow(() -> new NotFoundException(ORGANIZACION,
                         estudianteDto.getOrganizacionDto().getUuid()));
         validarPuedeGestionar(organizacion);
+        // An existing student keeps one identity across schools. Apply any edited
+        // personal data to that identity before creating the new enrollment.
+        EstudianteEscuelaMapper.updatePersonalDataFromDto(estudianteDto, estudiante);
+        estudianteRepository.save(estudiante);
         Contribuyente responsable = resolverResponsable(estudianteDto);
         validarInscripcionActivaDuplicada(estudiante, organizacion);
         EstudianteEscuela inscripcion = EstudianteEscuelaMapper.toNewEntity(
