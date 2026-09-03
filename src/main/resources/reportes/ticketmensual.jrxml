@@ -39,7 +39,7 @@
                ubicacion,
                (CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri,
                con.numero_documento as ci,
-               ES.nombre_completo as estu,
+               EST.nombre_completo as estu,
                RP.mes,
                RP.año as gestion,
                RP.disciplina,
@@ -51,10 +51,11 @@
         join campos_deportivos as CA on CA.id_campo = RE.id_campo
         join complejos_deportivos as COM on COM.id_complejo = CA.id_complejo
         join contribuyentes AS CON on CON.id_contribuyente = RE.id_contribuyente
-        left join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
+        left join inscripciones_escuela as ES on ES.id_inscripcion = RP.id_inscripcion_escuela
+        left join estudiantes as EST on EST.id_estudiante = ES.id_estudiante
         left join organizaciones as ORG on ORG.id_organizacion = RE.id_organizacion
         where RE.uuid = $P{uuid} and RE.estado = false
-        order by ES.nombre_completo, RP.año, RP.mes
+        order by EST.nombre_completo, RP.año, RP.mes
         ]]>
 	</queryString>
 

@@ -58,15 +58,26 @@ public class EstudianteEscuelaController {
         }
     }
 
-//    @GetMapping("/organizacion/{uuidOrganizacion}")
-//    public Response buscarEstudiantesPorOrganizacion(@PathVariable("uuidOrganizacion") String uuidOrganizacion) {
-//        try {
-//            List<EstudianteEscuelaDto> estudiantes = estudianteEscuelaService.findByOrganizacionUuid(uuidOrganizacion);
-//            return Response.ok().setPayload(estudiantes);
-//        } catch (Exception ex) {
-//            return Response.notFound().setPayload(ex.getMessage());
-//        }
-//    }
+    @GetMapping("/organizacion/{uuidOrganizacion}")
+    public Response buscarEstudiantesPorOrganizacion(@PathVariable("uuidOrganizacion") String uuidOrganizacion) {
+        try {
+            return Response.ok().setPayload(
+                    estudianteEscuelaService.findByOrganizacionUuid(uuidOrganizacion));
+        } catch (Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/organizacion/{uuidOrganizacion}/activos")
+    public Response buscarEstudiantesActivosPorOrganizacion(
+            @PathVariable("uuidOrganizacion") String uuidOrganizacion) {
+        try {
+            return Response.ok().setPayload(
+                    estudianteEscuelaService.findByActivoTrueAndOrganizacionUuid(uuidOrganizacion));
+        } catch (Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
 @   Operation(summary = "Buscar Estudiante por matricula")
     @GetMapping("/activos")
     public Response obtenerEstudiantesActivos() {
@@ -97,9 +108,12 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Borrar Estudiante o dar de baja")
     @PutMapping("/{uuid}/baja")
-    public Response darDeBajaEstudiante(@PathVariable("uuid") String uuid) {
+    public Response darDeBajaEstudiante(
+            @PathVariable("uuid") String uuid,
+            @RequestBody(required = false) EstudianteEscuelaDto solicitud) {
         try {
-            return Response.ok().setPayload(estudianteEscuelaService.darDeBajaEstudiante(uuid));
+            String motivo = solicitud == null ? null : solicitud.getMotivoBaja();
+            return Response.ok().setPayload(estudianteEscuelaService.darDeBajaEstudiante(uuid, motivo));
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload(ex.getMessage());
         }
@@ -109,6 +123,15 @@ public class EstudianteEscuelaController {
     public Response reactivarEstudiante(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.reactivarEstudiante(uuid));
+        } catch (Exception ex) {
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+    @Operation(summary = "Quitar responsable de una inscripción sin dar de baja al estudiante")
+    @PutMapping("/{uuid}/quitar-responsable")
+    public Response quitarResponsable(@PathVariable("uuid") String uuid) {
+        try {
+            return Response.ok().setPayload(estudianteEscuelaService.quitarResponsable(uuid));
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload(ex.getMessage());
         }

@@ -3,18 +3,24 @@ package com.gamq.deportes.service.implement;
 import com.gamq.deportes.dto.EstudianteEscuelaDto;
 import com.gamq.deportes.dto.mapper.EstudianteEscuelaMapper;
 import com.gamq.deportes.model.Contribuyente;
+import com.gamq.deportes.model.Estudiante;
 import com.gamq.deportes.model.EstudianteEscuela;
 import com.gamq.deportes.model.Organizacion;
 import com.gamq.deportes.repository.ContribuyenteRepository;
 import com.gamq.deportes.repository.EstudianteEscuelaRepository;
+import com.gamq.deportes.repository.EstudianteRepository;
 import com.gamq.deportes.repository.OrganizacionRepository;
+import com.gamq.deportes.security.DeportesPrincipal;
 import com.gamq.deportes.service.EstudianteEscuelaService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +36,12 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
 
     @Autowired
+    private EstudianteRepository estudianteRepository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
     private ContribuyenteRepository contribuyenteRepository;
 
     @Autowired
@@ -39,6 +51,7 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     public EstudianteEscuelaDto findByUuid(String uuid) {
         Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByUuid(uuid);
         if (estudianteOptional.isPresent()) {
+            validarPuedeVer(estudianteOptional.get());
             return EstudianteEscuelaMapper.toDto(estudianteOptional.get(), true);
         } else {
             throw new NotFoundException(ESTUDIANTE_ESCUELA, uuid);
@@ -49,6 +62,7 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     public EstudianteEscuelaDto findByMatricula(String matricula) {
         Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByMatricula(matricula);
         if (estudianteOptional.isPresent()) {
+            validarPuedeVer(estudianteOptional.get());
             return EstudianteEscuelaMapper.toDto(estudianteOptional.get(), true);
         } else {
             throw new NotFoundException(ESTUDIANTE_ESCUELA, matricula);
@@ -59,6 +73,7 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     public EstudianteEscuelaDto findByNumeroDocumento(String numeroDocumento) {
         Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByNumeroDocumento(numeroDocumento);
         if (estudianteOptional.isPresent()) {
+            validarPuedeVer(estudianteOptional.get());
             return EstudianteEscuelaMapper.toDto(estudianteOptional.get(), true);
         } else {
             throw new NotFoundException(ESTUDIANTE_ESCUELA, numeroDocumento);
@@ -66,86 +81,99 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     }
 
     @Override
+    @Transactional
     public List<EstudianteEscuelaDto> obtenerEstudiantes() {
-        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findAll();
+        String contribuyenteUuid = contribuyenteActualUuid();
+        List<EstudianteEscuela> estudiantes = contribuyenteUuid == null
+                ? estudianteEscuelaRepository.findAll()
+                : estudianteEscuelaRepository.findVisibleToContribuyente(contribuyenteUuid);
         return estudiantes.stream()
-                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, true))
+                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<EstudianteEscuelaDto> findByContribuyenteUuid(String uuidContribuyente) {
+        validarContribuyentePropio(uuidContribuyente);
         List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByContribuyenteUuid(uuidContribuyente);
         return estudiantes.stream()
                 .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<EstudianteEscuelaDto> findByOrganizacionUuid(String uuidOrganizacion) {
-//        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByOrganizacionUuid(uuidOrganizacion);
-//        if (!estudiantes.isEmpty()) {
-//            return estudiantes.stream()
-//                    .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
-//                    .collect(Collectors.toList());
-//        } else {
-//            throw new NoResultException(ESTUDIANTE_ESCUELA);
-//        }
-//    }
+    @Override
+    public List<EstudianteEscuelaDto> findByOrganizacionUuid(String uuidOrganizacion) {
+        validarPuedeGestionarOrganizacion(uuidOrganizacion);
+        return estudianteEscuelaRepository.findByOrganizacionUuid(uuidOrganizacion).stream()
+                .map(inscripcion -> EstudianteEscuelaMapper.toDto(inscripcion, false))
+                .collect(Collectors.toList());
+    }
 
     @Override
     public List<EstudianteEscuelaDto> findByActivoTrue() {
-        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByActivoTrue();
+        String contribuyenteUuid = contribuyenteActualUuid();
+        List<EstudianteEscuela> estudiantes = contribuyenteUuid == null
+                ? estudianteEscuelaRepository.findByActivoTrue()
+                : estudianteEscuelaRepository.findActiveVisibleToContribuyente(contribuyenteUuid);
         return estudiantes.stream()
                 .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion) {
-//        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository.findByActivoTrueAndOrganizacionUuid(uuidOrganizacion);
-//        if (!estudiantes.isEmpty()) {
-//            return estudiantes.stream()
-//                    .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
-//                    .collect(Collectors.toList());
-//        } else {
-//            throw new NoResultException(ESTUDIANTE_ESCUELA);
-//        }
-//    }
+    @Override
+    public List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion) {
+        validarPuedeGestionarOrganizacion(uuidOrganizacion);
+        return estudianteEscuelaRepository.findByActivoTrueAndOrganizacionUuid(uuidOrganizacion).stream()
+                .map(inscripcion -> EstudianteEscuelaMapper.toDto(inscripcion, false))
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional
     public EstudianteEscuelaDto crearEstudiante(EstudianteEscuelaDto estudianteDto) {
-        if (estudianteDto != null) {
-            // Verify contribuyente exists
-            Contribuyente contribuyente = contribuyenteRepository.findByUuid(
-                            estudianteDto.getContribuyenteDto().getUuid())
-                    .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE,
-                            estudianteDto.getContribuyenteDto().getUuid()));
-
-            // Verify organizacion exists (you might need to add this to your DTO or get it from context)
-            // For now, we'll assume it's passed in the DTO or set elsewhere
-            // Organizacion organizacion = organizacionRepository.findByUuid(...)
-
-            EstudianteEscuela nuevoEstudiante = EstudianteEscuelaMapper.toEntity(estudianteDto);
-            nuevoEstudiante.setContribuyenteDto(contribuyente);
-            // nuevoEstudiante.setOrganizacionDto(organizacion); // Set organizacion when available
-
-            return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(nuevoEstudiante), true);
-        } else {
-            throw new NullReferenceException(ESTUDIANTE_ESCUELA);
-        }
+        validarSolicitud(estudianteDto);
+        Estudiante estudiante = resolverEstudiante(estudianteDto);
+        Organizacion organizacion = organizacionRepository.findByUuid(estudianteDto.getOrganizacionDto().getUuid())
+                .orElseThrow(() -> new NotFoundException(ORGANIZACION,
+                        estudianteDto.getOrganizacionDto().getUuid()));
+        validarPuedeGestionar(organizacion);
+        Contribuyente responsable = resolverResponsable(estudianteDto);
+        validarInscripcionActivaDuplicada(estudiante, organizacion);
+        EstudianteEscuela inscripcion = EstudianteEscuelaMapper.toNewEntity(
+                estudianteDto, responsable, organizacion);
+        inscripcion.setEstudiante(estudiante);
+        EstudianteEscuela guardada = estudianteEscuelaRepository.saveAndFlush(inscripcion);
+        entityManager.refresh(guardada); // Read matrícula generated by the database trigger.
+        return EstudianteEscuelaMapper.toDto(guardada, true);
     }
 
     @Override
     @Transactional
     public EstudianteEscuelaDto actualizarEstudiante(EstudianteEscuelaDto estudianteDto) {
         if (estudianteDto != null) {
+            if (estudianteDto.getNombreCompleto() == null
+                    || estudianteDto.getNombreCompleto().trim().isEmpty()) {
+                throw new IllegalArgumentException("El nombre del estudiante es requerido");
+            }
             Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByUuid(estudianteDto.getUuid());
 
             if (estudianteOptional.isPresent()) {
                 EstudianteEscuela estudianteExistente = estudianteOptional.get();
+                validarPuedeGestionar(estudianteExistente.getOrganizacionDto());
                 EstudianteEscuelaMapper.updateEntityFromDto(estudianteDto, estudianteExistente);
+
+                if (estudianteDto.getOrganizacionDto() != null
+                        && estudianteDto.getOrganizacionDto().getUuid() != null) {
+                    String escuelaActual = estudianteExistente.getOrganizacionDto().getUuid();
+                    if (!escuelaActual.equals(estudianteDto.getOrganizacionDto().getUuid())) {
+                        throw new IllegalArgumentException(
+                                "No se puede cambiar la escuela de una inscripción. Dé de baja esta inscripción y cree otra");
+                    }
+                }
+                if (estudianteDto.getContribuyenteDto() != null) {
+                    estudianteExistente.setContribuyenteDto(resolverResponsable(estudianteDto));
+                }
+                estudianteRepository.save(estudianteExistente.getEstudiante());
 
                 return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(estudianteExistente), true);
             } else {
@@ -158,11 +186,17 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
 
     @Override
     @Transactional
-    public EstudianteEscuelaDto darDeBajaEstudiante(String uuid) {
+    public EstudianteEscuelaDto darDeBajaEstudiante(String uuid, String motivoBaja) {
         Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByUuid(uuid);
         if (estudianteOptional.isPresent()) {
             EstudianteEscuela estudiante = estudianteOptional.get();
+            validarPuedeGestionar(estudiante.getOrganizacionDto());
+            if (!estudiante.estaActivo()) {
+                throw new IllegalArgumentException("La inscripción ya se encuentra inactiva");
+            }
             estudiante.darDeBaja();
+            estudiante.setMotivoBaja(
+                    motivoBaja == null || motivoBaja.trim().isEmpty() ? null : motivoBaja.trim());
             return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(estudiante), true);
         } else {
             throw new NotFoundException(ESTUDIANTE_ESCUELA, uuid);
@@ -174,9 +208,21 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     public EstudianteEscuelaDto reactivarEstudiante(String uuid) {
         Optional<EstudianteEscuela> estudianteOptional = estudianteEscuelaRepository.findByUuid(uuid);
         if (estudianteOptional.isPresent()) {
-            EstudianteEscuela estudiante = estudianteOptional.get();
-            estudiante.reactivar();
-            return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(estudiante), true);
+            EstudianteEscuela anterior = estudianteOptional.get();
+            validarPuedeGestionar(anterior.getOrganizacionDto());
+            if (anterior.estaActivo()) {
+                throw new IllegalArgumentException("La inscripción ya se encuentra activa");
+            }
+            validarInscripcionActivaDuplicada(anterior.getEstudiante(), anterior.getOrganizacionDto());
+            EstudianteEscuela nueva = new EstudianteEscuela();
+            nueva.setEstudiante(anterior.getEstudiante());
+            nueva.setOrganizacionDto(anterior.getOrganizacionDto());
+            nueva.setContribuyenteDto(anterior.getContribuyenteDto());
+            nueva.setFechaInscripcion(java.time.LocalDate.now());
+            nueva.setActivo(true);
+            EstudianteEscuela guardada = estudianteEscuelaRepository.saveAndFlush(nueva);
+            entityManager.refresh(guardada);
+            return EstudianteEscuelaMapper.toDto(guardada, true);
         } else {
             throw new NotFoundException(ESTUDIANTE_ESCUELA, uuid);
         }
@@ -187,12 +233,115 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     public String eliminarEstudiante(String uuid) {
         EstudianteEscuela estudiante = estudianteEscuelaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(ESTUDIANTE_ESCUELA, uuid));
-        estudianteEscuelaRepository.delete(estudiante);
-        return "Eliminación exitosa del estudiante con UUID: " + uuid;
+        validarPuedeGestionar(estudiante.getOrganizacionDto());
+        estudiante.darDeBaja();
+        estudianteEscuelaRepository.save(estudiante);
+        return "La inscripción fue dada de baja; el estudiante y su historial se conservaron: " + uuid;
     }
 
-//    @Override
-//    public Long contarEstudiantesActivosPorOrganizacion(String uuidOrganizacion) {
-//        return estudianteEscuelaRepository.countByOrganizacionUuidAndActivoTrue(uuidOrganizacion);
-//    }
+    @Override
+    @Transactional
+    public EstudianteEscuelaDto quitarResponsable(String uuid) {
+        EstudianteEscuela inscripcion = estudianteEscuelaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(ESTUDIANTE_ESCUELA, uuid));
+        validarPuedeGestionar(inscripcion.getOrganizacionDto());
+        inscripcion.setContribuyenteDto(null);
+        return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(inscripcion), true);
+    }
+
+    @Override
+    public Long contarEstudiantesActivosPorOrganizacion(String uuidOrganizacion) {
+        validarPuedeGestionarOrganizacion(uuidOrganizacion);
+        return estudianteEscuelaRepository.countByOrganizacionUuidAndActivoTrue(uuidOrganizacion);
+    }
+
+    private void validarSolicitud(EstudianteEscuelaDto dto) {
+        if (dto == null) throw new NullReferenceException(ESTUDIANTE_ESCUELA);
+        if (dto.getNombreCompleto() == null || dto.getNombreCompleto().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del estudiante es requerido");
+        }
+        if (dto.getOrganizacionDto() == null || dto.getOrganizacionDto().getUuid() == null) {
+            throw new IllegalArgumentException("La escuela es requerida para crear una inscripción");
+        }
+    }
+
+    private Estudiante resolverEstudiante(EstudianteEscuelaDto dto) {
+        if (dto.getEstudianteUuid() != null && !dto.getEstudianteUuid().trim().isEmpty()) {
+            return estudianteRepository.findByUuid(dto.getEstudianteUuid())
+                    .orElseThrow(() -> new IllegalArgumentException("No existe el estudiante indicado"));
+        }
+        if (dto.getNumeroDocumento() != null && !dto.getNumeroDocumento().trim().isEmpty()) {
+            Optional<Estudiante> existente = estudianteRepository.findByNumeroDocumento(
+                    dto.getNumeroDocumento().trim());
+            if (existente.isPresent()) return existente.get();
+        }
+        return estudianteRepository.save(EstudianteEscuelaMapper.toEstudiante(dto));
+    }
+
+    private Contribuyente resolverResponsable(EstudianteEscuelaDto dto) {
+        if (dto.getContribuyenteDto() == null || dto.getContribuyenteDto().getUuid() == null
+                || dto.getContribuyenteDto().getUuid().trim().isEmpty()) {
+            return null;
+        }
+        return contribuyenteRepository.findByUuid(dto.getContribuyenteDto().getUuid())
+                .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE,
+                        dto.getContribuyenteDto().getUuid()));
+    }
+
+    private void validarInscripcionActivaDuplicada(Estudiante estudiante, Organizacion organizacion) {
+        if (estudianteEscuelaRepository.existsActiveEnrollment(
+                estudiante.getIdEstudiante(), organizacion.getIdOrganizacion())) {
+            throw new IllegalArgumentException(
+                    "El estudiante ya tiene una inscripción activa en esta escuela");
+        }
+    }
+
+    private void validarPuedeVer(EstudianteEscuela inscripcion) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) return;
+        boolean esTutor = inscripcion.getContribuyenteDto() != null
+                && contribuyenteUuid.equals(inscripcion.getContribuyenteDto().getUuid());
+        boolean gestionaEscuela = representaOrganizacion(inscripcion.getOrganizacionDto(), contribuyenteUuid);
+        if (!esTutor && !gestionaEscuela) {
+            throw new IllegalArgumentException("No tiene acceso a esta inscripción");
+        }
+    }
+
+    private void validarPuedeGestionarOrganizacion(String organizacionUuid) {
+        if (contribuyenteActualUuid() == null) return;
+        Organizacion organizacion = organizacionRepository.findByUuid(organizacionUuid)
+                .orElseThrow(() -> new NotFoundException(ORGANIZACION, organizacionUuid));
+        validarPuedeGestionar(organizacion);
+    }
+
+    private void validarPuedeGestionar(Organizacion organizacion) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid != null && !representaOrganizacion(organizacion, contribuyenteUuid)) {
+            throw new IllegalArgumentException("No tiene autorización para administrar esta escuela");
+        }
+    }
+
+    private void validarContribuyentePropio(String uuidConsultado) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid != null && !contribuyenteUuid.equals(uuidConsultado)) {
+            throw new IllegalArgumentException("No tiene acceso a los estudiantes de otro contribuyente");
+        }
+    }
+
+    private boolean representaOrganizacion(Organizacion organizacion, String contribuyenteUuid) {
+        return organizacion != null
+                && organizacion.getRepresentante() != null
+                && contribuyenteUuid.equals(organizacion.getRepresentante().getUuid());
+    }
+
+    /** Returns the authenticated taxpayer UUID; staff/admin requests return null. */
+    private String contribuyenteActualUuid() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof DeportesPrincipal)) {
+            return null;
+        }
+        DeportesPrincipal principal = (DeportesPrincipal) authentication.getPrincipal();
+        return "TAXPAYER".equalsIgnoreCase(principal.getUserType())
+                ? principal.getSubject() : null;
+    }
 }

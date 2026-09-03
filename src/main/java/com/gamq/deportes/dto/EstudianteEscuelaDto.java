@@ -23,6 +23,7 @@ import java.util.List;
 public class EstudianteEscuelaDto {
     private Long idEstudiante;
     private String uuid;
+    private String estudianteUuid;
     private boolean estado;
     private LocalDateTime fechaCreacion;
 
@@ -35,11 +36,12 @@ public class EstudianteEscuelaDto {
 
     private LocalDate fechaInscripcion;
     private LocalDate fechaBaja;
+    private String motivoBaja;
     private String matricula;
     private Boolean activo;
 
     private ContribuyenteDto contribuyenteDto; // representante o tutor
-//    organizacionDto: Organizacion;
+    private OrganizacionDto organizacionDto;
     private List<ReservaPeriodoDto> mensualidadesDtoList = new ArrayList<>();
 //    private List<OrganizacionDto> organizacionesRepresentadas = new ArrayList<>();
 }

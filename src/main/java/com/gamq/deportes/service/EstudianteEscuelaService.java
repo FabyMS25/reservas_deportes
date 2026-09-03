@@ -13,13 +13,14 @@ public interface EstudianteEscuelaService {
     EstudianteEscuelaDto findByNumeroDocumento(String numeroDocumento);
     List<EstudianteEscuelaDto> obtenerEstudiantes();
     List<EstudianteEscuelaDto> findByContribuyenteUuid(String uuidContribuyente);
-//    List<EstudianteEscuelaDto> findByOrganizacionUuid(String uuidOrganizacion);
+    List<EstudianteEscuelaDto> findByOrganizacionUuid(String uuidOrganizacion);
     List<EstudianteEscuelaDto> findByActivoTrue();
-//    List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion);
+    List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion);
     EstudianteEscuelaDto crearEstudiante(EstudianteEscuelaDto estudianteDto);
     EstudianteEscuelaDto actualizarEstudiante(EstudianteEscuelaDto estudianteDto);
-    EstudianteEscuelaDto darDeBajaEstudiante(String uuid);
+    EstudianteEscuelaDto darDeBajaEstudiante(String uuid, String motivoBaja);
     EstudianteEscuelaDto reactivarEstudiante(String uuid);
+    EstudianteEscuelaDto quitarResponsable(String uuid);
     String eliminarEstudiante(String uuid);
-//    Long contarEstudiantesActivosPorOrganizacion(String uuidOrganizacion);
+    Long contarEstudiantesActivosPorOrganizacion(String uuidOrganizacion);
 }

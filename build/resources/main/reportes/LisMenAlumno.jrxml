@@ -24,17 +24,18 @@
 		<![CDATA[select RE.uuid,fecha_reserva,tipo_reserva,estado_reserva, telefono_principal as tel,
 		numero_tasa, monto_total, RE.es_reserva_gratuita, RE.motivo_gratuidad, numero_reserva, codigo, tipo_reserva, (COM.nombre||' '||ca.nombre) as comp,  
 		(CON.nombre||' '||CON.primer_apellido||' '||CON.segundo_apellido) AS contri, 
-		con.numero_documento as ci, Com.nombre as cancha,ubicacion, ES.nombre_completo as estu,
+		con.numero_documento as ci, Com.nombre as cancha,ubicacion, EST.nombre_completo as estu,
 		RP.mes, RP.año as gestion, RP.disciplina, RP.Entrenador, RP.matricula, ORG.nombre as escuela
 		from reservas as RE
 		join reservas_periodo as RP on rp.id_reserva = re.id_reserva
 		join campos_deportivos as ca on ca.id_campo = re.id_campo
 		join complejos_deportivos as COM on com.id_complejo=ca.id_complejo
 		join contribuyentes AS CON on CON.id_contribuyente = re.id_contribuyente
-		join estudiantes_escuela as ES on ES.id_estudiante = RP.id_estudiante_escuela
+		join inscripciones_escuela as ES on ES.id_inscripcion = RP.id_inscripcion_escuela
+		join estudiantes as EST on EST.id_estudiante = ES.id_estudiante
 		join organizaciones as ORG on org.id_organizacion = re.id_organizacion
 		WHERE RE.fecha_reserva BETWEEN $P{fechaini} AND $P{fechafin}
-		AND ES.matricula LIKE  $P{matricula} and Es.nombre_completo LIKE $P{alumno} 
+		AND ES.matricula LIKE  $P{matricula} and EST.nombre_completo LIKE $P{alumno}
 		AND RE.estado_reserva LIKE $P{estado}  and RE.estado = false
 		ORDER BY RE.fecha_reserva]]>
 	</queryString>

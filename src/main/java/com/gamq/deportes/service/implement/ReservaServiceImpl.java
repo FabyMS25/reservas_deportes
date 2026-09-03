@@ -733,8 +733,19 @@ public class ReservaServiceImpl implements ReservaService {
             }
             ReservaPeriodo periodo = ReservaPeriodoMapper.toEntity(detalleDto);
             periodo.setReserva(reserva);
-            periodo.setEstudianteEscuela(
-                    getEstudianteEscuela(detalleDto.getEstudianteEscuelaDto().getUuid()));
+            EstudianteEscuela inscripcion =
+                    getEstudianteEscuela(detalleDto.getEstudianteEscuelaDto().getUuid());
+            if (!inscripcion.estaActivo()) {
+                throw new IllegalArgumentException("La inscripción del estudiante no está activa");
+            }
+            if (reserva.getOrganizacion() == null
+                    || !inscripcion.getOrganizacionDto().getUuid()
+                    .equals(reserva.getOrganizacion().getUuid())) {
+                throw new IllegalArgumentException(
+                        "La inscripción del estudiante no pertenece a la escuela de la mensualidad");
+            }
+            periodo.setEstudianteEscuela(inscripcion);
+            periodo.setMatricula(inscripcion.getMatricula());
             reserva.getReservasPeriodoList().add(periodo);
         }
     }

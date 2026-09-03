@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
+import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,13 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     EstudianteEscuelaRepository estudianteEscuelaRepository;
 
     @Autowired
+    EstudianteRepository estudianteRepository;
+
+    @Autowired
     OrganizacionRepository organizacionRepository;
+
+    @Autowired
+    EntityManager entityManager;
 
     @Override
     public ContribuyenteDto findByUuid(String uuid){
@@ -79,6 +86,10 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
             } catch (DataIntegrityViolationException ex) {
                 throw new DuplicateTaxpayerException(Collections.singletonList(
                         "alguno de sus datos de identificación"));
+            }
+            if (contribuyenteDto.getEstudianteEnEscuelas() != null) {
+                crearEstudiantesParaContribuyente(contribuyenteGuardado,
+                        contribuyenteDto.getEstudianteEnEscuelas());
             }
             return ContribuyenteMapper.toDto(contribuyenteGuardado, true);
         } else {
@@ -300,9 +311,22 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
     private void crearEstudiantesParaContribuyente(Contribuyente contribuyente, List<EstudianteEscuelaDto> estudiantesDto) {
         for (EstudianteEscuelaDto estudianteDto : estudiantesDto) {
+            if (estudianteDto.getOrganizacionDto() == null
+                    || estudianteDto.getOrganizacionDto().getUuid() == null) {
+                throw new IllegalArgumentException("La escuela es requerida para cada inscripción");
+            }
+            Organizacion organizacion = organizacionRepository.findByUuid(
+                            estudianteDto.getOrganizacionDto().getUuid())
+                    .orElseThrow(() -> new NotFoundException(ORGANIZACION,
+                            estudianteDto.getOrganizacionDto().getUuid()));
             EstudianteEscuela nuevoEstudiante = EstudianteEscuelaMapper.toEntity(estudianteDto);
             nuevoEstudiante.setContribuyenteDto(contribuyente);
-            estudianteEscuelaRepository.save(nuevoEstudiante);
+            nuevoEstudiante.setOrganizacionDto(organizacion);
+            Estudiante persona = resolverPersonaEstudiante(estudianteDto);
+            nuevoEstudiante.setEstudiante(persona);
+            estudianteEscuelaRepository.saveAndFlush(nuevoEstudiante);
+            entityManager.refresh(nuevoEstudiante);
+            contribuyente.getEstudianteEnEscuelas().add(nuevoEstudiante);
         }
     }
 
@@ -314,7 +338,7 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                 estudiantesDtoMap.put(dto.getUuid(), dto);
             }
         }
-        List<EstudianteEscuela> estudiantesToDelete = new ArrayList<>();
+        List<EstudianteEscuela> inscripcionesSinResponsable = new ArrayList<>();
         if (contribuyente.getEstudianteEnEscuelas() != null) {
             for (EstudianteEscuela estudianteExistente : contribuyente.getEstudianteEnEscuelas()) {
                 if (estudiantesDtoMap.containsKey(estudianteExistente.getUuid())) {
@@ -323,14 +347,19 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                     actualizarEstudianteExistente(estudianteExistente, dto);
                     estudiantesDtoMap.remove(estudianteExistente.getUuid());
                 } else {
-                    // Mark for deletion (not in the incoming list)
-                    estudiantesToDelete.add(estudianteExistente);
+                    // Removing it from a contributor never deletes the student
+                    // or closes the school enrollment; it only ends this
+                    // operational responsibility.
+                    inscripcionesSinResponsable.add(estudianteExistente);
                 }
             }
         }
-        for (EstudianteEscuela estudiante : estudiantesToDelete) {
-            estudiante.setEstado(true);
-            estudianteEscuelaRepository.save(estudiante);
+        for (EstudianteEscuela inscripcion : inscripcionesSinResponsable) {
+            inscripcion.setContribuyenteDto(null);
+            estudianteEscuelaRepository.save(inscripcion);
+        }
+        if (contribuyente.getEstudianteEnEscuelas() != null) {
+            contribuyente.getEstudianteEnEscuelas().removeAll(inscripcionesSinResponsable);
         }
 
         // CREATE new estudiantes (remaining in map or without UUID)
@@ -346,15 +375,31 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     }
 
     private void actualizarEstudianteExistente(EstudianteEscuela estudianteExistente, EstudianteEscuelaDto dto) {
-        estudianteExistente.setNombreCompleto(dto.getNombreCompleto());
-        estudianteExistente.setFechaNacimiento(dto.getFechaNacimiento());
-        estudianteExistente.setGenero(dto.getGenero());
-        estudianteExistente.setNumeroDocumento(dto.getNumeroDocumento());
-        estudianteExistente.setTelefono(dto.getTelefono());
-        estudianteExistente.setEmail(dto.getEmail());
-        estudianteExistente.setFechaInscripcion(dto.getFechaInscripcion());
-        estudianteExistente.setMatricula(dto.getMatricula());
-        estudianteExistente.setActivo(dto.getActivo());
+        EstudianteEscuelaMapper.updateEntityFromDto(dto, estudianteExistente);
+        if (dto.getOrganizacionDto() != null && dto.getOrganizacionDto().getUuid() != null) {
+            if (!estudianteExistente.getOrganizacionDto().getUuid()
+                    .equals(dto.getOrganizacionDto().getUuid())) {
+                throw new IllegalArgumentException(
+                        "No se puede cambiar la escuela de una inscripción. Dé de baja esta inscripción y cree otra");
+            }
+        }
+        estudianteRepository.save(estudianteExistente.getEstudiante());
         estudianteEscuelaRepository.save(estudianteExistente);
+    }
+
+    private Estudiante resolverPersonaEstudiante(EstudianteEscuelaDto dto) {
+        if (dto.getEstudianteUuid() != null && !dto.getEstudianteUuid().trim().isEmpty()) {
+            return estudianteRepository.findByUuid(dto.getEstudianteUuid())
+                    .orElseThrow(() -> new IllegalArgumentException("No existe el estudiante indicado"));
+        }
+        if (dto.getNumeroDocumento() != null && !dto.getNumeroDocumento().trim().isEmpty()) {
+            Optional<Estudiante> existente = estudianteRepository.findByNumeroDocumento(
+                    dto.getNumeroDocumento().trim());
+            if (existente.isPresent()) return existente.get();
+        }
+        if (dto.getNombreCompleto() == null || dto.getNombreCompleto().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del estudiante es requerido");
+        }
+        return estudianteRepository.save(EstudianteEscuelaMapper.toEstudiante(dto));
     }
 }

@@ -2,155 +2,105 @@ package com.gamq.deportes.dto.mapper;
 
 import com.gamq.deportes.dto.EstudianteEscuelaDto;
 import com.gamq.deportes.model.Contribuyente;
+import com.gamq.deportes.model.Estudiante;
 import com.gamq.deportes.model.EstudianteEscuela;
 import com.gamq.deportes.model.Organizacion;
 
 import java.util.stream.Collectors;
 
 public class EstudianteEscuelaMapper {
-
-    public static EstudianteEscuelaDto toDto(EstudianteEscuela estudiante, boolean includeRelations) {
-        if (estudiante == null) return null;
-
+    public static EstudianteEscuelaDto toDto(EstudianteEscuela inscripcion, boolean includeRelations) {
+        if (inscripcion == null) return null;
         EstudianteEscuelaDto dto = new EstudianteEscuelaDto();
-
-        // Basic identification
-        dto.setIdEstudiante(estudiante.getIdEstudiante());
-        dto.setUuid(estudiante.getUuid());
-        dto.setEstado(estudiante.isEstado());
-        dto.setFechaCreacion(estudiante.getFechaCreacion());
-
-        // Student Personal Information
-        dto.setNombreCompleto(estudiante.getNombreCompleto());
-        dto.setFechaNacimiento(estudiante.getFechaNacimiento());
-        dto.setGenero(estudiante.getGenero());
-        dto.setNumeroDocumento(estudiante.getNumeroDocumento());
-        dto.setTelefono(estudiante.getTelefono());
-        dto.setEmail(estudiante.getEmail());
-
-        // School Enrollment Information
-        dto.setFechaInscripcion(estudiante.getFechaInscripcion());
-        dto.setFechaBaja(estudiante.getFechaBaja());
-        dto.setMatricula(estudiante.getMatricula());
-        dto.setActivo(estudiante.getActivo() != null ? estudiante.getActivo() : false);
-
-        // Always include the representative/tutor summary. The monthly payment form needs
-        // the RUAT codigoContribuyente from the student record to create a valid tasa.
-        if (estudiante.getContribuyenteDto() != null) {
-            dto.setContribuyenteDto(includeRelations
-                    ? ContribuyenteMapper.toDto(estudiante.getContribuyenteDto(), false)
-                    : ContribuyenteMapper.toSimpleDto(estudiante.getContribuyenteDto()));
+        dto.setIdEstudiante(inscripcion.getIdEstudiante());
+        dto.setUuid(inscripcion.getUuid());
+        dto.setEstado(inscripcion.isEstado());
+        dto.setFechaCreacion(inscripcion.getFechaCreacion());
+        Estudiante estudiante = inscripcion.getEstudiante();
+        if (estudiante != null) {
+            dto.setEstudianteUuid(estudiante.getUuid());
+            dto.setNombreCompleto(estudiante.getNombreCompleto());
+            dto.setFechaNacimiento(estudiante.getFechaNacimiento());
+            dto.setGenero(estudiante.getGenero());
+            dto.setNumeroDocumento(estudiante.getNumeroDocumento());
+            dto.setTelefono(estudiante.getTelefono());
+            dto.setEmail(estudiante.getEmail());
         }
-
-        if (includeRelations) {
-            // Include monthly payments (reservas as mensualidades)
-            if (estudiante.getMensualidadesDtoList() != null && !estudiante.getMensualidadesDtoList().isEmpty()) {
-                dto.setMensualidadesDtoList(estudiante.getMensualidadesDtoList().stream()
-                        .map(periodo -> ReservaPeriodoMapper.toDto(periodo, true))
-                        .collect(Collectors.toList()));
-            }
+        dto.setFechaInscripcion(inscripcion.getFechaInscripcion());
+        dto.setFechaBaja(inscripcion.getFechaBaja());
+        dto.setMotivoBaja(inscripcion.getMotivoBaja());
+        dto.setMatricula(inscripcion.getMatricula());
+        dto.setActivo(inscripcion.getActivo());
+        if (inscripcion.getContribuyenteDto() != null) {
+            dto.setContribuyenteDto(ContribuyenteMapper.toSimpleDto(inscripcion.getContribuyenteDto()));
         }
-
+        if (inscripcion.getOrganizacionDto() != null) {
+            dto.setOrganizacionDto(OrganizacionMapper.toDto(inscripcion.getOrganizacionDto(), false));
+        }
+        if (includeRelations && inscripcion.getMensualidadesDtoList() != null) {
+            dto.setMensualidadesDtoList(inscripcion.getMensualidadesDtoList().stream()
+                    .map(periodo -> ReservaPeriodoMapper.toDto(periodo, true))
+                    .collect(Collectors.toList()));
+        }
         return dto;
     }
 
     public static EstudianteEscuela toEntity(EstudianteEscuelaDto dto) {
         if (dto == null) return null;
+        EstudianteEscuela inscripcion = new EstudianteEscuela();
+        inscripcion.setUuid(dto.getUuid());
+        inscripcion.setEstado(dto.isEstado());
+        inscripcion.setFechaCreacion(dto.getFechaCreacion());
+        inscripcion.setFechaInscripcion(dto.getFechaInscripcion());
+        inscripcion.setFechaBaja(dto.getFechaBaja());
+        inscripcion.setMotivoBaja(dto.getMotivoBaja());
+        inscripcion.setActivo(dto.getActivo());
+        inscripcion.setEstudiante(toEstudiante(dto));
+        return inscripcion;
+    }
 
-        EstudianteEscuela estudiante = new EstudianteEscuela();
-
-        estudiante.setUuid(dto.getUuid());
-        estudiante.setEstado(dto.isEstado());
-        estudiante.setFechaCreacion(dto.getFechaCreacion());
-
-        // Student Personal Information
+    public static Estudiante toEstudiante(EstudianteEscuelaDto dto) {
+        Estudiante estudiante = new Estudiante();
+        estudiante.setUuid(dto.getEstudianteUuid());
         estudiante.setNombreCompleto(dto.getNombreCompleto());
         estudiante.setFechaNacimiento(dto.getFechaNacimiento());
-        estudiante.setGenero(dto.getGenero());
-        estudiante.setNumeroDocumento(dto.getNumeroDocumento());
-        estudiante.setTelefono(dto.getTelefono());
-        estudiante.setEmail(dto.getEmail());
-
-        // School Enrollment Information
-        estudiante.setFechaInscripcion(dto.getFechaInscripcion());
-        estudiante.setFechaBaja(dto.getFechaBaja());
-        estudiante.setMatricula(dto.getMatricula());
-        estudiante.setActivo(dto.getActivo());
-
+        estudiante.setGenero(emptyToNull(dto.getGenero()));
+        estudiante.setNumeroDocumento(emptyToNull(dto.getNumeroDocumento()));
+        estudiante.setTelefono(emptyToNull(dto.getTelefono()));
+        estudiante.setEmail(emptyToNull(dto.getEmail()));
         return estudiante;
     }
 
-    public static EstudianteEscuela updateEntityFromDto(EstudianteEscuelaDto dto, EstudianteEscuela estudiante) {
-        if (dto == null || estudiante == null) return estudiante;
-
-        // Update only mutable fields
-
-        // Student Personal Information
-        if (dto.getNombreCompleto() != null) {
-            estudiante.setNombreCompleto(dto.getNombreCompleto());
-        }
-        if (dto.getFechaNacimiento() != null) {
-            estudiante.setFechaNacimiento(dto.getFechaNacimiento());
-        }
-        if (dto.getGenero() != null) {
-            estudiante.setGenero(dto.getGenero());
-        }
-        if (dto.getNumeroDocumento() != null) {
-            estudiante.setNumeroDocumento(dto.getNumeroDocumento());
-        }
-        if (dto.getTelefono() != null) {
-            estudiante.setTelefono(dto.getTelefono());
-        }
-        if (dto.getEmail() != null) {
-            estudiante.setEmail(dto.getEmail());
-        }
-
-        // School Enrollment Information
-        if (dto.getFechaInscripcion() != null) {
-            estudiante.setFechaInscripcion(dto.getFechaInscripcion());
-        }
-        if (dto.getFechaBaja() != null) {
-            estudiante.setFechaBaja(dto.getFechaBaja());
-        }
-        if (dto.getMatricula() != null) {
-            estudiante.setMatricula(dto.getMatricula());
-        }
-        // Active is primitive in DTO, so always update
-        estudiante.setActivo(dto.getActivo());
-
-        return estudiante;
+    public static EstudianteEscuela updateEntityFromDto(EstudianteEscuelaDto dto, EstudianteEscuela inscripcion) {
+        if (dto == null || inscripcion == null) return inscripcion;
+        Estudiante estudiante = inscripcion.getEstudiante();
+        if (dto.getNombreCompleto() != null) estudiante.setNombreCompleto(dto.getNombreCompleto());
+        estudiante.setFechaNacimiento(dto.getFechaNacimiento());
+        estudiante.setGenero(emptyToNull(dto.getGenero()));
+        estudiante.setNumeroDocumento(emptyToNull(dto.getNumeroDocumento()));
+        estudiante.setTelefono(emptyToNull(dto.getTelefono()));
+        estudiante.setEmail(emptyToNull(dto.getEmail()));
+        if (dto.getFechaInscripcion() != null) inscripcion.setFechaInscripcion(dto.getFechaInscripcion());
+        if (dto.getActivo() != null) inscripcion.setActivo(dto.getActivo());
+        inscripcion.setMotivoBaja(dto.getMotivoBaja());
+        return inscripcion;
     }
 
-    // Method to convert to simplified DTO (for dropdowns or basic listings)
-    public static EstudianteEscuelaDto toSimpleDto(EstudianteEscuela estudiante) {
-        if (estudiante == null) return null;
-
-        EstudianteEscuelaDto dto = new EstudianteEscuelaDto();
-        dto.setIdEstudiante(estudiante.getIdEstudiante());
-        dto.setUuid(estudiante.getUuid());
-        dto.setNombreCompleto(estudiante.getNombreCompleto());
-        dto.setMatricula(estudiante.getMatricula());
-        dto.setActivo(estudiante.getActivo() != null ? estudiante.getActivo() : false);
-        dto.setFechaInscripcion(estudiante.getFechaInscripcion());
-        dto.setFechaBaja(estudiante.getFechaBaja());
-
-        // Include basic contribuyente info
-        if (estudiante.getContribuyenteDto() != null) {
-            dto.setContribuyenteDto(ContribuyenteMapper.toSimpleDto(estudiante.getContribuyenteDto()));
-        }
-
-        return dto;
+    public static EstudianteEscuelaDto toSimpleDto(EstudianteEscuela inscripcion) {
+        return toDto(inscripcion, false);
     }
 
-    // Method for creating new student enrollment
-    public static EstudianteEscuela toNewEntity(EstudianteEscuelaDto dto, Contribuyente contribuyente, Organizacion organizacion) {
-        EstudianteEscuela estudiante = toEntity(dto);
-        if (estudiante != null) {
-            estudiante.setContribuyenteDto(contribuyente);
-//            estudiante.setOrganizacionDto(organizacion);
-            estudiante.setActivo(true);
-            estudiante.setFechaBaja(null);
-        }
-        return estudiante;
+    public static EstudianteEscuela toNewEntity(EstudianteEscuelaDto dto, Contribuyente responsable,
+                                                  Organizacion organizacion) {
+        EstudianteEscuela inscripcion = toEntity(dto);
+        inscripcion.setContribuyenteDto(responsable);
+        inscripcion.setOrganizacionDto(organizacion);
+        inscripcion.setActivo(true);
+        inscripcion.setFechaBaja(null);
+        return inscripcion;
+    }
+
+    private static String emptyToNull(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 }

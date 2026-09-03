@@ -20,7 +20,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "reservas_periodo", indexes = {
         @Index(name = "idx_res_periodo_reserva", columnList = "id_reserva"),
-        @Index(name = "idx_res_periodo_estudiante", columnList = "id_estudiante_escuela")
+        @Index(name = "idx_res_periodo_inscripcion", columnList = "id_inscripcion_escuela")
 })
 @SQLDelete(sql = "UPDATE reservas_periodo SET estado = true WHERE id_reserva_periodo = ?")
 @Where(clause = "estado = false")
@@ -62,7 +62,7 @@ public class ReservaPeriodo {
     private Reserva reserva;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_estudiante_escuela", nullable = false)
+    @JoinColumn(name = "id_inscripcion_escuela", nullable = false)
     private EstudianteEscuela estudianteEscuela;
 
     public ReservaPeriodo(String uuid) {

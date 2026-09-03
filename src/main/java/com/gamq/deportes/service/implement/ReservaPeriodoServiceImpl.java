@@ -152,11 +152,13 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 Join<Reserva, Organizacion> organizacionJoin = reservaJoin.join("organizacion", JoinType.LEFT);
                 Join<Reserva, CampoDeportivo> campoJoin = reservaJoin.join("campoDeportivo", JoinType.LEFT);
                 Join<CampoDeportivo, ComplejoDeportivo> complejoJoin = campoJoin.join("complejo", JoinType.LEFT);
+                Join<EstudianteEscuela, Estudiante> personaEstudianteJoin =
+                        estudianteJoin.join("estudiante", JoinType.LEFT);
                 return cb.or(
-                        // Estudiante fields - FIXED: nombreCompleto is transient, use individual fields
-                        cb.like(cb.lower(estudianteJoin.get("nombreCompleto")), searchTerm),
+                        // Personal data belongs to the independent student, not to the enrollment.
+                        cb.like(cb.lower(personaEstudianteJoin.get("nombreCompleto")), searchTerm),
                         cb.like(cb.lower(estudianteJoin.get("matricula")), searchTerm),
-                        cb.like(cb.lower(estudianteJoin.get("numeroDocumento")), searchTerm),
+                        cb.like(cb.lower(personaEstudianteJoin.get("numeroDocumento")), searchTerm),
                         // Organización fields
                         cb.like(cb.lower(organizacionJoin.get("nombre")), searchTerm),
                         cb.like(cb.lower(organizacionJoin.get("disciplina")), searchTerm),
@@ -254,7 +256,10 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 if (!"periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
                     throw new IllegalArgumentException("Los detalles de periodo solo pueden pertenecer a reservas tipo periodo");
                 }
-                nuevaReservaPeriodo.setEstudianteEscuela(resolveEstudiante(reservaPeriodoDto));
+                EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);
+                validarInscripcionParaReserva(inscripcion, reserva);
+                nuevaReservaPeriodo.setEstudianteEscuela(inscripcion);
+                nuevaReservaPeriodo.setMatricula(inscripcion.getMatricula());
 
                 ReservaPeriodo reservaPeriodoGuardada = reservaPeriodoRepository.save(nuevaReservaPeriodo);
                 registrarAuditoria(
@@ -285,7 +290,10 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 ReservaPeriodo reservaPeriodoExistente = reservaPeriodoOptional.get();
                 ReservaPeriodoMapper.updateEntityFromDto(reservaPeriodoDto, reservaPeriodoExistente);
                 if (reservaPeriodoDto.getEstudianteEscuelaDto() != null) {
-                    reservaPeriodoExistente.setEstudianteEscuela(resolveEstudiante(reservaPeriodoDto));
+                    EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);
+                    validarInscripcionParaReserva(inscripcion, reservaPeriodoExistente.getReserva());
+                    reservaPeriodoExistente.setEstudianteEscuela(inscripcion);
+                    reservaPeriodoExistente.setMatricula(inscripcion.getMatricula());
                 }
 
                 ReservaPeriodo reservaPeriodoActualizada = reservaPeriodoRepository.save(reservaPeriodoExistente);
@@ -363,5 +371,17 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
         return estudianteEscuelaRepository.findByUuid(dto.getEstudianteEscuelaDto().getUuid())
                 .orElseThrow(() -> new NotFoundException(
                         ESTUDIANTE_ESCUELA, dto.getEstudianteEscuelaDto().getUuid()));
+    }
+
+    private void validarInscripcionParaReserva(EstudianteEscuela inscripcion, Reserva reserva) {
+        if (!inscripcion.estaActivo()) {
+            throw new IllegalArgumentException("La inscripción del estudiante no está activa");
+        }
+        if (reserva.getOrganizacion() == null
+                || !inscripcion.getOrganizacionDto().getUuid()
+                .equals(reserva.getOrganizacion().getUuid())) {
+            throw new IllegalArgumentException(
+                    "La inscripción del estudiante no pertenece a la escuela de la mensualidad");
+        }
     }
 }

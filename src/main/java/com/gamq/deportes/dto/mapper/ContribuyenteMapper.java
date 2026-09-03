@@ -2,7 +2,6 @@ package com.gamq.deportes.dto.mapper;
 
 import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.model.Contribuyente;
-import com.gamq.deportes.model.EstudianteEscuela;
 import com.gamq.deportes.model.Organizacion;
 
 import java.util.UUID;
@@ -148,24 +147,6 @@ public class ContribuyenteMapper {
                                 // Set the relationship
                                 organizacion.setRepresentante(contribuyente);
                                 return organizacion;
-                            })
-                            .collect(Collectors.toList())
-            );
-        }
-
-        if (dto.getEstudianteEnEscuelas() != null) {
-            contribuyente.setEstudianteEnEscuelas(
-                    dto.getEstudianteEnEscuelas().stream()
-                            .map(estDto -> {
-                                EstudianteEscuela estudiante = EstudianteEscuelaMapper.toEntity(estDto);
-                                // Generate UUID if null
-                                if (estudiante.getUuid() == null || estudiante.getUuid().trim().isEmpty()) {
-                                    estudiante.setUuid(UUID.randomUUID().toString());
-                                }
-                                // Set the relationship
-                                estudiante.setContribuyenteDto(contribuyente);
-                                // Note: You might need to set organizacionDto if required
-                                return estudiante;
                             })
                             .collect(Collectors.toList())
             );
