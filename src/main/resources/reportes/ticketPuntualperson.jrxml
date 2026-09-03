@@ -17,7 +17,7 @@
                fecha_uso, hora_inicio, hora_fin, numero_tasa, monto_total, numero_reserva, codigo,
                COM.nombre as comp, ubicacion, telefono_principal as tel,
                TA.descripcion, TA.precio_base, RE.es_reserva_gratuita, RE.motivo_gratuidad,
-               RP.cantidad_personas as per,
+               RP.cantidad_personas as per, RP.observaciones,
                (CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri,
                con.numero_documento as ci,
                CA.nombre as cancha
@@ -51,6 +51,7 @@
 	<field name="descripcion" class="java.lang.String"/>
 	<field name="estado_reserva" class="java.lang.String"/>
 	<field name="per" class="java.lang.Integer"/>
+	<field name="observaciones" class="java.lang.String"/>
 	<field name="numero_reserva" class="java.lang.String"/>
 
 	<background>
@@ -389,7 +390,7 @@
 	</columnHeader>
 
 	<detail>
-		<band height="220" splitType="Stretch">
+		<band height="270" splitType="Stretch">
 			<frame>
 				<reportElement x="0" y="3" width="555" height="55" positionType="Float"/>
 				<staticText>
@@ -408,7 +409,22 @@
 				</textField>
 			</frame>
 			<frame>
-				<reportElement x="0" y="63" width="555" height="77" positionType="Float"/>
+				<reportElement x="0" y="63" width="555" height="45" positionType="Float">
+					<printWhenExpression><![CDATA[$F{observaciones} != null && !$F{observaciones}.trim().isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<staticText>
+					<reportElement x="0" y="1" width="555" height="12"/>
+					<textElement textAlignment="Left"><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+					<text><![CDATA[OBSERVACIONES]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="0" y="16" width="555" height="26"/>
+					<textElement><font fontName="SansSerif" size="8"/></textElement>
+					<textFieldExpression><![CDATA[$F{observaciones}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="0" y="113" width="555" height="77" positionType="Float"/>
 				<staticText>
 					<reportElement x="0" y="1" width="555" height="12"/>
 					<textElement textAlignment="Left">
@@ -426,7 +442,7 @@
 				</staticText>
 			</frame>
 			<frame>
-				<reportElement x="0" y="186" width="555" height="34" positionType="Float"/>
+				<reportElement x="0" y="236" width="555" height="34" positionType="Float"/>
 				<line>
 					<reportElement x="40" y="0" width="200" height="1"/>
 				</line>

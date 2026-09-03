@@ -820,17 +820,22 @@ public void reporteListaMensAlumno (
 
     private void registrarReporteGenerado(Map<String, String> headers, String accion, String entidadTipo,
                                           String entidadUuid, String descripcion, String datosCambio) {
-        sistemaAuditoriaService.registrarAccion(
-                getHeader(headers, "usuario_uuid", "usuarioUuid", "user_uuid", "userUuid", "usuario"),
-                accion,
-                "REPORTES",
-                entidadTipo,
-                entidadUuid,
-                descripcion,
-                datosCambio,
-                getHeader(headers, "x-forwarded-for", "X-Forwarded-For", "x-real-ip", "X-Real-IP"),
-                getHeader(headers, "user-agent", "User-Agent")
-        );
+        try {
+            sistemaAuditoriaService.registrarAccion(
+                    getHeader(headers, "usuario_uuid", "usuarioUuid", "user_uuid", "userUuid", "usuario"),
+                    accion,
+                    "REPORTES",
+                    entidadTipo,
+                    entidadUuid,
+                    descripcion,
+                    datosCambio,
+                    getHeader(headers, "x-forwarded-for", "X-Forwarded-For", "x-real-ip", "X-Real-IP"),
+                    getHeader(headers, "user-agent", "User-Agent")
+            );
+        } catch (RuntimeException exception) {
+            // El PDF ya fue generado. Un fallo de auditoría no debe invalidar la descarga.
+            System.err.println("No se pudo registrar la auditoría del reporte: " + exception.getMessage());
+        }
     }
 
     private String buildDetalleTarifario(String reservaUuid) {

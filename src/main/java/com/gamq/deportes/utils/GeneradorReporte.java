@@ -61,19 +61,17 @@ public class GeneradorReporte {
             response.getOutputStream().flush();
             response.getOutputStream().close();
         } catch (JRException jrException) {
-            System.out.println(jrException.getMessage());
-            System.out.println(jrException.getLocalizedMessage());
+            throw new IllegalStateException("No se pudo generar el reporte PDF.", jrException);
         } catch (IOException ioException) {
-            System.out.println(ioException.getMessage());
-            System.out.println(ioException.getLocalizedMessage());
+            throw new IllegalStateException("No se pudo escribir el reporte PDF.", ioException);
         } catch (SQLException sqlException) {
-            System.out.println(sqlException.getMessage());
-            System.out.println(sqlException.getLocalizedMessage());
+            throw sqlException;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            throw new IllegalStateException("No se pudo generar el reporte PDF.", e);
         } finally {
-            conn.close();
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 

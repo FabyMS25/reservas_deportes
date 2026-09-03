@@ -15,13 +15,23 @@
   <queryString language="SQL">
     <![CDATA[
       SELECT
-          uuid, tipo_reserva, categoria, fecha_creacion, fecha_reserva,
-          fecha_aprobacion, fecha_inicio, estado_reserva, tel,
-          fecha_fin, numero_tasa, monto_total, numero_reserva, codigo,
-          comp, descripcion, precio_base, cantidad_sesiones as se,
-          tipo_cobro, per, contri, ci, cancha, ubicacion
-      FROM recurrentes as RE
-      WHERE RE.uuid = $P{uuid} AND RE.estado = false
+          RE.uuid, RE.tipo_reserva, RP.categoria, RE.fecha_creacion, RE.fecha_reserva,
+          RE.fecha_aprobacion, RP.fecha_inicio, RE.estado_reserva,
+          CON.telefono AS tel, RP.fecha_fin, RE.numero_tasa, RE.monto_total,
+          RE.numero_reserva, CA.codigo, (COM.nombre || ' ' || CA.nombre) AS comp,
+          TA.descripcion, TA.precio_base, RP.cantidad_sesiones AS se,
+          TA.tipo_cobro, RP.cantidad_personas AS per, RP.observaciones,
+          (CON.nombre || ' ' || CON.primer_apellido || ' ' || CON.segundo_apellido) AS contri,
+          CON.numero_documento AS ci, COM.nombre AS cancha, COM.ubicacion
+      FROM reservas AS RE
+      JOIN campos_deportivos AS CA ON CA.id_campo = RE.id_campo
+      JOIN complejos_deportivos AS COM ON COM.id_complejo = CA.id_complejo
+      JOIN contribuyentes AS CON ON CON.id_contribuyente = RE.id_contribuyente
+      JOIN reservas_recurrentes AS RP ON RP.id_reserva = RE.id_reserva
+      JOIN tarifas AS TA ON TA.id_tarifa = RE.id_tarifa
+      WHERE (RE.uuid = $P{uuid} OR RP.uuid = $P{uuid})
+        AND RE.estado = false
+        AND RP.estado = false
     ]]>
   </queryString>
   <field name="categoria" class="java.lang.String"/>
@@ -44,6 +54,7 @@
   <field name="per" class="java.lang.Integer"/>
   <field name="numero_reserva" class="java.lang.String"/>
   <field name="se" class="java.lang.Integer"/>
+  <field name="observaciones" class="java.lang.String"/>
 
   <background>
     <band splitType="Stretch"/>
@@ -380,7 +391,7 @@
   </columnHeader>
 
   <detail>
-    <band height="285" splitType="Stretch">
+    <band height="335" splitType="Stretch">
       <staticText>
         <reportElement x="0" y="5" width="555" height="18" positionType="Float" uuid="e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b"/>
         <textElement textAlignment="Center">
@@ -418,7 +429,22 @@
       </frame>
 
       <frame>
-        <reportElement x="0" y="128" width="555" height="77" positionType="Float"/>
+        <reportElement x="0" y="128" width="555" height="45" positionType="Float">
+          <printWhenExpression><![CDATA[$F{observaciones} != null && !$F{observaciones}.trim().isEmpty()]]></printWhenExpression>
+        </reportElement>
+        <staticText>
+          <reportElement x="0" y="1" width="555" height="12"/>
+          <textElement textAlignment="Left"><font fontName="SansSerif" size="9" isBold="true"/></textElement>
+          <text><![CDATA[OBSERVACIONES]]></text>
+        </staticText>
+        <textField isStretchWithOverflow="true">
+          <reportElement x="0" y="16" width="555" height="26"/>
+          <textElement><font fontName="SansSerif" size="8"/></textElement>
+          <textFieldExpression><![CDATA[$F{observaciones}]]></textFieldExpression>
+        </textField>
+      </frame>
+      <frame>
+        <reportElement x="0" y="178" width="555" height="77" positionType="Float"/>
         <staticText>
           <reportElement x="0" y="1" width="555" height="12"/>
           <textElement textAlignment="Left">
@@ -436,7 +462,7 @@
         </staticText>
       </frame>
       <frame>
-        <reportElement x="0" y="251" width="555" height="34" positionType="Float"/>
+        <reportElement x="0" y="301" width="555" height="34" positionType="Float"/>
         <line>
           <reportElement x="40" y="0" width="200" height="1"/>
         </line>
