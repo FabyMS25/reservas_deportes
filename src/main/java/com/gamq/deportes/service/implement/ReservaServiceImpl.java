@@ -424,6 +424,7 @@ public class ReservaServiceImpl implements ReservaService {
         }
 
         if (esPeriodo) {
+            validarContribuyentePuedeGenerarMensualidad(nuevaReserva);
             agregarDetallesPeriodo(nuevaReserva, reservaDto.getReservasPeriodoDtoList());
         }
 
@@ -744,6 +745,7 @@ public class ReservaServiceImpl implements ReservaService {
                 throw new IllegalArgumentException(
                         "La inscripción del estudiante no pertenece a la escuela de la mensualidad");
             }
+            validarAccesoMensualidadParaContribuyente(inscripcion, reserva);
             periodo.setEstudianteEscuela(inscripcion);
             periodo.setMatricula(inscripcion.getMatricula());
             reserva.getReservasPeriodoList().add(periodo);
@@ -862,11 +864,46 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private boolean isContributorRequest() {
+        return contribuyenteActualUuid() != null;
+    }
+
+    private String contribuyenteActualUuid() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null
-                && authentication.getPrincipal() instanceof DeportesPrincipal
-                && "TAXPAYER".equalsIgnoreCase(
-                        ((DeportesPrincipal) authentication.getPrincipal()).getUserType());
+        if (authentication == null || !(authentication.getPrincipal() instanceof DeportesPrincipal)) {
+            return null;
+        }
+        DeportesPrincipal principal = (DeportesPrincipal) authentication.getPrincipal();
+        return "TAXPAYER".equalsIgnoreCase(principal.getUserType()) ? principal.getSubject() : null;
+    }
+
+    private void validarContribuyentePuedeGenerarMensualidad(Reserva reserva) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) {
+            return;
+        }
+        boolean esPagador = reserva.getContribuyente() != null
+                && contribuyenteUuid.equals(reserva.getContribuyente().getUuid());
+        boolean representaEscuela = reserva.getOrganizacion() != null
+                && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
+        if (!esPagador && !representaEscuela) {
+            throw new IllegalArgumentException(
+                    "Solo el pagador o un representante de la escuela puede generar esta mensualidad");
+        }
+    }
+
+    private void validarAccesoMensualidadParaContribuyente(EstudianteEscuela inscripcion, Reserva reserva) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) {
+            return;
+        }
+        boolean esTutor = inscripcion.getContribuyenteDto() != null
+                && contribuyenteUuid.equals(inscripcion.getContribuyenteDto().getUuid());
+        boolean representaEscuela = reserva.getOrganizacion() != null
+                && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
+        if (!esTutor && !representaEscuela) {
+            throw new IllegalArgumentException(
+                    "No tiene autorización para registrar mensualidades de esta inscripción");
+        }
     }
 
     private void aplicarPoliticaPago(Reserva reserva) {

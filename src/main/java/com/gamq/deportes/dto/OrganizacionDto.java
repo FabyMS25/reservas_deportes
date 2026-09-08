@@ -48,6 +48,7 @@ public class OrganizacionDto {
     private int tarifaMensual;
     private Boolean permiteReservasGratuitas;
 
+    private List<OrganizacionRepresentanteDto> representantesDto;
     private ContribuyenteDto representanteDto;
     private List<ReservaDto> reservasDtoList = new ArrayList<>();
 }

@@ -88,6 +88,16 @@ public class Organizacion {
     @Column(name = "permite_reservas_gratuitas", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean permiteReservasGratuitas = false;
 
+    @OneToMany(mappedBy = "organizacion", fetch = FetchType.LAZY)
+    private List<OrganizacionRepresentante> representantes = new ArrayList<>();
+
+    public boolean tieneRepresentante(String uuid) {
+        return uuid != null && ((representante != null && uuid.equals(representante.getUuid())) ||
+            representantes.stream().anyMatch(p ->
+                p.getContribuyente() != null && p.getContribuyente().estaActivo()
+                        && uuid.equals(p.getContribuyente().getUuid())));
+    }
+
     // Relations
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_representante", nullable = false)

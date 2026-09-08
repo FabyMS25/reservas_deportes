@@ -9,6 +9,7 @@ import com.gamq.deportes.repository.ReservaAuditoriaRepository;
 import com.gamq.deportes.repository.ReservaPeriodoRepository;
 import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.repository.EstudianteEscuelaRepository;
+import com.gamq.deportes.security.DeportesPrincipal;
 import com.gamq.deportes.service.ReservaPeriodoService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.criteria.Join;
@@ -258,6 +261,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 }
                 EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);
                 validarInscripcionParaReserva(inscripcion, reserva);
+                validarAccesoMensualidadParaContribuyente(inscripcion, reserva);
                 nuevaReservaPeriodo.setEstudianteEscuela(inscripcion);
                 nuevaReservaPeriodo.setMatricula(inscripcion.getMatricula());
 
@@ -295,6 +299,9 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                     reservaPeriodoExistente.setEstudianteEscuela(inscripcion);
                     reservaPeriodoExistente.setMatricula(inscripcion.getMatricula());
                 }
+                validarAccesoMensualidadParaContribuyente(
+                        reservaPeriodoExistente.getEstudianteEscuela(),
+                        reservaPeriodoExistente.getReserva());
 
                 ReservaPeriodo reservaPeriodoActualizada = reservaPeriodoRepository.save(reservaPeriodoExistente);
                 registrarAuditoria(
@@ -320,6 +327,9 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     public String eliminarReservaPeriodo(String uuid) {
         ReservaPeriodo reservaPeriodo = reservaPeriodoRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA_PERIODO, uuid));
+        validarAccesoMensualidadParaContribuyente(
+                reservaPeriodo.getEstudianteEscuela(),
+                reservaPeriodo.getReserva());
         registrarAuditoria(
                 reservaPeriodo.getReserva(),
                 "DELETE_PERIODO",
@@ -383,5 +393,31 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
             throw new IllegalArgumentException(
                     "La inscripción del estudiante no pertenece a la escuela de la mensualidad");
         }
+    }
+
+    private void validarAccesoMensualidadParaContribuyente(EstudianteEscuela inscripcion, Reserva reserva) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) {
+            return;
+        }
+        boolean esPagador = reserva.getContribuyente() != null
+                && contribuyenteUuid.equals(reserva.getContribuyente().getUuid());
+        boolean esTutor = inscripcion.getContribuyenteDto() != null
+                && contribuyenteUuid.equals(inscripcion.getContribuyenteDto().getUuid());
+        boolean representaEscuela = reserva.getOrganizacion() != null
+                && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
+        if (!esPagador && !esTutor && !representaEscuela) {
+            throw new IllegalArgumentException(
+                    "No tiene autorización para administrar esta mensualidad");
+        }
+    }
+
+    private String contribuyenteActualUuid() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof DeportesPrincipal)) {
+            return null;
+        }
+        DeportesPrincipal principal = (DeportesPrincipal) authentication.getPrincipal();
+        return "TAXPAYER".equalsIgnoreCase(principal.getUserType()) ? principal.getSubject() : null;
     }
 }

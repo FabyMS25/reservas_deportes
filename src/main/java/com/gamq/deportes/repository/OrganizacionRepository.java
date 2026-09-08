@@ -14,6 +14,10 @@ import java.util.Optional;
 @Repository
 public interface OrganizacionRepository extends JpaRepository<Organizacion, Long> {
 
+    @org.springframework.data.jpa.repository.Lock(javax.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Organizacion o WHERE o.uuid = ?1")
+    Optional<Organizacion> findByUuidForUpdate(String uuid);
+
     // Basic UUID search
     @Query("SELECT o FROM Organizacion o WHERE o.uuid = ?1")
     Optional<Organizacion> findByUuid(String uuid);
@@ -45,10 +49,10 @@ public interface OrganizacionRepository extends JpaRepository<Organizacion, Long
     );
 
     // Relationship-based queries
-    @Query("SELECT o FROM Organizacion o WHERE o.representante.uuid = :representanteUuid")
+    @Query("SELECT o FROM Organizacion o WHERE (o.representante.uuid = :representanteUuid OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.uuid = :representanteUuid))")
     List<Organizacion> findByRepresentanteUuid(@Param("representanteUuid") String representanteUuid);
 
-    @Query("SELECT o FROM Organizacion o WHERE o.representante.idContribuyente = :idRepresentante")
+    @Query("SELECT o FROM Organizacion o WHERE (o.representante.idContribuyente = :idRepresentante OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.idContribuyente = :idRepresentante))")
     List<Organizacion> findByRepresentanteId(@Param("idRepresentante") Long idRepresentante);
 
     // Combined filters
@@ -81,7 +85,7 @@ public interface OrganizacionRepository extends JpaRepository<Organizacion, Long
     @Query("SELECT COUNT(o) FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion")
     Long countByTipoOrganizacion(@Param("tipoOrganizacion") String tipoOrganizacion);
 
-    @Query("SELECT COUNT(o) FROM Organizacion o WHERE o.representante.uuid = :representanteUuid")
+    @Query("SELECT COUNT(o) FROM Organizacion o WHERE (o.representante.uuid = :representanteUuid OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.uuid = :representanteUuid))")
     Long countByRepresentanteUuid(@Param("representanteUuid") String representanteUuid);
 
     // Analytics and reporting

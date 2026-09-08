@@ -27,6 +27,9 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Component
 public class ContribuyenteServiceImpl implements ContribuyenteService {
 
+    @Autowired
+    private com.gamq.deportes.service.OrganizacionRepresentanteService representanteService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
@@ -87,6 +90,10 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                 throw new DuplicateTaxpayerException(Collections.singletonList(
                         "alguno de sus datos de identificación"));
             }
+            if (contribuyenteDto.getOrganizacionesRepresentadas() != null) {
+                actualizarOrganizaciones(contribuyenteGuardado, contribuyenteDto.getOrganizacionesRepresentadas());
+            }
+            representanteService.guardarOrganizacionesRepresentadas(contribuyenteGuardado, contribuyenteDto.getOrganizacionesVinculadas());
             if (contribuyenteDto.getEstudianteEnEscuelas() != null) {
                 crearEstudiantesParaContribuyente(contribuyenteGuardado,
                         contribuyenteDto.getEstudianteEnEscuelas());
@@ -113,6 +120,7 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                 if (contribuyenteDto.getOrganizacionesRepresentadas() != null) {
                     actualizarOrganizaciones(contribuyenteActualizado, contribuyenteDto.getOrganizacionesRepresentadas());
                 }
+                representanteService.guardarOrganizacionesRepresentadas(contribuyenteActualizado, contribuyenteDto.getOrganizacionesVinculadas());
                 if (contribuyenteDto.getEstudianteEnEscuelas() != null) {
                     actualizarEstudiantes(contribuyenteActualizado, contribuyenteDto.getEstudianteEnEscuelas());
                 }
@@ -131,6 +139,7 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     public String eliminarContribuyente(String uuid){
         Contribuyente contribuyentes = contribuyentesRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, uuid));
+        validarSinOrganizaciones(contribuyentes);
         contribuyentesRepository.delete(contribuyentes);
         return "Eliminacion exitosa";
     }
@@ -227,11 +236,17 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
         Optional<Contribuyente> found = contribuyentesRepository.findByUuid(uuid);
         if (found.isPresent()) {
             Contribuyente contribuyente = found.get();
+            validarSinOrganizaciones(contribuyente);
             contribuyentesRepository.delete(contribuyente);
             return "Eliminacion exitosa";
         } else {
             throw new NotFoundException(CONTRIBUYENTE, uuid);
         }
+    }
+
+    private void validarSinOrganizaciones(Contribuyente person) {
+        if (!organizacionRepository.findByRepresentanteId(person.getIdContribuyente()).isEmpty())
+            throw new IllegalArgumentException("Reasigne al representante principal y desvincule sus organizaciones antes de eliminar al contribuyente");
     }
 
     // ==================== ORGANIZACIONES MANAGEMENT ====================
@@ -240,71 +255,25 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
         for (OrganizacionDto organizacionDto : organizacionesDto) {
             Organizacion nuevaOrganizacion = OrganizacionMapper.toEntity(organizacionDto);
             nuevaOrganizacion.setRepresentante(contribuyente);
-            organizacionRepository.save(nuevaOrganizacion);
+            Organizacion guardada = organizacionRepository.save(nuevaOrganizacion);
+            representanteService.guardarRepresentantes(guardada, Collections.emptyList());
+            contribuyente.getOrganizacionesRepresentadas().add(guardada);
         }
     }
 
     private void actualizarOrganizaciones(Contribuyente contribuyente, List<OrganizacionDto> organizacionesDto) {
-        // Build map of incoming organizaciones by UUID
-        Map<String, OrganizacionDto> organizacionesDtoMap = new HashMap<>();
+        // Existing organizations are never deleted or reassigned by the taxpayer editor.
         for (OrganizacionDto dto : organizacionesDto) {
-            if (dto.getUuid() != null && !dto.getUuid().isEmpty()) {
-                organizacionesDtoMap.put(dto.getUuid(), dto);
-            }
-        }
-
-        // Process existing organizaciones
-        List<Organizacion> organizacionesToDelete = new ArrayList<>();
-        if (contribuyente.getOrganizacionesRepresentadas() != null) {
-            for (Organizacion organizacionExistente : contribuyente.getOrganizacionesRepresentadas()) {
-                if (organizacionesDtoMap.containsKey(organizacionExistente.getUuid())) {
-                    // UPDATE existing organizacion
-                    OrganizacionDto dto = organizacionesDtoMap.get(organizacionExistente.getUuid());
-                    actualizarOrganizacionExistente(organizacionExistente, dto);
-                    organizacionesDtoMap.remove(organizacionExistente.getUuid());
-                } else {
-                    // Mark for deletion (not in the incoming list)
-                    organizacionesToDelete.add(organizacionExistente);
+            if (dto.getUuid() == null || dto.getUuid().isBlank()) {
+                crearOrganizacionesParaContribuyente(contribuyente, Collections.singletonList(dto));
+            } else {
+                Organizacion existing = organizacionRepository.findByUuid(dto.getUuid())
+                    .orElseThrow(() -> new IllegalArgumentException("Organización no encontrada"));
+                if (existing.getRepresentante().getUuid().equals(contribuyente.getUuid())) {
+                    OrganizacionMapper.updateEntityFromDto(dto, existing);
                 }
             }
         }
-
-        // Soft delete organizaciones not in the incoming list
-        for (Organizacion organizacion : organizacionesToDelete) {
-            organizacion.setEstado(true);
-            organizacionRepository.save(organizacion);
-        }
-
-        // CREATE new organizaciones (remaining in map or without UUID)
-        List<OrganizacionDto> nuevasOrganizaciones = new ArrayList<>();
-        for (OrganizacionDto dto : organizacionesDto) {
-            if (dto.getUuid() == null || dto.getUuid().isEmpty() || organizacionesDtoMap.containsKey(dto.getUuid())) {
-                nuevasOrganizaciones.add(dto);
-            }
-        }
-        if (!nuevasOrganizaciones.isEmpty()) {
-            crearOrganizacionesParaContribuyente(contribuyente, nuevasOrganizaciones);
-        }
-    }
-
-    private void actualizarOrganizacionExistente(Organizacion organizacionExistente, OrganizacionDto dto) {
-        // Update all fields from DTO
-        organizacionExistente.setNombre(dto.getNombre());
-        organizacionExistente.setTipoOrganizacion(dto.getTipoOrganizacion());
-        organizacionExistente.setPersoneriaJuridica(dto.getPersoneriaJuridica());
-        organizacionExistente.setTelefono(dto.getTelefono());
-        organizacionExistente.setEmail(dto.getEmail());
-        organizacionExistente.setDireccion(dto.getDireccion());
-        organizacionExistente.setNroNit(dto.getNroNit());
-        organizacionExistente.setEntrenador(dto.getEntrenador());
-        organizacionExistente.setDisciplina(dto.getDisciplina());
-        organizacionExistente.setCodigoEscuela(dto.getCodigoEscuela());
-        organizacionExistente.setRequierePagoMensualidad(dto.getRequierePagoMensualidad());
-        organizacionExistente.setTarifaMensual(dto.getTarifaMensual());
-        organizacionExistente.setPermiteReservasGratuitas(dto.getPermiteReservasGratuitas());
-        organizacionExistente.setActivo(dto.getActivo());
-
-        organizacionRepository.save(organizacionExistente);
     }
 
     // ==================== ESTUDIANTES MANAGEMENT ====================

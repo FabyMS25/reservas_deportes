@@ -25,8 +25,16 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.año = :anio AND rp.mes = :mes")
     List<ReservaPeriodo> findByPeriodo(@Param("anio") Integer anio, @Param("mes") Integer mes);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.contribuyente.uuid = ?1")
-    List<ReservaPeriodo> findByContribuyenteUuid(String contribuyenteUuid);
+    @Query("SELECT DISTINCT rp FROM ReservaPeriodo rp " +
+            "LEFT JOIN rp.estudianteEscuela e " +
+            "LEFT JOIN e.contribuyenteDto tutor " +
+            "WHERE rp.reserva.contribuyente.uuid = :contribuyenteUuid " +
+            "OR tutor.uuid = :contribuyenteUuid " +
+            "OR rp.reserva.organizacion.representante.uuid = :contribuyenteUuid " +
+            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p " +
+            "WHERE p.organizacion = rp.reserva.organizacion " +
+            "AND p.contribuyente.uuid = :contribuyenteUuid)")
+    List<ReservaPeriodo> findByContribuyenteUuid(@Param("contribuyenteUuid") String contribuyenteUuid);
 
     @Query("SELECT rp FROM ReservaPeriodo rp " +
             "JOIN rp.estudianteEscuela e " +

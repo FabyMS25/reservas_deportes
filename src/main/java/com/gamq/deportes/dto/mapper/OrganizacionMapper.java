@@ -39,6 +39,13 @@ public class OrganizacionMapper {
         dto.setTarifaMensual(organizacion.getTarifaMensual() != null ? organizacion.getTarifaMensual() : 0);
         dto.setPermiteReservasGratuitas(organizacion.getPermiteReservasGratuitas());
 
+        dto.setRepresentanteDto(organizacion.getRepresentante() == null ? null :
+                ContribuyenteMapper.toSimpleDto(organizacion.getRepresentante()));
+        dto.setRepresentantesDto(organizacion.getRepresentantes().stream()
+            .filter(p -> p.getContribuyente() != null)
+            .map(p -> new com.gamq.deportes.dto.OrganizacionRepresentanteDto()
+                .setContribuyenteDto(ContribuyenteMapper.toSimpleDto(p.getContribuyente())))
+            .collect(Collectors.toList()));
         if (includeRelations) {
             // Include representante (contribuyente)
             if (organizacion.getRepresentante() != null) {

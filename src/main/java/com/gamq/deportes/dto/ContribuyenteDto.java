@@ -90,7 +90,8 @@ public class ContribuyenteDto {
 //    private String departamento;
 
     private List<ReservaDto> reservasList = new ArrayList<>();
-    private List<OrganizacionDto> organizacionesRepresentadas = new ArrayList<>();
+    private List<OrganizacionRepresentanteDto> organizacionesVinculadas;
+    private List<OrganizacionDto> organizacionesRepresentadas;
     private List<EstudianteEscuelaDto> estudianteEnEscuelas = new ArrayList<>();
 
 }

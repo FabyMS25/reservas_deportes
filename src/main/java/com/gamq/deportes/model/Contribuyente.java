@@ -148,11 +148,14 @@ public class Contribuyente {
     @Transient
     private Boolean puedeReservarGratis;
 
+    @OneToMany(mappedBy = "contribuyente", fetch = FetchType.LAZY)
+    private List<OrganizacionRepresentante> organizacionRepresentanteLinks = new ArrayList<>();
+
     // Relations
     @OneToMany(mappedBy = "contribuyente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reserva> reservasList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "representante", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "representante", fetch = FetchType.LAZY)
     private List<Organizacion> organizacionesRepresentadas = new ArrayList<>();
 
     @OneToMany(mappedBy = "contribuyenteDto", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

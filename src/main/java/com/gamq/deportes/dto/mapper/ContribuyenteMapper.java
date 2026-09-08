@@ -59,13 +59,16 @@ public class ContribuyenteMapper {
         dto.setPuedeReservarGratis(contribuyente.puedeReservarGratis());
         dto.setEstaActivo(contribuyente.estaActivo());
         if (includeRelations) {
+            dto.setOrganizacionesVinculadas(contribuyente.getOrganizacionRepresentanteLinks().stream()
+                .filter(p -> p.getOrganizacion() != null)
+                .map(p -> new com.gamq.deportes.dto.OrganizacionRepresentanteDto()
+                    .setOrganizacionDto(OrganizacionMapper.toDto(p.getOrganizacion(), false)))
+                .collect(Collectors.toList()));
+            java.util.Map<String, com.gamq.deportes.dto.OrganizacionDto> represented = new java.util.LinkedHashMap<>();
+            contribuyente.getOrganizacionesRepresentadas().forEach(o -> represented.put(o.getUuid(), OrganizacionMapper.toDto(o, false)));
+            dto.getOrganizacionesVinculadas().forEach(v -> represented.put(v.getOrganizacionDto().getUuid(), v.getOrganizacionDto()));
+            dto.setOrganizacionesRepresentadas(new java.util.ArrayList<>(represented.values()));
             // Include organizations represented
-            if (contribuyente.getOrganizacionesRepresentadas() != null && !contribuyente.getOrganizacionesRepresentadas().isEmpty()) {
-                dto.setOrganizacionesRepresentadas(contribuyente.getOrganizacionesRepresentadas().stream()
-                        .map(organizacion -> OrganizacionMapper.toDto(organizacion, false))
-                        .collect(Collectors.toList()));
-            }
-
             if (contribuyente.getEstudianteEnEscuelas() != null && !contribuyente.getEstudianteEnEscuelas().isEmpty()) {
                 dto.setEstudianteEnEscuelas(contribuyente.getEstudianteEnEscuelas().stream()
                         .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
@@ -133,24 +136,6 @@ public class ContribuyenteMapper {
         contribuyente.setEstaSancionado(dto.getEstaSancionado());
         contribuyente.setFechaFinSancion(dto.getFechaFinSancion());
         contribuyente.setMotivoSancion(dto.getMotivoSancion());
-
-        // Handle related entities - Generate UUIDs if null
-        if (dto.getOrganizacionesRepresentadas() != null) {
-            contribuyente.setOrganizacionesRepresentadas(
-                    dto.getOrganizacionesRepresentadas().stream()
-                            .map(orgDto -> {
-                                Organizacion organizacion = OrganizacionMapper.toEntity(orgDto);
-                                // Generate UUID if null
-                                if (organizacion.getUuid() == null || organizacion.getUuid().trim().isEmpty()) {
-                                    organizacion.setUuid(UUID.randomUUID().toString());
-                                }
-                                // Set the relationship
-                                organizacion.setRepresentante(contribuyente);
-                                return organizacion;
-                            })
-                            .collect(Collectors.toList())
-            );
-        }
 
         return contribuyente;
     }

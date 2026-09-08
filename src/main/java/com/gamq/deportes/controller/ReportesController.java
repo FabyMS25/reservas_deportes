@@ -79,6 +79,7 @@ public class ReportesController {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             System.out.println(e.getLocalizedMessage());
+            sendErrorResponse(response, 500, "Error inesperado al generar ticket de reserva puntual.");
         }
     }
     ///////////////reserva puntual por persona/////////////////
@@ -148,6 +149,7 @@ public class ReportesController {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             System.out.println(e.getLocalizedMessage());
+            sendErrorResponse(response, 500, "Error inesperado al generar ticket de reserva puntual por evento.");
         }
     }
 
@@ -166,24 +168,9 @@ public class ReportesController {
     ) {
         try {
             //String usuario = headers.getOrDefault("usuario", "Default");
-            if (tipocobro.equals("TODO")){
-                tipocobro="%";
-            }else
-            {
-                tipocobro="%"+tipocobro+"%";
-            }
-            if (estado.equals("TODO")){
-                estado="%";
-            }else
-            {
-                estado="%"+estado+"%";
-            }
-            if (cancha.equals("TODO")){
-                cancha="%";
-            }else
-            {
-                cancha="%"+cancha+"%";
-            }
+            tipocobro = normalizeFilter(tipocobro);
+            estado = normalizeFilter(estado);
+            cancha = normalizeFilter(cancha);
 
             HashMap<String, Object> parametros = new HashMap<String,Object>();
             parametros.put("fechaini",fecha_ini);
@@ -209,8 +196,8 @@ public class ReportesController {
 
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas.");
         }
     }
     ////////////////////////Listado Recurrentes//////////////////////////////
@@ -229,24 +216,9 @@ public class ReportesController {
         try {
             //usuario
             //String usuario = headers.getOrDefault("usuario", "Default");
-            if (tipocobro.equals("TODO")){
-                tipocobro="%";
-            }else
-            {
-                tipocobro="%"+tipocobro+"%";
-            }
-            if (estado.equals("TODO")){
-                estado="%";
-            }else
-            {
-                estado="%"+estado+"%";
-            }
-            if (cancha.equals("TODO")){
-                cancha="%";
-            }else
-            {
-                cancha="%"+cancha+"%";
-            }
+            tipocobro = normalizeFilter(tipocobro);
+            estado = normalizeFilter(estado);
+            cancha = normalizeFilter(cancha);
 
             HashMap<String, Object> parametros = new HashMap<String,Object>();
             parametros.put("fechaini",fecha_ini);
@@ -269,8 +241,8 @@ public class ReportesController {
                 throw new RuntimeException(ex);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas recurrentes.");
         }
     }
 
@@ -610,12 +582,22 @@ public class ReportesController {
     }
     private void sendErrorResponse(HttpServletResponse response, int status, String message) {
         try {
+            if (response.isCommitted()) {
+                return;
+            }
             response.setStatus(status);
             response.setContentType("text/plain");
             response.getWriter().write(message);
         } catch (IOException e) {
             System.err.println("Failed to send error response: " + e.getMessage());
         }
+    }
+
+    private String normalizeFilter(String value) {
+        if (value == null || value.trim().isEmpty() || "TODO".equalsIgnoreCase(value.trim())) {
+            return "%";
+        }
+        return "%" + value.trim() + "%";
     }
 
     ////////////////////////RECURRENTES POR MENSUALIDAD//////////////////////////////
@@ -653,8 +635,8 @@ public class ReportesController {
 
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            sendErrorResponse(response, 500, "Error inesperado al generar listado de pagos.");
         }
     }
 /////////////////////Listado Ticket Mensual ///////////////////////////////////////////////////
@@ -674,18 +656,8 @@ public void reporteListaMensuales (
         //String usuario = headers.getOrDefault("usuario", "Default");
         //ingreso almacen
 
-        if (estado.equals("TODO")){
-            estado="%";
-        }else
-        {
-            estado="%"+estado+"%";
-        }
-        if (escuelita.equals("TODO")){
-            escuelita="%";
-        }else
-        {
-            escuelita="%"+escuelita+"%";
-        }
+        estado = normalizeFilter(estado);
+        escuelita = normalizeFilter(escuelita);
         HashMap<String, Object> parametros = new HashMap<String,Object>();
         parametros.put("fechaini",fecha_ini);
         parametros.put("fechafin",fecha_fin);
@@ -711,8 +683,8 @@ public void reporteListaMensuales (
 
         }
     } catch (Exception e) {
-        System.out.println(e.getMessage());
-        System.out.println(e.getLocalizedMessage());
+        e.printStackTrace();
+        sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas mensuales.");
     }
 }
 ////////////////////listado por alumno//////////////////////////////////
@@ -732,24 +704,9 @@ public void reporteListaMensAlumno (
     try {
         //usuario
         //String usuario = headers.getOrDefault("usuario", "Default");
-        if (estado.equals("TODO")){
-            estado="%";
-        }else
-        {
-            estado="%"+estado+"%";
-        }
-        if (matricula.equals("TODO")){
-            matricula="%";
-        }else
-        {
-            matricula="%"+matricula+"%";
-        }
-        if (alumno.equals("TODO")){
-            alumno="%";
-        }else
-        {
-            alumno="%"+alumno+"%";
-        }
+        estado = normalizeFilter(estado);
+        matricula = normalizeFilter(matricula);
+        alumno = normalizeFilter(alumno);
         HashMap<String, Object> parametros = new HashMap<String,Object>();
         parametros.put("fechaini",fecha_ini);
         parametros.put("fechafin",fecha_fin);
@@ -776,8 +733,8 @@ public void reporteListaMensAlumno (
 
         }
     } catch (Exception e) {
-        System.out.println(e.getMessage());
-        System.out.println(e.getLocalizedMessage());
+        e.printStackTrace();
+        sendErrorResponse(response, 500, "Error inesperado al generar listado por alumno.");
     }
 }
 ////////////////////Ticket Mensual///////////////////////////////////////
@@ -815,6 +772,7 @@ public void reporteListaMensAlumno (
         } catch (Exception e) {
             System.out.println(e.getMessage());
             System.out.println(e.getLocalizedMessage());
+            sendErrorResponse(response, 500, "Error inesperado al generar ticket mensual.");
         }
     }
 

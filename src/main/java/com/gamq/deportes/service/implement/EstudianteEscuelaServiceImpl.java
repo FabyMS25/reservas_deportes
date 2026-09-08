@@ -136,12 +136,12 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
         Organizacion organizacion = organizacionRepository.findByUuid(estudianteDto.getOrganizacionDto().getUuid())
                 .orElseThrow(() -> new NotFoundException(ORGANIZACION,
                         estudianteDto.getOrganizacionDto().getUuid()));
-        validarPuedeGestionar(organizacion);
+        Contribuyente responsable = resolverResponsable(estudianteDto);
+        validarPuedeCrearInscripcion(organizacion, responsable);
         // An existing student keeps one identity across schools. Apply any edited
         // personal data to that identity before creating the new enrollment.
         EstudianteEscuelaMapper.updatePersonalDataFromDto(estudianteDto, estudiante);
         estudianteRepository.save(estudiante);
-        Contribuyente responsable = resolverResponsable(estudianteDto);
         validarInscripcionActivaDuplicada(estudiante, organizacion);
         EstudianteEscuela inscripcion = EstudianteEscuelaMapper.toNewEntity(
                 estudianteDto, responsable, organizacion);
@@ -163,7 +163,7 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
 
             if (estudianteOptional.isPresent()) {
                 EstudianteEscuela estudianteExistente = estudianteOptional.get();
-                validarPuedeGestionar(estudianteExistente.getOrganizacionDto());
+                validarPuedeActualizarInscripcion(estudianteExistente, estudianteDto);
                 EstudianteEscuelaMapper.updateEntityFromDto(estudianteDto, estudianteExistente);
 
                 if (estudianteDto.getOrganizacionDto() != null
@@ -325,6 +325,32 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
         }
     }
 
+    private void validarPuedeCrearInscripcion(Organizacion organizacion, Contribuyente responsable) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) return;
+        boolean esResponsable = responsable != null && contribuyenteUuid.equals(responsable.getUuid());
+        boolean gestionaEscuela = representaOrganizacion(organizacion, contribuyenteUuid);
+        if (!esResponsable && !gestionaEscuela) {
+            throw new IllegalArgumentException(
+                    "Solo puede inscribir estudiantes bajo su responsabilidad o de escuelas que representa");
+        }
+    }
+
+    private void validarPuedeActualizarInscripcion(EstudianteEscuela inscripcion, EstudianteEscuelaDto dto) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) return;
+        boolean esResponsableActual = inscripcion.getContribuyenteDto() != null
+                && contribuyenteUuid.equals(inscripcion.getContribuyenteDto().getUuid());
+        boolean gestionaEscuela = representaOrganizacion(inscripcion.getOrganizacionDto(), contribuyenteUuid);
+        if (!esResponsableActual && !gestionaEscuela) {
+            throw new IllegalArgumentException("No tiene autorización para administrar esta inscripción");
+        }
+        if (dto.getContribuyenteDto() != null && dto.getContribuyenteDto().getUuid() != null
+                && !gestionaEscuela && !contribuyenteUuid.equals(dto.getContribuyenteDto().getUuid())) {
+            throw new IllegalArgumentException("No puede asignar otro responsable a esta inscripción");
+        }
+    }
+
     private void validarContribuyentePropio(String uuidConsultado) {
         String contribuyenteUuid = contribuyenteActualUuid();
         if (contribuyenteUuid != null && !contribuyenteUuid.equals(uuidConsultado)) {
@@ -333,9 +359,7 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     }
 
     private boolean representaOrganizacion(Organizacion organizacion, String contribuyenteUuid) {
-        return organizacion != null
-                && organizacion.getRepresentante() != null
-                && contribuyenteUuid.equals(organizacion.getRepresentante().getUuid());
+        return organizacion != null && organizacion.tieneRepresentante(contribuyenteUuid);
     }
 
     /** Returns the authenticated taxpayer UUID; staff/admin requests return null. */
