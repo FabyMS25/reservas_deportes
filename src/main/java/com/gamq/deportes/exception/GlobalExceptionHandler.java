@@ -11,6 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public final ResponseEntity<ApiError> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.of(
+                "FORBIDDEN", "No tiene permiso para realizar esta operación", request.getRequestURI()));
+    }
+
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ApiError> handleAllException(Exception ex, HttpServletRequest request) {
         ApiError error = ApiError.of(

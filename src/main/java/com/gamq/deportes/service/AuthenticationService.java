@@ -9,6 +9,8 @@ import com.gamq.deportes.dto.auth.AuthenticationRequest;
 import com.gamq.deportes.dto.auth.AuthenticationResponse;
 import com.gamq.deportes.model.login.login;
 import com.gamq.deportes.security.DeportesTokenService;
+import com.gamq.deportes.security.PermissionCatalog;
+import com.gamq.deportes.security.TaxpayerMenuService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class AuthenticationService {
     private final String applicationCode;
     private final String applicationName;
     private final String adminMenu;
+    private final TaxpayerMenuService taxpayerMenus;
 
     public AuthenticationService(RestTemplate restTemplate, ObjectMapper objectMapper,
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
@@ -37,7 +40,8 @@ public class AuthenticationService {
             @Value("${usuarios.base-url}") String usersApiUrl,
             @Value("${deportes.application.code}") String applicationCode,
             @Value("${deportes.application.name}") String applicationName,
-            @Value("${deportes.application.admin-menu}") String adminMenu) {
+            @Value("${deportes.application.admin-menu}") String adminMenu,
+            TaxpayerMenuService taxpayerMenus) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.taxpayerService = taxpayerService;
@@ -48,6 +52,7 @@ public class AuthenticationService {
         this.applicationCode = applicationCode;
         this.applicationName = applicationName;
         this.adminMenu = adminMenu;
+        this.taxpayerMenus = taxpayerMenus;
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) {
@@ -104,7 +109,8 @@ public class AuthenticationService {
         String usuariosToken = externalUser.path("token").asText();
         usuariosSessions.put(userUuid, usuariosToken);
         ((com.fasterxml.jackson.databind.node.ObjectNode) externalUser).remove("token");
-        String token = tokenService.create(userUuid, "STAFF", admin);
+        String token = tokenService.create(userUuid, "STAFF", admin,
+                PermissionCatalog.fromMenu(permissions, applicationCode, applicationName));
         return new AuthenticationResponse(token, externalUser, permissions, assignment, admin, "STAFF");
     }
 
@@ -114,8 +120,12 @@ public class AuthenticationService {
             credentials.setUser(request.getUsername());
             credentials.setPass(request.getPassword());
             ContribuyenteDto taxpayer = taxpayerService.loginContribuyente(credentials);
-            String token = tokenService.create(taxpayer.getUuid(), "TAXPAYER", false);
-            return new AuthenticationResponse(token, taxpayer, Collections.emptyList(), null, false, "TAXPAYER");
+            boolean representative = taxpayer.getOrganizacionesRepresentadas() != null
+                    && !taxpayer.getOrganizacionesRepresentadas().isEmpty();
+            ArrayNode menu = taxpayerMenus.forRepresentative(representative);
+            String token = tokenService.create(taxpayer.getUuid(), "TAXPAYER", false,
+                    PermissionCatalog.fromMenu(menu, applicationCode, applicationName));
+            return new AuthenticationResponse(token, taxpayer, menu, null, false, "TAXPAYER");
         } catch (Exception ex) {
             throw new AuthenticationFailure("BAD_CREDENTIALS", "Usuario o contraseña incorrectos");
         }

@@ -11,6 +11,10 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class DeportesTokenService {
@@ -28,6 +32,10 @@ public class DeportesTokenService {
     }
 
     public String create(String subject, String userType, boolean admin) {
+        return create(subject, userType, admin, Collections.emptySet());
+    }
+
+    public String create(String subject, String userType, boolean admin, Set<String> permissions) {
         long now = Instant.now().getEpochSecond();
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("sub", subject);
@@ -35,6 +43,7 @@ public class DeportesTokenService {
         payload.put("admin", admin);
         payload.put("iat", now);
         payload.put("exp", now + expirationSeconds);
+        payload.put("permissions", permissions);
         try {
             String header = encode(objectMapper.writeValueAsBytes(Map.of("alg", "HS256", "typ", "JWT")));
             String body = encode(objectMapper.writeValueAsBytes(payload));
@@ -57,10 +66,21 @@ public class DeportesTokenService {
             if (((Number) claims.get("exp")).longValue() <= Instant.now().getEpochSecond())
                 throw new IllegalArgumentException("Expired token");
             return new DeportesPrincipal(String.valueOf(claims.get("sub")),
-                    String.valueOf(claims.get("userType")), Boolean.TRUE.equals(claims.get("admin")));
+                    String.valueOf(claims.get("userType")), Boolean.TRUE.equals(claims.get("admin")),
+                    readPermissions(claims.get("permissions")));
         } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid or expired Deportes token", ex);
         }
+    }
+
+    private Set<String> readPermissions(Object value) {
+        if (!(value instanceof List)) return Collections.emptySet();
+        Set<String> result = new HashSet<>();
+        for (Object permission : (List<?>) value) {
+            if (!(permission instanceof String)) throw new IllegalArgumentException("Invalid permissions");
+            result.add((String) permission);
+        }
+        return result;
     }
 
     private byte[] sign(String content) throws Exception {

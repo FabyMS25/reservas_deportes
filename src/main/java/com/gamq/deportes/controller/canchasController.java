@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.dto.CampoDeportivoDto;
 import com.gamq.deportes.service.CampoService;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.Parameter;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping({"/api/campoDeportivo", "/api/sports-fields"})
 @Tag(name = "Canchas", description = "Canchas deportivas del GAMQ ")
@@ -20,6 +23,7 @@ public class canchasController {
     private CampoService canchasService;
     @Operation(summary = "Listar las Canchas")
     @GetMapping()
+    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
     public Response obtenerCanchas() {
         try{
             List<CampoDeportivoDto> canchasDtos =  canchasService.obtenerCampos();
@@ -30,6 +34,7 @@ public class canchasController {
     }
     @Operation(summary = "Cancha por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
     public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
             CampoDeportivoDto canchasDto = canchasService.findByUuid(uuidCanchas);
@@ -40,12 +45,14 @@ public class canchasController {
     }
     @Operation(summary = "Canchas por Complejo")
     @GetMapping("/complejo/{uuid}")
+    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
     public Response buscarCanchasPorComplejo(@Parameter(description = "Uuid de Complejo para busqueda de Canchas")
                                              @PathVariable("uuid") String uuidComplejo) {
         return Response.ok().setPayload(canchasService.findCampoByComplejo(uuidComplejo));
     }
     @Operation(summary = "Crear Cancha")
     @PostMapping()
+    @PreAuthorize("@permissions.has('Campos Deportivos','CREAR')")
     public Response crearCancha(@RequestBody CampoDeportivoDto canchasDto) {
         try{
             return Response.ok().setPayload(canchasService.crearCampo(canchasDto));
@@ -55,6 +62,7 @@ public class canchasController {
     }
     @Operation(summary = "Actualizar Cancha")
     @PutMapping()
+    @PreAuthorize("@permissions.has('Campos Deportivos','ACTUALIZAR')")
     public Response actualizarConstruccion(@RequestBody CampoDeportivoDto canchasDto) {
         try{
             return Response.ok().setPayload(canchasService.actualizarCampo(canchasDto));
@@ -64,6 +72,7 @@ public class canchasController {
     }
     @Operation(summary = "Eliminar Cancha por uuid")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.has('Campos Deportivos','ANULAR')")
     public Response deleteField(@Parameter(description = "Uuid para eliminar cancha")
                                  @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(canchasService.eliminarCampos(uuid));

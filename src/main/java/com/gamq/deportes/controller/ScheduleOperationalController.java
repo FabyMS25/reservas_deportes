@@ -1,6 +1,8 @@
 package com.gamq.deportes.controller;
 
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.HorarioFijoDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ScheduleOperationalService;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/horarioFijo")
 @Tag(name = "Horario Fijo ", description = "Horarios fijo para toma de Servicios GAMQ ")
@@ -21,6 +24,7 @@ public class ScheduleOperationalController {
     ScheduleOperationalService horarioService;
     @Operation(summary = "Listar Horarios Fijos")
     @GetMapping()
+    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
     public Response obtenerHorarios() {
         try{
             List<HorarioFijoDto> horarioDtos =  horarioService.obtenerHorarios();
@@ -31,6 +35,7 @@ public class ScheduleOperationalController {
     }
     @Operation(summary = "Buscar Horarios Fijos por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
     public Response buscarHorarioPorUuid( @PathVariable("uuid") String uuidHorario) {
         try{
             HorarioFijoDto horarioDto = horarioService.findByUuid(uuidHorario);
@@ -41,6 +46,7 @@ public class ScheduleOperationalController {
     }
     @Operation(summary = "Crear Horarios Fijos")
     @PostMapping()
+    @PreAuthorize("@permissions.has('Campos Deportivos','CREAR')")
     public Response crearHorario(@RequestBody HorarioFijoDto horarioDto) {
         try{
             return Response.ok().setPayload(horarioService.crearHorario(horarioDto));
@@ -50,6 +56,7 @@ public class ScheduleOperationalController {
     }
     @Operation(summary = "Actualizar Horarios Fijos")
     @PutMapping()
+    @PreAuthorize("@permissions.has('Campos Deportivos','ACTUALIZAR')")
     public Response actualizarHorario(@RequestBody HorarioFijoDto horarioDto) {
         try{
             return Response.ok().setPayload(horarioService.actualizarHorario(horarioDto));
@@ -59,6 +66,7 @@ public class ScheduleOperationalController {
     }
     @Operation(summary = "Borrar Horarios Fijos por uuid")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.has('Campos Deportivos','ANULAR')")
     public Response deleteSchedule(@Parameter(description = "Uuid para eliminar HorarioFijo")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(horarioService.delete(uuid));

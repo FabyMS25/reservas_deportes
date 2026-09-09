@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 import com.gamq.deportes.dto.response.Response;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("api/ruat")
 @Tag(name = "Api RUAT", description = "Servicios de RUAT")
@@ -39,6 +42,7 @@ public class ApiController {
 
     @Operation(summary = "Login a Ruat se obtiene un Token")
     @PostMapping("/login")
+    @PreAuthorize("permitAll()")
     public Response login() {
         try {
             LoginResponse loginResponse = this.apiService.loginWithConfiguredCredentials();
@@ -52,6 +56,7 @@ public class ApiController {
     }
     @Operation(summary = "Buscar un Contribuyente")
     @PostMapping("/buscar")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Object> buscar(@RequestBody ContribuyenteToken contribuyenteToken) {
         try{
             JsonNode contribuyenteResponse=this.apiService.buscarContribuyente(contribuyenteToken);
@@ -62,6 +67,7 @@ public class ApiController {
     }
     @Operation(summary = "Crea una tasa en RUAT")
     @PostMapping("/creartasa")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
     public ResponseEntity<Object> crearTasa(@RequestBody TasaToken tasaToken) {
 
         try{
@@ -74,6 +80,7 @@ public class ApiController {
     }
     @Operation(summary = "Anular Tasa")
     @PostMapping("/anulartasa")
+    @PreAuthorize("@permissions.anyReservation('ANULAR')")
     public ResponseEntity<Object> anularTasa(@RequestBody AnularTasaToken anularTasaToken) {
         try{
             JsonNode anularTasaResponse= this.apiService.anularTasa(anularTasaToken);
@@ -84,6 +91,7 @@ public class ApiController {
     }
     @Operation(summary = "Registro de Contribuyente")
     @PostMapping("/registro")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Object> registrar(@RequestBody RegistroToken registroToken) {
 
         try{
@@ -96,6 +104,7 @@ public class ApiController {
     }
     @Operation(summary = "VErifica pago de una tasa")
     @PostMapping("/pago")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public ResponseEntity<Object> consultaPago(@RequestBody PagoToken pagoToken) {
 
         try{
@@ -108,6 +117,7 @@ public class ApiController {
     }
 
     @GetMapping()
+    @PreAuthorize("denyAll()")
     public String cadena(){
         return "prueba";
     }
