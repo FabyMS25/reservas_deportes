@@ -174,9 +174,10 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
                                 "No se puede cambiar la escuela de una inscripción. Dé de baja esta inscripción y cree otra");
                     }
                 }
-                if (estudianteDto.getContribuyenteDto() != null) {
-                    estudianteExistente.setContribuyenteDto(resolverResponsable(estudianteDto));
-                }
+                Contribuyente responsable = estudianteDto.getContribuyenteDto() != null
+                        ? resolverResponsable(estudianteDto)
+                        : estudianteExistente.getContribuyenteDto();
+                estudianteExistente.setContribuyenteDto(responsable);
                 estudianteRepository.save(estudianteExistente.getEstudiante());
 
                 return EstudianteEscuelaMapper.toDto(estudianteEscuelaRepository.save(estudianteExistente), true);

@@ -30,7 +30,6 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
             "LEFT JOIN e.contribuyenteDto tutor " +
             "WHERE rp.reserva.contribuyente.uuid = :contribuyenteUuid " +
             "OR tutor.uuid = :contribuyenteUuid " +
-            "OR rp.reserva.organizacion.representante.uuid = :contribuyenteUuid " +
             "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p " +
             "WHERE p.organizacion = rp.reserva.organizacion " +
             "AND p.contribuyente.uuid = :contribuyenteUuid)")

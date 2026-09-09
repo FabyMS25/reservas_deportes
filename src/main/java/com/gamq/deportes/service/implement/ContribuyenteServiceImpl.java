@@ -246,7 +246,7 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
     private void validarSinOrganizaciones(Contribuyente person) {
         if (!organizacionRepository.findByRepresentanteId(person.getIdContribuyente()).isEmpty())
-            throw new IllegalArgumentException("Reasigne al representante principal y desvincule sus organizaciones antes de eliminar al contribuyente");
+            throw new IllegalArgumentException("Desvincule sus organizaciones antes de eliminar al contribuyente");
     }
 
     // ==================== ORGANIZACIONES MANAGEMENT ====================
@@ -254,10 +254,9 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     private void crearOrganizacionesParaContribuyente(Contribuyente contribuyente, List<OrganizacionDto> organizacionesDto) {
         for (OrganizacionDto organizacionDto : organizacionesDto) {
             Organizacion nuevaOrganizacion = OrganizacionMapper.toEntity(organizacionDto);
-            nuevaOrganizacion.setRepresentante(contribuyente);
             Organizacion guardada = organizacionRepository.save(nuevaOrganizacion);
-            representanteService.guardarRepresentantes(guardada, Collections.emptyList());
-            contribuyente.getOrganizacionesRepresentadas().add(guardada);
+            representanteService.guardarRepresentantes(guardada, Collections.singletonList(
+                    new OrganizacionRepresentanteDto().setContribuyenteDto(ContribuyenteMapper.toSimpleDto(contribuyente))));
         }
     }
 
@@ -267,9 +266,13 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
             if (dto.getUuid() == null || dto.getUuid().isBlank()) {
                 crearOrganizacionesParaContribuyente(contribuyente, Collections.singletonList(dto));
             } else {
-                Organizacion existing = organizacionRepository.findByUuid(dto.getUuid())
-                    .orElseThrow(() -> new IllegalArgumentException("Organización no encontrada"));
-                if (existing.getRepresentante().getUuid().equals(contribuyente.getUuid())) {
+                Optional<Organizacion> optional = organizacionRepository.findByUuid(dto.getUuid());
+                if (optional.isEmpty()) {
+                    crearOrganizacionesParaContribuyente(contribuyente, Collections.singletonList(dto));
+                    continue;
+                }
+                Organizacion existing = optional.get();
+                if (existing.tieneRepresentante(contribuyente.getUuid())) {
                     OrganizacionMapper.updateEntityFromDto(dto, existing);
                 }
             }

@@ -2,17 +2,12 @@ package com.gamq.deportes.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.gamq.deportes.model.Contribuyente;
-import com.gamq.deportes.model.Organizacion;
-import com.gamq.deportes.model.Reserva;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +44,5 @@ public class OrganizacionDto {
     private Boolean permiteReservasGratuitas;
 
     private List<OrganizacionRepresentanteDto> representantesDto;
-    private ContribuyenteDto representanteDto;
     private List<ReservaDto> reservasDtoList = new ArrayList<>();
 }

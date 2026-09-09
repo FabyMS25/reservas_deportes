@@ -40,7 +40,7 @@ public class EstudianteEscuelaDto {
     private String matricula;
     private Boolean activo;
 
-    private ContribuyenteDto contribuyenteDto; // representante o tutor
+    private ContribuyenteDto contribuyenteDto; // responsable/tutor de esta relación estudiante-escuela
     private OrganizacionDto organizacionDto;
     private List<ReservaPeriodoDto> mensualidadesDtoList = new ArrayList<>();
 //    private List<OrganizacionDto> organizacionesRepresentadas = new ArrayList<>();

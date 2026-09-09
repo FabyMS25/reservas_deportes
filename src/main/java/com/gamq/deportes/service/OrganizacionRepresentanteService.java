@@ -38,11 +38,6 @@ public class OrganizacionRepresentanteService {
         organizaciones.findByUuidForUpdate(organizacion.getUuid());
 
         Set<Long> selected = new HashSet<>();
-        if (organizacion.getRepresentante() != null) {
-            selected.add(organizacion.getRepresentante().getIdContribuyente());
-            guardar(organizacion, organizacion.getRepresentante());
-        }
-
         for (OrganizacionRepresentanteDto value : values) {
             if (value == null || value.getContribuyenteDto() == null
                     || value.getContribuyenteDto().getUuid() == null) {
@@ -59,6 +54,7 @@ public class OrganizacionRepresentanteService {
         for (OrganizacionRepresentante link : representantes.findByOrganizacionIdOrganizacion(
                 organizacion.getIdOrganizacion())) {
             if (!selected.contains(link.getId().getIdContribuyente())) {
+                exigirQueNoSeaUltimoRepresentante(link);
                 eliminar(link);
             }
         }
@@ -84,9 +80,8 @@ public class OrganizacionRepresentanteService {
 
         for (OrganizacionRepresentante link : representantes.findByContribuyenteIdContribuyente(
                 contribuyente.getIdContribuyente())) {
-            boolean esPrincipal = link.getOrganizacion().getRepresentante() != null
-                    && contribuyente.getUuid().equals(link.getOrganizacion().getRepresentante().getUuid());
-            if (!esPrincipal && !selected.contains(link.getId().getIdOrganizacion())) {
+            if (!selected.contains(link.getId().getIdOrganizacion())) {
+                exigirQueNoSeaUltimoRepresentante(link);
                 eliminar(link);
             }
         }
@@ -119,6 +114,19 @@ public class OrganizacionRepresentanteService {
         organizaciones.findByUuidForUpdate(link.getOrganizacion().getUuid());
         exigirPersonalMunicipal();
         representantes.delete(link);
+    }
+
+    private void exigirQueNoSeaUltimoRepresentante(OrganizacionRepresentante link) {
+        List<OrganizacionRepresentante> actuales = representantes.findByOrganizacionIdOrganizacion(
+                link.getOrganizacion().getIdOrganizacion());
+        long restantes = actuales.stream()
+                .filter(actual -> actual.getContribuyente() != null
+                        && link.getContribuyente() != null
+                        && !actual.getContribuyente().getUuid().equals(link.getContribuyente().getUuid()))
+                .count();
+        if (restantes == 0) {
+            throw new IllegalArgumentException("La organizacion debe mantener al menos un representante");
+        }
     }
 
     public static void exigirPersonalMunicipal() {

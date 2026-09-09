@@ -2,9 +2,6 @@ package com.gamq.deportes.dto.mapper;
 
 import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.model.Contribuyente;
-import com.gamq.deportes.model.Organizacion;
-
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ContribuyenteMapper {
@@ -64,11 +61,12 @@ public class ContribuyenteMapper {
                 .map(p -> new com.gamq.deportes.dto.OrganizacionRepresentanteDto()
                     .setOrganizacionDto(OrganizacionMapper.toDto(p.getOrganizacion(), false)))
                 .collect(Collectors.toList()));
-            java.util.Map<String, com.gamq.deportes.dto.OrganizacionDto> represented = new java.util.LinkedHashMap<>();
-            contribuyente.getOrganizacionesRepresentadas().forEach(o -> represented.put(o.getUuid(), OrganizacionMapper.toDto(o, false)));
-            dto.getOrganizacionesVinculadas().forEach(v -> represented.put(v.getOrganizacionDto().getUuid(), v.getOrganizacionDto()));
-            dto.setOrganizacionesRepresentadas(new java.util.ArrayList<>(represented.values()));
-            // Include organizations represented
+            dto.setOrganizacionesRepresentadas(dto.getOrganizacionesVinculadas().stream()
+                .filter(v -> v.getOrganizacionDto() != null)
+                .map(com.gamq.deportes.dto.OrganizacionRepresentanteDto::getOrganizacionDto)
+                .collect(Collectors.toList()));
+            // Include students where this contributor is the responsible/tutor
+            // for that specific student-school relationship.
             if (contribuyente.getEstudianteEnEscuelas() != null && !contribuyente.getEstudianteEnEscuelas().isEmpty()) {
                 dto.setEstudianteEnEscuelas(contribuyente.getEstudianteEnEscuelas().stream()
                         .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))

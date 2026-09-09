@@ -37,14 +37,12 @@ class OrganizacionRepresentanteServiceTest {
     ContribuyenteRepository people = mock(ContribuyenteRepository.class);
     OrganizacionRepresentanteService service = new OrganizacionRepresentanteService(links, orgs, people);
     Organizacion org = new Organizacion().setIdOrganizacion(1L).setUuid("school");
-    Contribuyente primary = new Contribuyente().setIdContribuyente(1L).setUuid("primary").setEstadoUsuario("ACTIVO");
     Contribuyente person = new Contribuyente().setIdContribuyente(2L).setUuid("coach").setEstadoUsuario("ACTIVO");
 
     @BeforeEach
     void setup() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 "staff", "", Collections.singletonList(new SimpleGrantedAuthority("DEPORTES_STAFF"))));
-        org.setRepresentante(primary);
         when(people.findByUuid("coach")).thenReturn(Optional.of(person));
         when(orgs.findByUuidForUpdate("school")).thenReturn(Optional.of(org));
     }
@@ -68,13 +66,12 @@ class OrganizacionRepresentanteServiceTest {
     }
 
     @Test
-    void additionalRepresentativeDoesNotReplacePrimary() {
+    void representativesAreSavedFromSelectedListOnly() {
         service.guardarRepresentantes(org, Collections.singletonList(dto()));
 
-        assertEquals("primary", org.getRepresentante().getUuid());
         assertTrue(org.tieneRepresentante("coach"));
         assertEquals(1, person.getOrganizacionRepresentanteLinks().size());
-        verify(links, times(2)).save(any());
+        verify(links, times(1)).save(any());
     }
 
     @Test
@@ -85,14 +82,14 @@ class OrganizacionRepresentanteServiceTest {
     }
 
     @Test
-    void removalDeletesOnlyLinkRows() {
+    void removalCannotLeaveOrganizationWithoutRepresentatives() {
         OrganizacionRepresentante link = existing();
         when(links.findByOrganizacionIdOrganizacion(1L)).thenReturn(Collections.singletonList(link));
 
-        service.guardarRepresentantes(org, Collections.emptyList());
+        assertThrows(IllegalArgumentException.class,
+                () -> service.guardarRepresentantes(org, Collections.emptyList()));
 
-        assertTrue(org.tieneRepresentante("primary"));
-        verify(links).delete(link);
+        verify(links, never()).delete(link);
         verify(orgs, never()).save(any());
         verify(orgs, never()).delete(any());
     }
@@ -108,9 +105,7 @@ class OrganizacionRepresentanteServiceTest {
     }
 
     @Test
-    void mapperMergesPrimaryAndAdditionalOrganizationsWithoutRecursionOrDuplicates() {
-        org.setRepresentante(person);
-        person.getOrganizacionesRepresentadas().add(org);
+    void mapperBuildsRepresentedOrganizationsFromRelationshipTable() {
         OrganizacionRepresentante link = existing();
         org.getRepresentantes().add(link);
         person.getOrganizacionRepresentanteLinks().add(link);
@@ -123,3 +118,4 @@ class OrganizacionRepresentanteServiceTest {
                 .getRepresentantesDto().get(0).getContribuyenteDto().getUuid());
     }
 }
+

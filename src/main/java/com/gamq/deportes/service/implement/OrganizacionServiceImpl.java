@@ -1,10 +1,9 @@
 package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.OrganizacionDto;
+import com.gamq.deportes.dto.OrganizacionRepresentanteDto;
 import com.gamq.deportes.dto.mapper.OrganizacionMapper;
-import com.gamq.deportes.model.Contribuyente;
 import com.gamq.deportes.model.Organizacion;
-import com.gamq.deportes.repository.ContribuyenteRepository;
 import com.gamq.deportes.repository.OrganizacionRepository;
 import com.gamq.deportes.service.OrganizacionService;
 import com.gamq.deportes.exception.NotFoundException;
@@ -16,8 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,9 +30,6 @@ public class OrganizacionServiceImpl implements OrganizacionService {
 
     @Autowired
     private OrganizacionRepository organizacionRepository;
-
-    @Autowired
-    private ContribuyenteRepository contribuyenteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -162,12 +156,12 @@ public class OrganizacionServiceImpl implements OrganizacionService {
             throw new IllegalArgumentException("Ya existe una organización con el email: " + organizacionDto.getEmail());
         }
 
-        if (organizacionDto.getRepresentanteDto() == null) throw new IllegalArgumentException("Seleccione un representante principal");
-        // Validate and get representante
-        Contribuyente representante = getRepresentante(organizacionDto.getRepresentanteDto().getUuid());
+        List<OrganizacionRepresentanteDto> representantes = representantesSolicitados(organizacionDto);
+        if (representantes.isEmpty()) {
+            throw new IllegalArgumentException("Agregue al menos un representante");
+        }
 
         Organizacion nuevaOrganizacion = OrganizacionMapper.toEntity(organizacionDto);
-        nuevaOrganizacion.setRepresentante(representante);
 
         // Set default values
         if (nuevaOrganizacion.getActivo() == null) {
@@ -175,10 +169,7 @@ public class OrganizacionServiceImpl implements OrganizacionService {
         }
 
         Organizacion organizacionGuardada = organizacionRepository.save(nuevaOrganizacion);
-        representanteService.guardarRepresentantes(organizacionGuardada,
-                organizacionDto.getRepresentantesDto() == null
-                        ? Collections.emptyList()
-                        : organizacionDto.getRepresentantesDto());
+        representanteService.guardarRepresentantes(organizacionGuardada, representantes);
         return OrganizacionMapper.toDto(organizacionGuardada, true);
     }
 
@@ -207,20 +198,18 @@ public class OrganizacionServiceImpl implements OrganizacionService {
                     organizacionRepository.existsByEmail(organizacionDto.getEmail())) {
                 throw new IllegalArgumentException("Ya existe una organización con el email: " + organizacionDto.getEmail());
             }
+            List<OrganizacionRepresentanteDto> representantes = representantesSolicitados(organizacionDto);
+            if (organizacionDto.getRepresentantesDto() != null && representantes.isEmpty()) {
+                throw new IllegalArgumentException("Agregue al menos un representante");
+            }
 
             // Update fields
             OrganizacionMapper.updateEntityFromDto(organizacionDto, organizacionExistente);
 
-            // Update representante if provided
-            if (organizacionDto.getRepresentanteDto() != null) {
-                Contribuyente representante = getRepresentante(organizacionDto.getRepresentanteDto().getUuid());
-                if (!representante.getUuid().equals(organizacionExistente.getRepresentante().getUuid()))
-                    com.gamq.deportes.service.OrganizacionRepresentanteService.exigirPersonalMunicipal();
-                organizacionExistente.setRepresentante(representante);
-            }
-
             Organizacion organizacionActualizada = organizacionRepository.save(organizacionExistente);
-            representanteService.guardarRepresentantes(organizacionActualizada, organizacionDto.getRepresentantesDto());
+            if (organizacionDto.getRepresentantesDto() != null) {
+                representanteService.guardarRepresentantes(organizacionActualizada, representantes);
+            }
             return OrganizacionMapper.toDto(organizacionActualizada, true);
         } else {
             throw new NotFoundException(ORGANIZACION, organizacionDto.getUuid());
@@ -297,8 +286,10 @@ public class OrganizacionServiceImpl implements OrganizacionService {
         return organizacionRepository.countByActivoGroup();
     }
 
-    private Contribuyente getRepresentante(String uuid) {
-        return contribuyenteRepository.findByUuid(uuid)
-                .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, uuid));
+    private List<OrganizacionRepresentanteDto> representantesSolicitados(OrganizacionDto dto) {
+        if (dto.getRepresentantesDto() != null) {
+            return dto.getRepresentantesDto();
+        }
+        return java.util.Collections.emptyList();
     }
 }

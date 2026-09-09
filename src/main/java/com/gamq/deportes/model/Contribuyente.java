@@ -155,8 +155,6 @@ public class Contribuyente {
     @OneToMany(mappedBy = "contribuyente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reserva> reservasList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "representante", fetch = FetchType.LAZY)
-    private List<Organizacion> organizacionesRepresentadas = new ArrayList<>();
 
     @OneToMany(mappedBy = "contribuyenteDto", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<EstudianteEscuela> estudianteEnEscuelas = new ArrayList<>();

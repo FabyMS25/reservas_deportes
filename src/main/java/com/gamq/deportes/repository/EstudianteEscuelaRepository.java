@@ -32,13 +32,13 @@ public interface EstudianteEscuelaRepository extends JpaRepository<EstudianteEsc
 
     @Query("SELECT DISTINCT e FROM EstudianteEscuela e LEFT JOIN e.contribuyenteDto tutor " +
             "WHERE tutor.uuid = :contribuyenteUuid " +
-            "OR (e.organizacionDto.representante.uuid = :contribuyenteUuid OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid))")
+            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid)")
     List<EstudianteEscuela> findVisibleToContribuyente(
             @Param("contribuyenteUuid") String contribuyenteUuid);
 
     @Query("SELECT DISTINCT e FROM EstudianteEscuela e LEFT JOIN e.contribuyenteDto tutor " +
             "WHERE e.activo = true AND (tutor.uuid = :contribuyenteUuid " +
-            "OR (e.organizacionDto.representante.uuid = :contribuyenteUuid OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid)))")
+            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid))")
     List<EstudianteEscuela> findActiveVisibleToContribuyente(
             @Param("contribuyenteUuid") String contribuyenteUuid);
 

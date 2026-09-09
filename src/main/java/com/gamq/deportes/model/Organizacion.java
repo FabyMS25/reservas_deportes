@@ -92,17 +92,12 @@ public class Organizacion {
     private List<OrganizacionRepresentante> representantes = new ArrayList<>();
 
     public boolean tieneRepresentante(String uuid) {
-        return uuid != null && ((representante != null && uuid.equals(representante.getUuid())) ||
-            representantes.stream().anyMatch(p ->
+        return uuid != null && representantes.stream().anyMatch(p ->
                 p.getContribuyente() != null && p.getContribuyente().estaActivo()
-                        && uuid.equals(p.getContribuyente().getUuid())));
+                        && uuid.equals(p.getContribuyente().getUuid()));
     }
 
     // Relations
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_representante", nullable = false)
-    private Contribuyente representante;
-
     @OneToMany(mappedBy = "organizacion", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reserva> reservasList = new ArrayList<>();
 
