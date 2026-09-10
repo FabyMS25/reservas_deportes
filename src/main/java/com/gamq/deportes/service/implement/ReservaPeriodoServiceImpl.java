@@ -55,6 +55,18 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     @Autowired
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
 
+    @Autowired
+    private com.gamq.deportes.service.EstudianteEscuelaService estudianteService;
+
+    @Override
+    @Transactional
+    public List<ReservaPeriodoDto> historialPorEstudiante(String estudianteUuid) {
+        estudianteService.findByUuid(estudianteUuid); // Validates access to this enrollment.
+        return reservaPeriodoRepository.findHistorialByEstudianteUuid(estudianteUuid).stream()
+                .map(periodo -> ReservaPeriodoMapper.toDto(periodo, true))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<ReservaPeriodoDto> obtenerTodos() {
         List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findAll();

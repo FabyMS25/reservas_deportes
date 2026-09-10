@@ -43,6 +43,10 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
             "('ANULADO', 'ANULADA', 'CANCELADA', 'EXPIRADA') " +
             "ORDER BY rp.año DESC, rp.mes DESC, rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByEstudianteUuid(@Param("estudianteUuid") String estudianteUuid);
+    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.estudianteEscuela.uuid = :estudianteUuid " +
+            "ORDER BY rp.año DESC, rp.mes DESC, rp.fechaCreacion DESC")
+    List<ReservaPeriodo> findHistorialByEstudianteUuid(@Param("estudianteUuid") String estudianteUuid);
+
     @Query("SELECT r FROM Reserva r WHERE r.numeroReserva = :numeroReserva AND r.estado = false")
     Optional<Reserva> findByNumeroReserva(@Param("numeroReserva") String numeroReserva);
 

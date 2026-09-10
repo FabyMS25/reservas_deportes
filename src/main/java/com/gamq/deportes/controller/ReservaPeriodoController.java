@@ -94,6 +94,11 @@ public class ReservaPeriodoController {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }
+    @GetMapping("/estudiante/{uuidEstudiante}/historial")
+    @PreAuthorize("@permissions.has('/students','VER')")
+    public Response historialPorEstudiante(@PathVariable("uuidEstudiante") String uuidEstudiante) {
+        return Response.ok().setPayload(reservaPeriodoService.historialPorEstudiante(uuidEstudiante));
+    }
     @Operation(summary = "Obtener reserva-periodo por Estudiante uuid")
     @GetMapping("/estudiante/{uuidEstudiante}")
     @PreAuthorize("@permissions.has('/reservations/schools','VER')")
