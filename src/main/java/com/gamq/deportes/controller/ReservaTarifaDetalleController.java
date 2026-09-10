@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ReservaTarifaDetalleDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ReservaTarifaDetalleService;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping({"/api/reservatarifadetalles", "/api/reservation-tariff-details"})
 @Tag(name = "Reserva Tarifa Detalles", description = "API para gestion de detalles historicos de tarifas de reservas")
@@ -20,6 +23,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Obtener detalles de tarifas de reservas")
     @GetMapping()
+    @PreAuthorize("@permissions.staff() and @permissions.anyReservation('VER')")
     public Response obtenerReservaTarifaDetalles() {
         try {
             List<ReservaTarifaDetalleDto> detalles = reservaTarifaDetalleService.obtenerReservaTarifaDetalles();
@@ -31,6 +35,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Obtener detalle de tarifa de reserva por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('detalle','VER',#p0)")
     public Response buscarReservaTarifaDetallePorUuid(@PathVariable("uuid") String uuid) {
         try {
             ReservaTarifaDetalleDto detalle = reservaTarifaDetalleService.findByUuid(uuid);
@@ -42,6 +47,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Obtener detalles de tarifas por uuid de reserva")
     @GetMapping("/reserva/{uuid}")
+    @PreAuthorize("@permissions.reservation('VER',#p0)")
     public Response buscarPorReservaUuid(@PathVariable("uuid") String reservaUuid) {
         try {
             List<ReservaTarifaDetalleDto> detalles = reservaTarifaDetalleService.findByReservaUuid(reservaUuid);
@@ -53,6 +59,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Crear detalle de tarifa de reserva")
     @PostMapping()
+    @PreAuthorize("@permissions.childBody('detalle','CREAR',#p0)")
     public Response crearReservaTarifaDetalle(@RequestBody ReservaTarifaDetalleDto reservaTarifaDetalleDto) {
         try {
             return Response.ok().setPayload(reservaTarifaDetalleService.crearReservaTarifaDetalle(reservaTarifaDetalleDto));
@@ -63,6 +70,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Actualizar detalle de tarifa de reserva")
     @PutMapping()
+    @PreAuthorize("@permissions.childBody('detalle','ACTUALIZAR',#p0)")
     public Response actualizarReservaTarifaDetalle(@RequestBody ReservaTarifaDetalleDto reservaTarifaDetalleDto) {
         try {
             return Response.ok().setPayload(reservaTarifaDetalleService.actualizarReservaTarifaDetalle(reservaTarifaDetalleDto));
@@ -73,6 +81,7 @@ public class ReservaTarifaDetalleController {
 
     @Operation(summary = "Borrar detalle de tarifa de reserva por uuid")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('detalle','ANULAR',#p0)")
     public Response deleteReservaTarifaDetalle(@Parameter(description = "Uuid para eliminar detalle de tarifa de reserva")
                                                @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(reservaTarifaDetalleService.delete(uuid));

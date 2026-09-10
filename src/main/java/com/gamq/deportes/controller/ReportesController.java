@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
@@ -27,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@PreAuthorize("denyAll()")
 @Controller
 @RequestMapping("/api/reporte")
 @Tag(name = "Reportes", description = "API para Reportes imprimibles del Sistema")
@@ -49,6 +52,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de ticket de Reserva Puntual")
     @RequestMapping(value="/ticket-reservap",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('puntual',#p0)")
     public void reporteTicketReserve (
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -86,6 +90,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de ticket de Reserva Puntual por Persona")
     @RequestMapping(value="/ticket-reser-per",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('puntual',#p0)")
     public void reporteTicketReservePersona(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -120,6 +125,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de ticket de Reserva Puntual por Evento")
     @RequestMapping(value="/ticket-reser-ev",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('puntual',#p0)")
     public void reporteTicketReservaEvento (
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -157,6 +163,7 @@ public class ReportesController {
     @Operation(summary = "Reporte Lista de reservas por intervalo de fechas y tipo de cobrom, estado, cancha ")
     @RequestMapping(value="/lista-Reservas",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.has('/reports/list/puntual','GENERAR')")
     public void reporteListaReserva (
             @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
             @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
@@ -204,6 +211,7 @@ public class ReportesController {
     @Operation(summary = "Reporte Lista de reservas Recurrentes por intervalo de fechas y tipo de cobrom, estado, cancha ")
     @RequestMapping(value="/lista-Recurrentes",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.has('/reports/list/recurrente','GENERAR')")
     public void TicketReservaRecuPorSesion (
             @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
             @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
@@ -249,6 +257,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de reserva Recurrente por Sesión")
     @RequestMapping(value="/ticket-recuses", method = RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('recurrente',#p0)")
     public void ticketRecuSesion(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -259,6 +268,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de reserva Recurrente por Mensualidad")
     @RequestMapping(value="/ticket-recumes", method = RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('recurrente',#p0)")
     public void ticketRecuMes(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -269,6 +279,7 @@ public class ReportesController {
     @Operation(summary = "Reporte de reserva Recurrente por Persona")
     @RequestMapping(value="/ticket-recuper", method = RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('recurrente',#p0)")
     public void ticketRecuPer(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,
@@ -604,6 +615,7 @@ public class ReportesController {
     @Operation(summary = "Reporte Lista de Pagos en un intervalo de fechas")
     @RequestMapping(value="/lista-Pagos",method= RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.has('/reports/payments','GENERAR')")
     public void reporteListaPagos (
             @RequestParam(name = "fecha_ini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
             @RequestParam(name = "fecha_fin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
@@ -643,6 +655,7 @@ public class ReportesController {
 @Operation(summary = "Reporte lista de reserva Mensual")
 @RequestMapping(value="/lista-mensuales",method= RequestMethod.GET)
 @ResponseBody
+@PreAuthorize("@permissions.has('/reports/list/mensual','GENERAR')")
 public void reporteListaMensuales (
         @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
         @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
@@ -692,6 +705,7 @@ public void reporteListaMensuales (
 
 @RequestMapping(value="/lista-alumno",method= RequestMethod.GET)
 @ResponseBody
+@PreAuthorize("@permissions.has('/reports/list/mensual','GENERAR')")
 public void reporteListaMensAlumno (
         @RequestParam(name = "fechaini",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
         @RequestParam(name = "fechafin",required = false) @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
@@ -741,6 +755,7 @@ public void reporteListaMensAlumno (
     @Operation(summary = "Reporte de ticket de Reserva Mensual (Escuela)")
     @RequestMapping(value="/ticket-mensual", method = RequestMethod.GET)
     @ResponseBody
+    @PreAuthorize("@permissions.ticket('periodo',#p0)")
     public void ticketMensual(
             @RequestParam(name = "uuid", defaultValue = "0") String uuid,
             @RequestHeader Map<String, String> headers,

@@ -80,7 +80,7 @@ public class ApiController {
     }
     @Operation(summary = "Anular Tasa")
     @PostMapping("/anulartasa")
-    @PreAuthorize("@permissions.anyReservation('ANULAR')")
+    @PreAuthorize("#p0 != null and #p0.anular != null and @permissions.ruatRate('ANULAR',#p0.anular.numeroTasa)")
     public ResponseEntity<Object> anularTasa(@RequestBody AnularTasaToken anularTasaToken) {
         try{
             JsonNode anularTasaResponse= this.apiService.anularTasa(anularTasaToken);
@@ -104,7 +104,7 @@ public class ApiController {
     }
     @Operation(summary = "VErifica pago de una tasa")
     @PostMapping("/pago")
-    @PreAuthorize("@permissions.anyReservation('VER')")
+    @PreAuthorize("#p0 != null and #p0.pago != null and @permissions.ruatRate('VER',#p0.pago.numeroTasa)")
     public ResponseEntity<Object> consultaPago(@RequestBody PagoToken pagoToken) {
 
         try{

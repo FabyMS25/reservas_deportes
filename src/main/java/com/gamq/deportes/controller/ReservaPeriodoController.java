@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ReservaPeriodoDto;
 import com.gamq.deportes.dto.ReservaPeriodoFilter;
 import com.gamq.deportes.dto.response.Response;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/reservas-periodo")
 @Tag(name = "Reservas por Periodo", description = "API para Reservas Por Periodo")
@@ -29,6 +32,7 @@ public class ReservaPeriodoController {
 
     @Operation(summary = "Obtener todas las reservas por Periodo con filtros y paginación")
     @GetMapping()
+    @PreAuthorize("@permissions.has('/reservations/schools','VER')")
     public Response obtenerReservasPeriodo(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
@@ -60,6 +64,7 @@ public class ReservaPeriodoController {
 
     @Operation(summary = "Obtener todas las reservas por Periodo sin paginación")
     @GetMapping("/all")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER')")
     public Response obtenerTodasReservasPeriodo() {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.obtenerTodos();
@@ -70,6 +75,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Obtener reserva-periodo por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('periodo','VER',#p0)")
     public Response buscarReservaPeriodoPorUuid(@PathVariable("uuid") String uuid) {
         try {
             ReservaPeriodoDto reservaPeriodoDto = reservaPeriodoService.findByUuid(uuid);
@@ -80,6 +86,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Obtener reserva-periodo por RservaUuid global")
     @GetMapping("/reserva/{reservaUuid}")
+    @PreAuthorize("@permissions.reservation('VER',#p0)")
     public Response buscarReservaPeriodoPorReserva(@PathVariable("reservaUuid") String reservaUuid) {
         try {
             return Response.ok().setPayload(reservaPeriodoService.findByReservaUuid(reservaUuid));
@@ -89,6 +96,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Obtener reserva-periodo por Estudiante uuid")
     @GetMapping("/estudiante/{uuidEstudiante}")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER')")
     public Response buscarReservasPeriodoPorEstudiante(@PathVariable("uuidEstudiante") String uuidEstudiante) {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.findByEstudianteUuid(uuidEstudiante);
@@ -99,6 +107,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Obtener reserva-periodo por periodo")
     @GetMapping("/periodo/{periodo}")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER')")
     public Response buscarReservasPeriodoPorPeriodo(@PathVariable("periodo") String periodo) {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.findByPeriodo(periodo);
@@ -110,6 +119,7 @@ public class ReservaPeriodoController {
 
     @Operation(summary = "Obtener reserva-periodo por Contribuyente")
     @GetMapping("/contribuyente/{uuidContribuyente}")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER') and (@permissions.staff() or @permissions.self(#p0))")
     public Response buscarReservasPeriodoPorContribuyente(@PathVariable("uuidContribuyente") String uuidContribuyente) {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.findByContribuyenteUuid(uuidContribuyente);
@@ -120,6 +130,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Obtener reserva-periodo por Organizacion uuid")
     @GetMapping("/organizacion/{uuidOrganizacion}")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER') and (@permissions.staff() or @permissions.represents(#p0))")
     public Response buscarReservasPeriodoPorOrganizacion(@PathVariable("uuidOrganizacion") String uuidOrganizacion) {
         try {
             List<ReservaPeriodoDto> reservasPeriodo = reservaPeriodoService.findByOrganizacionUuid(uuidOrganizacion);
@@ -130,6 +141,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Crear reserva-periodo ")
     @PostMapping()
+    @PreAuthorize("@permissions.childBody('periodo','CREAR',#p0)")
     public Response crearReservaPeriodo(@RequestBody ReservaPeriodoDto reservaPeriodoDto) {
         try {
             return Response.ok().setPayload(reservaPeriodoService.crearReservaPeriodo(reservaPeriodoDto));
@@ -139,6 +151,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Actualizar reserva-periodo ")
     @PutMapping()
+    @PreAuthorize("@permissions.childBody('periodo','ACTUALIZAR',#p0)")
     public Response actualizarReservaPeriodo(@RequestBody ReservaPeriodoDto reservaPeriodoDto) {
         try {
             return Response.ok().setPayload(reservaPeriodoService.actualizarReservaPeriodo(reservaPeriodoDto));
@@ -148,6 +161,7 @@ public class ReservaPeriodoController {
     }
     @Operation(summary = "Borrar reserva-periodo por uuid ")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('periodo','ANULAR',#p0)")
     public Response eliminarReservaPeriodo(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(reservaPeriodoService.eliminarReservaPeriodo(uuid));

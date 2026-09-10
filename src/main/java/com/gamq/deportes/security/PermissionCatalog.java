@@ -1,53 +1,55 @@
 package com.gamq.deportes.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+import java.io.InputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 
-/** Stable, compact permission keys for the signed Deportes identity. Menu metadata is not authority. */
-public final class PermissionCatalog {
-    private PermissionCatalog() {}
-    private static final Map<String, String> MODULES = Map.ofEntries(
-        Map.entry("Dashboard de Admin", "dash"), Map.entry("Calendario", "cal"),
-        Map.entry("Mapa", "map"), Map.entry("Contribuyentes", "tax"),
-        Map.entry("Organizaciones", "org"), Map.entry("Estudiantes", "stu"),
-        Map.entry("Reservas Puntuales", "one"), Map.entry("Reservas Recurrentes", "rec"),
-        Map.entry("Escuelas Municipales", "sch"), Map.entry("Campos Deportivos", "field"),
-        Map.entry("Complejos Deportivos", "complex"), Map.entry("Encargados", "staff"),
-        Map.entry("Categorias", "cat"), Map.entry("Superficies", "surface"),
-        Map.entry("Clasificadores Ruat", "class"), Map.entry("Configuraciones de Sistema", "config"),
-        Map.entry("Reporte de Ingresos", "rp"), Map.entry("Reporte de Mensualidades", "rm"),
-        Map.entry("Reporte de Reservas Puntuales", "ro"), Map.entry("Reporte de Reservas Recurrentes", "rr"));
-    private static final Map<String, String> ACTIONS = Map.ofEntries(
-        Map.entry("VER", "v"), Map.entry("CREAR", "c"), Map.entry("ACTUALIZAR", "u"),
-        Map.entry("ANULAR", "a"), Map.entry("VALIDAR", "valid"), Map.entry("GENERAR TICKET", "ticket"),
-        Map.entry("CAMBIAR-HORARIO", "time"), Map.entry("EXPORTAR", "export"),
-        Map.entry("BLOQUEAR", "block"), Map.entry("RESERVAR", "book"), Map.entry("GENERAR", "gen"),
-        Map.entry("DAR DE BAJA", "off"), Map.entry("HABILITAR", "on"),
-        Map.entry("CREAR-POSTPAGO", "post"), Map.entry("NOTIFICACIONES_ADMIN", "notify"),
-        Map.entry("ACTUALIZAR_PROTEGIDA", "protected"), Map.entry("ACTUALIZAR_CONTROL", "control"));
+/** Resolves upstream permission identity to resource routes. Display names are never security keys. */
+@Component
+public class PermissionCatalog {
+    private final Map<String, String> resources = new HashMap<>();
 
-    public static String key(String module, String action) {
-        String m = MODULES.get(module), a = ACTIONS.get(action);
-        return m == null || a == null ? "" : m + ":" + a;
+    public PermissionCatalog(ObjectMapper mapper) throws IOException {
+        try (InputStream in = new ClassPathResource("security/permission-resources.json").getInputStream()) {
+            mapper.readTree(in).fields().forEachRemaining(e -> resources.put(e.getKey(), e.getValue().asText()));
+        }
     }
 
-    public static Set<String> fromMenu(JsonNode menu, String applicationCode, String applicationName) {
+    public static String key(String route, String action) {
+        if (route == null || !route.startsWith("/") || action == null || action.isBlank()) return "";
+        try {
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256")
+                    .digest((route + "|" + action).getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
+    }
+
+    public Set<String> fromMenu(JsonNode menu, String code, String application) {
         Set<String> result = new TreeSet<>();
-        collect(menu, applicationCode, applicationName, result);
+        collect(menu, code, application, result);
         return Collections.unmodifiableSet(result);
     }
 
-    private static void collect(JsonNode node, String code, String name, Set<String> result) {
+    private void collect(JsonNode node, String code, String application, Set<String> result) {
         if (node == null) return;
-        if (node.isArray()) {
-            node.forEach(child -> collect(child, code, name, result));
-        } else if (node.isObject()) {
-            if (!name.equals(node.path("modulo").asText())
-                    || !code.equals(node.path("codigo").asText())) return;
-            String key = key(node.path("nombreMenu").asText(), node.path("accion").asText());
-            if (!key.isEmpty()) result.add(key);
-            // Parent DTOs describe navigation only; they must never grant permissions.
-            collect(node.path("permisoHijoListDto"), code, name, result);
+        if (node.isArray()) { node.forEach(child -> collect(child, code, application, result)); return; }
+        if (!node.isObject()) return;
+        ((ObjectNode) node).remove("permissionRoute");
+        if (application.equals(node.path("modulo").asText()) && code.equals(node.path("codigo").asText())) {
+            String action = node.path("accion").asText();
+            String route = resources.get(node.path("uuid").asText() + "|" + action);
+            // Unknown upstream identities cannot grant backend access.
+            if (route != null && !action.isBlank()) {
+                ((ObjectNode) node).put("permissionRoute", route);
+                result.add(key(route, action));
+            }
+            collect(node.path("permisoHijoListDto"), code, application, result);
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.gamq.deportes.controller;
 
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.dto.PassDto;
 import com.gamq.deportes.dto.response.Response;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/passresets")
 @Tag(name = "Password Resests", description = "API para s")
@@ -22,6 +25,7 @@ public class PassResetsController {
     PassResetsService passResetsService;
     @Operation(summary = "Obtener todos los Passwords")
     @GetMapping()
+    @PreAuthorize("denyAll()")
     public Response obtenerPass() {
         try{
             List<PassDto> passDtos =  passResetsService.obtenerPassResets();
@@ -32,6 +36,7 @@ public class PassResetsController {
     }
     @Operation(summary = "Passwords por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("denyAll()")
     public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
             PassDto PassDto = passResetsService.findByUuid(uuidCanchas);
@@ -42,6 +47,7 @@ public class PassResetsController {
     }
     @Operation(summary = "Obtener validacion de token")
     @GetMapping("/validate-token/{token}")
+    @PreAuthorize("permitAll()")
     public Response buscarPorToken( @PathVariable("token") String token) {
         try{
             PassDto PassDto = passResetsService.findByToken(token);
@@ -52,6 +58,7 @@ public class PassResetsController {
     }
     @Operation(summary = "Obtener usuario pro token")
     @GetMapping("/validate-token-get-user/{token}")
+    @PreAuthorize("permitAll()")
     public Response buscarUserPorToken( @PathVariable("token") String token) {
         try{
             ContribuyenteDto contribuyenteDto = passResetsService.findUserByToken(token);
@@ -62,6 +69,7 @@ public class PassResetsController {
     }
     @Operation(summary = "Crear Passwords")
     @PostMapping()
+    @PreAuthorize("permitAll()")
     public Response crearPass(@RequestBody PassDto PassDto) {
         try{
             if (PassDto.getToken() == null || PassDto.getToken().isBlank()) {
@@ -74,6 +82,7 @@ public class PassResetsController {
     }
     @Operation(summary = "Actualizar Passwords")
     @PutMapping()
+    @PreAuthorize("permitAll()")
     public Response actualizarPass(@RequestBody PassDto PassDto) {
         try{
             return Response.ok().setPayload(passResetsService.actualizarPassResets(PassDto));

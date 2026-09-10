@@ -24,7 +24,7 @@ public class ScheduleExceptionController {
     ScheduleExceptionService horarioService;
     @Operation(summary = "Listar Horarios")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response obtenerHorarios() {
         try{
             List<HorarioExcepcionDto> horarioDtos =  horarioService.obtenerHorarios();
@@ -35,7 +35,7 @@ public class ScheduleExceptionController {
     }
     @Operation(summary = "Buscar Horario por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response buscarHorarioPorUuid( @PathVariable("uuid") String uuidHorario) {
         try{
             HorarioExcepcionDto horarioDto = horarioService.findByUuid(uuidHorario);
@@ -46,7 +46,7 @@ public class ScheduleExceptionController {
     }
     @Operation(summary = "Crear Horario")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','CREAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','CREAR')")
     public Response crearHorario(@RequestBody HorarioExcepcionDto horarioDto) {
         try{
             return Response.ok().setPayload(horarioService.crearHorario(horarioDto));
@@ -56,7 +56,7 @@ public class ScheduleExceptionController {
     }
     @Operation(summary = "Actualizar Horario")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ACTUALIZAR')")
     public Response actualizarHorario(@RequestBody HorarioExcepcionDto horarioDto) {
         try{
             return Response.ok().setPayload(horarioService.actualizarHorario(horarioDto));
@@ -66,7 +66,7 @@ public class ScheduleExceptionController {
     }
     @Operation(summary = "Eliminar Horario por uuid ")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Campos Deportivos','ANULAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ANULAR')")
     public Response deleteSchedule(@Parameter(description = "Uuid para eliminar HorarioFijo")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(horarioService.delete(uuid));

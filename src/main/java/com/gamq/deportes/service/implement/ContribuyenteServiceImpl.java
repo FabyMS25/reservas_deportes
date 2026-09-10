@@ -28,6 +28,9 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 public class ContribuyenteServiceImpl implements ContribuyenteService {
 
     @Autowired
+    private com.gamq.deportes.security.PermissionAuthorizationService permissions;
+
+    @Autowired
     private com.gamq.deportes.service.OrganizacionRepresentanteService representanteService;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -80,6 +83,12 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     public ContribuyenteDto crearContribuyente(ContribuyenteDto contribuyenteDto){
         if (contribuyenteDto != null) {
             validateRequiredRegistrationFields(contribuyenteDto);
+            if (!permissions.has("/taxpayers", "CREAR")) {
+                contribuyenteDto.setUuid(null);
+                contribuyenteDto.setOrganizacionesRepresentadas(null);
+                contribuyenteDto.setOrganizacionesVinculadas(null);
+                contribuyenteDto.setEstudianteEnEscuelas(null);
+            }
             validateUniqueRegistrationFields(contribuyenteDto);
             contribuyenteDto.setPassword(encodePassword(contribuyenteDto.getPassword()));
             Contribuyente newContri = ContribuyenteMapper.toEntity(contribuyenteDto);
@@ -112,6 +121,24 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
             if (contribuyenteOptional.isPresent()) {
                 Contribuyente contribuyenteExistente = contribuyenteOptional.get();
+                String requestedState = contribuyenteDto.getEstadoUsuario();
+                boolean changesState = requestedState != null
+                        && !java.util.Objects.equals(requestedState, contribuyenteExistente.getEstadoUsuario());
+                if (changesState && !permissions.has("/taxpayers", "BLOQUEAR")
+                        && !(permissions.self(contribuyenteDto.getUuid()) && "Anulado".equals(requestedState))) {
+                    throw new org.springframework.security.access.AccessDeniedException("No tiene permiso para cambiar el estado del usuario");
+                }
+                if (!permissions.self(contribuyenteDto.getUuid()) && !permissions.has("/taxpayers", "ACTUALIZAR")) {
+                    // BLOQUEAR alone permits only the account-state operation.
+                    contribuyenteDto = new ContribuyenteDto().setUuid(contribuyenteExistente.getUuid())
+                            .setEstadoUsuario(requestedState).setVerificadoRuat(null)
+                            .setEsDeportistaElite(null).setEstaSancionado(null);
+                }
+                if (!permissions.has("/taxpayers", "ACTUALIZAR")) {
+                    contribuyenteDto.setOrganizacionesRepresentadas(null);
+                    contribuyenteDto.setOrganizacionesVinculadas(null);
+                    contribuyenteDto.setEstudianteEnEscuelas(null);
+                }
                 if (contribuyenteDto.getPassword() != null && !contribuyenteDto.getPassword().isBlank()) {
                     contribuyenteDto.setPassword(encodePassword(contribuyenteDto.getPassword()));
                 }

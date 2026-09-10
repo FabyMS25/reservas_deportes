@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
 import com.gamq.deportes.dto.ReservaRecurrenteFilter;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/reservas-recurrentes")
 @Tag(name = "Reservas Recurrentes", description = "API para gestión de reservas recurrentes")
@@ -28,6 +31,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Obtener todas las reservas con filtros y paginación")
     @GetMapping()
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response obtenerReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
@@ -72,6 +76,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Obtener todas las reservas")
     @GetMapping("/all")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response obtenerTodasReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
@@ -92,6 +97,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Obtener reserva recurrente por UUID")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('recurrente','VER',#p0)")
     public Response obtenerReservaRecurrentePorUuid(
             @Parameter(description = "UUID de la reserva recurrente")
             @PathVariable("uuid") String uuid) {
@@ -105,6 +111,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Verificar y actualizar reservas expiradas")
     @PostMapping("/verificar-expiradas")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response verificarReservasExpiradas() {
         try {
             List<ReservaRecurrenteDto> updatedReservas = reservaRecurrenteService.checkAndUpdateExpiredReservations();
@@ -116,6 +123,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reserva recurrente por UUID de reserva")
     @GetMapping("/reserva/{reservaUuid}")
+    @PreAuthorize("@permissions.reservation('VER',#p0)")
     public Response buscarPorReservaUuid(
             @Parameter(description = "UUID de la reserva principal")
             @PathVariable("reservaUuid") String reservaUuid) {
@@ -129,6 +137,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas recurrentes por tipo")
     @GetMapping("/tipo/{tipoRecurrencia}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarPorTipoRecurrencia(
             @Parameter(description = "Tipo de recurrencia")
             @PathVariable("tipoRecurrencia") String tipoRecurrencia) {
@@ -142,6 +151,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas recurrentes por estado activo")
     @GetMapping("/activas/{activo}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarPorActivo(
             @Parameter(description = "Estado activo")
             @PathVariable("activo") Boolean activo) {
@@ -155,6 +165,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas activas en una fecha específica")
     @GetMapping("/activas/fecha/{fecha}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarActivasEnFecha(
             @Parameter(description = "Fecha específica (formato: yyyy-MM-dd)")
             @PathVariable("fecha") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fecha) {
@@ -168,6 +179,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas activas por campo y fecha")
     @GetMapping("/activas/campo/{campoUuid}/fecha/{fecha}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarActivasPorCampoYFecha(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("campoUuid") String campoUuid,
@@ -183,6 +195,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas activas vigentes")
     @GetMapping("/activas/vigentes")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarActivasVigentes() {
         try {
             List<ReservaRecurrenteDto> reservasRecurrentes = reservaRecurrenteService.findActivasVigentes();
@@ -194,6 +207,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas activas por día de la semana")
     @GetMapping("/activas/dia-semana/{diaSemana}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarActivasPorDiaSemana(
             @Parameter(description = "Día de la semana (1-7, donde 1=Lunes)")
             @PathVariable("diaSemana") String diaSemana,
@@ -209,6 +223,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas por vencer")
     @GetMapping("/por-vencer")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarPorVencer(
             @Parameter(description = "Fecha límite (formato: yyyy-MM-dd)")
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaLimite) {
@@ -222,6 +237,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas recurrentes por campo deportivo (paginado)")
     @GetMapping("/campo/{campoUuid}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarPorCampoDeportivo(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("campoUuid") String campoUuid,
@@ -238,6 +254,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Buscar reservas por categoría")
     @GetMapping("/categoria/{categoria}")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response buscarPorCategoria(
             @Parameter(description = "Categoría de la reserva")
             @PathVariable("categoria") String categoria) {
@@ -262,6 +279,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Crear nueva reserva recurrente")
     @PostMapping()
+    @PreAuthorize("@permissions.childBody('recurrente','CREAR',#p0)")
     public Response crearReservaRecurrente(@RequestBody ReservaRecurrenteDto reservaRecurrenteDto) {
         try {
             ReservaRecurrenteDto nuevaReservaRecurrente = reservaRecurrenteService.crearReservaRecurrente(reservaRecurrenteDto);
@@ -273,6 +291,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Actualizar reserva recurrente")
     @PutMapping()
+    @PreAuthorize("@permissions.childBody('recurrente','ACTUALIZAR',#p0)")
     public Response actualizarReservaRecurrente(@RequestBody ReservaRecurrenteDto reservaRecurrenteDto) {
         try {
             ReservaRecurrenteDto reservaActualizada = reservaRecurrenteService.actualizarReservaRecurrente(reservaRecurrenteDto);
@@ -284,6 +303,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Activar reserva recurrente")
     @PutMapping("/{uuid}/activar")
+    @PreAuthorize("@permissions.child('recurrente','ACTUALIZAR',#p0)")
     public Response activarReservaRecurrente(
             @Parameter(description = "UUID de la reserva recurrente")
             @PathVariable("uuid") String uuid) {
@@ -297,6 +317,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Desactivar reserva recurrente")
     @PutMapping("/{uuid}/desactivar")
+    @PreAuthorize("@permissions.child('recurrente','ANULAR',#p0)")
     public Response desactivarReservaRecurrente(
             @Parameter(description = "UUID de la reserva recurrente")
             @PathVariable("uuid") String uuid) {
@@ -310,6 +331,7 @@ public class ReservaRecurrenteController {
 
     @Operation(summary = "Eliminar reserva recurrente")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('recurrente','ANULAR',#p0)")
     public Response eliminarReservaRecurrente(
             @Parameter(description = "UUID de la reserva recurrente")
             @PathVariable("uuid") String uuid) {

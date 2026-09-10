@@ -24,7 +24,7 @@ public class ClasificadorRuatController {
     private ClasificadorRuatService clasificadorRuatService;
     @Operation(summary = "Listar las Categorias")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Clasificadores Ruat')")
+    @PreAuthorize("@permissions.lookup('/admin/classifiers')")
     public Response obtenerClasificadores() {
         try{
             List<ClasificadorRuatDto> ClasificadorRuatDtos =  clasificadorRuatService.obtenerClasificadores();
@@ -35,7 +35,7 @@ public class ClasificadorRuatController {
     }
     @Operation(summary = "Buscar Clasificador por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Clasificadores Ruat')")
+    @PreAuthorize("@permissions.lookup('/admin/classifiers')")
     public Response buscarClasificadorRuatPorUuid( @PathVariable("uuid") String uuidClasificadorRuat) {
         try{
             ClasificadorRuatDto ClasificadorRuatDto = clasificadorRuatService.findByUuid(uuidClasificadorRuat);
@@ -46,7 +46,7 @@ public class ClasificadorRuatController {
     }
     @Operation(summary = "Crear Clasificador")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Clasificadores Ruat','CREAR')")
+    @PreAuthorize("@permissions.has('/admin/classifiers','CREAR')")
     public Response crearClasificadorRuat(@RequestBody ClasificadorRuatDto ClasificadorRuatDto) {
         try{
             return Response.ok().setPayload(clasificadorRuatService.crearClasificador(ClasificadorRuatDto));
@@ -56,7 +56,7 @@ public class ClasificadorRuatController {
     }
     @Operation(summary = "Actualizar Clasificador")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Clasificadores Ruat','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/admin/classifiers','ACTUALIZAR')")
     public Response actualizarClasificadorRuat(@RequestBody ClasificadorRuatDto clasificadorRuatDto) {
         try {
             return Response.ok().setPayload(clasificadorRuatService.actualizarClasificador(clasificadorRuatDto));
@@ -74,7 +74,7 @@ public class ClasificadorRuatController {
     }
     @Operation(summary = "Borrar Clasificador")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Clasificadores Ruat','ANULAR')")
+    @PreAuthorize("@permissions.has('/admin/classifiers','ANULAR')")
     public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(clasificadorRuatService.eliminarClasificador(uuid));

@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ContribuyenteDto;
 //import com.gamq.deportes.dto.ContribuyenteDto;
 import com.gamq.deportes.dto.response.Response;
@@ -17,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/contribuyente")
 @Tag(name = "Contribuyentes", description = "Contribuyentes que toman Servicios en GAMQ ")
@@ -25,6 +28,7 @@ public class TaxpayerController {
     ContribuyenteService contribuyenteService;
 
     @GetMapping("/public/exists")
+    @PreAuthorize("permitAll()")
     public Response<Map<String, Boolean>> publicExistenceCheck(
             @RequestParam(required = false) String numeroDocumento,
             @RequestParam(required = false) String email,
@@ -43,6 +47,7 @@ public class TaxpayerController {
     }
     @Operation(summary = "Listar Contribuyentes")
     @GetMapping()
+    @PreAuthorize("@permissions.has('/taxpayers','VER') or (@permissions.staff() and @permissions.anyReservation('CREAR'))")
     public Response obtenerContribuyentes() {
         try{
             List<ContribuyenteDto> contribuyenteDtos =  contribuyenteService.obtenerContribuyentes();
@@ -53,6 +58,7 @@ public class TaxpayerController {
     }
     @Operation(summary = "Buscar contribuyente por uuid")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.self(#p0) or @permissions.has('/taxpayers','VER') or (@permissions.staff() and @permissions.anyReservation('CREAR'))")
     public Response buscarConstruccionPorUuid( @PathVariable("uuid") String uuidcontribuyente) {
         try{
             ContribuyenteDto contribuyenteDto = contribuyenteService.findByUuid(uuidcontribuyente);
@@ -63,6 +69,7 @@ public class TaxpayerController {
     }
     @Operation(summary = "Buscar contribuyente por email")
     @GetMapping("/email/{correo}")
+    @PreAuthorize("@permissions.has('/taxpayers','VER')")
     public Response buscarContribuyentePorEmail( @PathVariable("correo") String correo) {
         try{
             ContribuyenteDto contribuyenteDto = contribuyenteService.findByEmail(correo);
@@ -73,6 +80,7 @@ public class TaxpayerController {
     }
     @Operation(summary = "Crear contribuyente")
     @PostMapping()
+    @PreAuthorize("permitAll()")
     public Response crearConstribuyente(@RequestBody ContribuyenteDto contribuyenteDto) {
         try{
             return Response.ok().setPayload(contribuyenteService.crearContribuyente(contribuyenteDto));
@@ -87,6 +95,7 @@ public class TaxpayerController {
     }
     @Operation(summary = "Actuañlizar contribuyente ")
     @PutMapping()
+    @PreAuthorize("#p0 != null and (@permissions.self(#p0.uuid) or @permissions.has('/taxpayers','ACTUALIZAR') or @permissions.has('/taxpayers','BLOQUEAR'))")
     public Response actualizarConstruccion(@RequestBody ContribuyenteDto contribuyenteDto) {
         try{
             return Response.ok().setPayload(contribuyenteService.actualizarContribuyente(contribuyenteDto));
@@ -97,6 +106,7 @@ public class TaxpayerController {
 
     @Operation(summary = "Borrar contribuyente por uuid")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.has('/taxpayers','ANULAR')")
     public Response deleteUser(@Parameter(description = "Uuid para eliminar contribuyente")
                                   @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(contribuyenteService.delete(uuid));

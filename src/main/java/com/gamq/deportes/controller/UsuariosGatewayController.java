@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.gamq.deportes.security.DeportesPrincipal;
 import com.gamq.deportes.service.UsuariosSessionService;
@@ -9,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuariosGatewayController {
@@ -24,22 +27,27 @@ public class UsuariosGatewayController {
     }
 
     @GetMapping
+    @PreAuthorize("@permissions.has('/admin/employees','VER')")
     public JsonNode list(Authentication authentication) {
         return exchange(authentication, "/listar/usuarios", HttpMethod.GET, null);
     }
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.staff() and (@permissions.self(#p0) or @permissions.has('/admin/employees','VER'))")
     public JsonNode get(@PathVariable String uuid, Authentication authentication) {
         return exchange(authentication, "/usuario/" + uuid, HttpMethod.GET, null);
     }
     @PutMapping("/user")
+    @PreAuthorize("@permissions.has('/admin/employees','ACTUALIZAR')")
     public JsonNode updateUser(@RequestBody JsonNode body, Authentication authentication) {
         return exchange(authentication, "/user/update", HttpMethod.PUT, body);
     }
     @PostMapping("/change-password")
+    @PreAuthorize("#p0 != null and @permissions.staff() and @permissions.self(#p0.path('uuidUsuario').asText())")
     public JsonNode changePassword(@RequestBody JsonNode body, Authentication authentication) {
         return exchange(authentication, "/user/change-password", HttpMethod.POST, body);
     }
     @PutMapping("/person")
+    @PreAuthorize("#p0 != null and @permissions.staff() and @usuariosSessionService.ownsPerson(authentication.principal.subject,#p0.path('uuid').asText())")
     public JsonNode updatePerson(@RequestBody JsonNode body, Authentication authentication) {
         return exchange(authentication, "/persona", HttpMethod.PUT, body);
     }

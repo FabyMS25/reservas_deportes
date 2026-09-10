@@ -44,6 +44,9 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
+    @Autowired
+    private com.gamq.deportes.security.ReservationListScope listScope;
+
     private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
 
     @Autowired
@@ -77,7 +80,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
     @Override
     public Page<ReservaRecurrenteDto> obtenerReservasConFiltros(ReservaRecurrenteFilter filter, Pageable pageable) {
-        Specification<ReservaRecurrente> spec = Specification.where(null);
+        Specification<ReservaRecurrente> spec = listScope.children();
         if (filter.getTab() != null && filter.getTab() > 0) {
             String tabEstado = filter.getEstadoReservaFromTab();
             if (tabEstado != null) {

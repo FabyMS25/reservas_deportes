@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.auth.AuthenticationRequest;
 import com.gamq.deportes.dto.auth.AuthenticationResponse;
 import com.gamq.deportes.service.AuthenticationService;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
@@ -17,6 +20,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
         try {
             AuthenticationResponse response = authenticationService.login(request);

@@ -21,7 +21,7 @@ public class SuperficieController {
     SuperficieService superficieService;
     @Operation(summary = "Listar las Superficies")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Superficies')")
+    @PreAuthorize("@permissions.lookup('/admin/area')")
     public Response obtenerCategorias() {
         try{
             List<SuperficieDto> SuperficieDtos =  superficieService.obtenerSuperficies();
@@ -32,7 +32,7 @@ public class SuperficieController {
     }
     @Operation(summary = "Obtener Superficie por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Superficies')")
+    @PreAuthorize("@permissions.lookup('/admin/area')")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
             SuperficieDto SuperficieDto = superficieService.findByUuid(uuidCategoria);
@@ -43,7 +43,7 @@ public class SuperficieController {
     }
     @Operation(summary = "Crear Superficie")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Superficies','CREAR')")
+    @PreAuthorize("@permissions.has('/admin/area','CREAR')")
     public Response crearCategoria(@RequestBody SuperficieDto SuperficieDto) {
         try{
             return Response.ok().setPayload(superficieService.crearSuperficie(SuperficieDto));
@@ -53,7 +53,7 @@ public class SuperficieController {
     }
     @Operation(summary = "Actualizar Superficie")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Superficies','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/admin/area','ACTUALIZAR')")
     public Response actualizarCategoria(@RequestBody SuperficieDto SuperficieDto) {
         try{
             return Response.ok().setPayload(superficieService.actualizarSuperficie(SuperficieDto));
@@ -63,7 +63,7 @@ public class SuperficieController {
     }
     @Operation(summary = "Borrar Superficie por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Superficies','ANULAR')")
+    @PreAuthorize("@permissions.has('/admin/area','ANULAR')")
     public Response deleteSurface(@Parameter(description = "Uuid para eliminar superficie")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(superficieService.delete(uuid));

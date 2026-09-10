@@ -43,6 +43,9 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaPuntualServiceImpl implements ReservaPuntualService {
+    @Autowired
+    private com.gamq.deportes.security.ReservationListScope listScope;
+
 
     private static final String NOTIFICAR_RESERVA_ANULADA = "NOTIFICAR_RESERVA_ANULADA";
 
@@ -62,7 +65,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     private NotificacionDestinatariosReservaService destinatariosService;
 
     public Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable) {
-        Specification<ReservaPuntual> spec = Specification.where(null);
+        Specification<ReservaPuntual> spec = listScope.children();
         if (filter.getTab() != null && filter.getTab() > 0) {
             String tabEstado = filter.getEstadoReservaFromTab();
             if (tabEstado != null) {

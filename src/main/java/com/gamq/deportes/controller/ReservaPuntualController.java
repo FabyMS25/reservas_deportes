@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaPuntualFilter;
 import com.gamq.deportes.dto.response.Response;
@@ -22,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/reservas-puntuales")
 @Tag(name = "Reservas Puntuales", description = "API para gestión de reservas puntuales")
@@ -38,6 +41,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Verificar y actualizar reservas expiradas")
     @PostMapping("/verificar-expiradas")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response verificarReservasExpiradas() {
         try {
 
@@ -51,6 +55,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Obtener todas las reservas con filtros y paginación")
     @GetMapping()
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response obtenerReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
@@ -85,6 +90,7 @@ public class ReservaPuntualController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response obtenerTodasReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
@@ -106,6 +112,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Obtener reserva puntual por UUID")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('puntual','VER',#p0)")
     public Response obtenerReservaPuntualPorUuid(
             @Parameter(description = "UUID de la reserva puntual")
             @PathVariable("uuid") String uuid) {
@@ -119,6 +126,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reserva puntual por UUID de reserva")
     @GetMapping("/reserva/{reservaUuid}")
+    @PreAuthorize("@permissions.reservation('VER',#p0)")
     public Response buscarPorReservaUuid(
             @Parameter(description = "UUID de la reserva principal")
             @PathVariable("reservaUuid") String reservaUuid) {
@@ -132,6 +140,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas puntuales por fecha de uso")
     @GetMapping("/fecha-uso/{fechaUso}")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorFechaUso(
             @Parameter(description = "Fecha de uso (formato: yyyy-MM-dd)")
             @PathVariable("fechaUso") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaUso) {
@@ -145,6 +154,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas puntuales por rango de fechas")
     @GetMapping("/fecha-uso")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorRangoFechas(
             @Parameter(description = "Fecha inicio (formato: yyyy-MM-dd)")
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaInicio,
@@ -160,6 +170,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas puntuales por campo deportivo y fecha")
     @GetMapping("/campo/{campoUuid}/fecha/{fechaUso}")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorCampoYFecha(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("campoUuid") String campoUuid,
@@ -175,6 +186,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas activas por campo y fecha")
     @GetMapping("/activas/campo/{campoUuid}/fecha/{fechaUso}")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarActivasPorCampoYFecha(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("campoUuid") String campoUuid,
@@ -190,6 +202,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Verificar conflictos de horario")
     @GetMapping("/conflictos")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response verificarConflictos(
             @Parameter(description = "UUID del campo deportivo")
             @RequestParam String campoUuid,
@@ -211,6 +224,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Obtener reservas puntuales por campo deportivo (paginado)")
     @GetMapping("/campo/{campoUuid}")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorCampoDeportivo(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("campoUuid") String campoUuid,
@@ -227,6 +241,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas por categoría")
     @GetMapping("/categoria/{categoria}")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorCategoria(
             @Parameter(description = "Categoría de la reserva")
             @PathVariable("categoria") String categoria) {
@@ -240,6 +255,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Buscar reservas por rango de personas")
     @GetMapping("/personas")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response buscarPorRangoPersonas(
             @Parameter(description = "Cantidad mínima de personas")
             @RequestParam Integer cantidadMin,
@@ -255,6 +271,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Crear nueva reserva puntual")
     @PostMapping()
+    @PreAuthorize("@permissions.childBody('puntual','CREAR',#p0)")
     public Response crearReservaPuntual(@RequestBody ReservaPuntualDto reservaPuntualDto) {
         try {
             ReservaPuntualDto nuevaReservaPuntual = reservaPuntualService.crearReservaPuntual(reservaPuntualDto);
@@ -266,6 +283,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Actualizar reserva puntual")
     @PutMapping()
+    @PreAuthorize("@permissions.punctualUpdate(#p0)")
     public Response actualizarReservaPuntual(@RequestBody ReservaPuntualDto reservaPuntualDto) {
         try {
             ReservaPuntualDto reservaActualizada = reservaPuntualService.actualizarReservaPuntual(reservaPuntualDto);
@@ -277,6 +295,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Registrar uso real de la reserva")
     @PutMapping("/{uuid}/registrar-uso")
+    @PreAuthorize("@permissions.child('puntual','ACTUALIZAR',#p0)")
     public Response registrarUsoReal(
             @Parameter(description = "UUID de la reserva puntual")
             @PathVariable("uuid") String uuid,
@@ -292,6 +311,7 @@ public class ReservaPuntualController {
 
     @Operation(summary = "Eliminar reserva puntual")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.child('puntual','ANULAR',#p0)")
     public Response eliminarReservaPuntual(
             @Parameter(description = "UUID de la reserva puntual")
             @PathVariable("uuid") String uuid) {

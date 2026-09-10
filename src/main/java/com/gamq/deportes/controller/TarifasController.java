@@ -22,7 +22,7 @@ public class TarifasController {
 
     @Operation(summary = "Obtener Tarifas")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response obtenerTarifas() {
         try{
             List<TarifaDto> TarifaDtos =  tarifasService.obtenerTarifas();
@@ -33,7 +33,7 @@ public class TarifasController {
     }
     @Operation(summary = "Obtener Tarifa por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response buscarTarifaPorUuid( @PathVariable("uuid") String uuidCanchas) {
         try{
             TarifaDto TarifaDto = tarifasService.findByUuid(uuidCanchas);
@@ -44,7 +44,7 @@ public class TarifasController {
     }
     @Operation(summary = "Crear Tarifa")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','CREAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','CREAR')")
     public Response crearTarifa(@RequestBody TarifaDto TarifaDto) {
         try{
             return Response.ok().setPayload(tarifasService.crearTarifa(TarifaDto));
@@ -54,7 +54,7 @@ public class TarifasController {
     }
     @Operation(summary = "Actualizar Tarifa")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ACTUALIZAR')")
     public Response actualizarTarifa(@RequestBody TarifaDto TarifaDto) {
         try{
             return Response.ok().setPayload(tarifasService.actualizarTarifa(TarifaDto));
@@ -64,7 +64,7 @@ public class TarifasController {
     }
     @Operation(summary = "Borrar Tarifa por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Campos Deportivos','ANULAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ANULAR')")
     public Response deleteTarifa(@Parameter(description = "Uuid para eliminar tarifa")
                                          @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(tarifasService.deleteTarifa(uuid));

@@ -39,6 +39,9 @@ import static com.gamq.deportes.exception.enums.EntityType.ESTUDIANTE_ESCUELA;
 
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
+    @Autowired
+    private com.gamq.deportes.security.ReservationListScope listScope;
+
 
     @Autowired
     private ReservaPeriodoRepository reservaPeriodoRepository;
@@ -68,7 +71,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     }
     @Override
     public Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
-        Specification<ReservaPeriodo> spec = Specification.where(null);
+        Specification<ReservaPeriodo> spec = listScope.children();
         LocalDate now = LocalDate.now();
         int currentYear = now.getYear();
         int currentMonth = now.getMonthValue();

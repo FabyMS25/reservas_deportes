@@ -24,7 +24,7 @@ public class encargadoComplejoController {
     EncargadoComplejoService encargadoCcomplejoService;
     @Operation(summary = "Listar Encargados")
     @GetMapping()
-    @PreAuthorize("@permissions.has('Encargados','VER')")
+    @PreAuthorize("@permissions.has('/admin/employees','VER')")
     public Response obtenerEncargados() {
         try {
             List<EncargadoComplejoDto> encargadoComplejoDtos = encargadoCcomplejoService.obtenerEncargadosComplejos();
@@ -35,7 +35,7 @@ public class encargadoComplejoController {
     }
     @Operation(summary = "Buscar Encargado por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Encargados','VER')")
+    @PreAuthorize("@permissions.has('/admin/employees','VER')")
     public Response buscarEncargadoPorUuid( @PathVariable("uuid") String uuid) {
         try{
             EncargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUuid(uuid);
@@ -46,7 +46,7 @@ public class encargadoComplejoController {
     }
     @Operation(summary = "Buscar Encargado por userUuid")
     @GetMapping("user/{userUuid}")
-    @PreAuthorize("@permissions.self(#p0) or @permissions.has('Encargados','VER')")
+    @PreAuthorize("@permissions.self(#p0) or @permissions.has('/admin/employees','VER')")
     public Response buscarEncargadoPorUserUuid( @PathVariable("userUuid") String userUuid) {
         try{
             EncargadoComplejoDto encargadoComplejoDto = encargadoCcomplejoService.findByUserUuid(userUuid);
@@ -57,7 +57,7 @@ public class encargadoComplejoController {
     }
     @Operation(summary = "Crear Encargado")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Encargados','CREAR')")
+    @PreAuthorize("@permissions.has('/admin/employees','CREAR')")
     public Response crearEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
             return Response.ok().setPayload(encargadoCcomplejoService.crearEncargadoComplejo(encargadoComplejoDto));
@@ -67,7 +67,7 @@ public class encargadoComplejoController {
     }
     @Operation(summary = "Actualizar Encargado")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Encargados','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/admin/employees','ACTUALIZAR')")
     public Response actualizarEncargado(@RequestBody EncargadoComplejoDto encargadoComplejoDto) {
         try{
             return Response.ok().setPayload(encargadoCcomplejoService.actualizarEncargadoComplejo(encargadoComplejoDto));
@@ -77,7 +77,7 @@ public class encargadoComplejoController {
     }
     @Operation(summary = "Eliminar Encargado por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Encargados','ANULAR')")
+    @PreAuthorize("@permissions.has('/admin/employees','ANULAR')")
     public Response deleteEmployee(@Parameter(description = "Uuid para eliminar encargado")
                                  @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(encargadoCcomplejoService.delete(uuid));

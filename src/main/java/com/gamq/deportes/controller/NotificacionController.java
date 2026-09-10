@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.NotificacionService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/notificaciones")
 @Tag(name = "Notificaciones", description = "API para notificaciones de usuarios")
@@ -25,6 +28,7 @@ public class NotificacionController {
 
     @Operation(summary = "Buscar notificacion por UUID")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.notification(#p0)")
     public Response buscarPorUuid(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(notificacionService.findByUuid(uuid));
@@ -35,6 +39,7 @@ public class NotificacionController {
 
     @Operation(summary = "Obtener notificaciones por usuario")
     @GetMapping("/usuario/{usuarioUuid}")
+    @PreAuthorize("@permissions.self(#p0)")
     public Response obtenerPorUsuario(
             @PathVariable("usuarioUuid") String usuarioUuid,
             @Parameter(description = "Numero de pagina") @RequestParam(defaultValue = "0") int page,
@@ -54,6 +59,7 @@ public class NotificacionController {
 
     @Operation(summary = "Obtener notificaciones no leidas por usuario")
     @GetMapping("/usuario/{usuarioUuid}/no-leidas")
+    @PreAuthorize("@permissions.self(#p0)")
     public Response obtenerNoLeidas(@PathVariable("usuarioUuid") String usuarioUuid) {
         try {
             return Response.ok().setPayload(notificacionService.obtenerNoLeidas(usuarioUuid));
@@ -64,6 +70,7 @@ public class NotificacionController {
 
     @Operation(summary = "Contar notificaciones no leidas por usuario")
     @GetMapping("/usuario/{usuarioUuid}/contador-no-leidas")
+    @PreAuthorize("@permissions.self(#p0)")
     public Response contarNoLeidas(@PathVariable("usuarioUuid") String usuarioUuid) {
         try {
             return Response.ok().setPayload(notificacionService.contarNoLeidas(usuarioUuid));
@@ -74,6 +81,7 @@ public class NotificacionController {
 
     @Operation(summary = "Sincronizar notificaciones administrativas recientes")
     @PostMapping("/admin/sincronizar/{usuarioUuid}")
+    @PreAuthorize("@permissions.self(#p0) and @permissions.admin()")
     public Response sincronizarNotificacionesAdmin(@PathVariable("usuarioUuid") String usuarioUuid) {
         try {
             return Response.ok().setPayload(notificacionService.sincronizarNotificacionesAdmin(usuarioUuid));
@@ -84,6 +92,7 @@ public class NotificacionController {
 
     @Operation(summary = "Marcar notificacion como leida")
     @PatchMapping("/{uuid}/leer")
+    @PreAuthorize("@permissions.notification(#p0)")
     public Response marcarComoLeida(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(notificacionService.marcarComoLeida(uuid));
@@ -94,6 +103,7 @@ public class NotificacionController {
 
     @Operation(summary = "Marcar todas las notificaciones del usuario como leidas")
     @PatchMapping("/usuario/{usuarioUuid}/leer-todas")
+    @PreAuthorize("@permissions.self(#p0)")
     public Response marcarTodasComoLeidas(@PathVariable("usuarioUuid") String usuarioUuid) {
         try {
             return Response.ok().setPayload(notificacionService.marcarTodasComoLeidas(usuarioUuid));
@@ -104,6 +114,7 @@ public class NotificacionController {
 
     @Operation(summary = "Eliminar notificacion")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.notification(#p0)")
     public Response eliminarNotificacion(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(notificacionService.eliminarNotificacion(uuid));

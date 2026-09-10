@@ -22,7 +22,7 @@ public class complejoController {
     private ComplejoService complejoService;
     @Operation(summary = "Listar Complejos")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Complejos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/admin/facilities')")
     public Response obtenercomplejos() {
         try{
             List<ComplejoDeportivoDto> complejoDtos =  complejoService.obtenerComplejos();
@@ -33,7 +33,7 @@ public class complejoController {
     }
     @Operation(summary = "Buscar Complejo por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Complejos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/admin/facilities')")
     public Response buscarcomplejoPorUuid( @PathVariable("uuid") String uuidcomplejo) {
         try{
             ComplejoDeportivoDto complejoDto = complejoService.findByUuid(uuidcomplejo);
@@ -44,7 +44,7 @@ public class complejoController {
     }
     @Operation(summary = "Crear Complejo")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Complejos Deportivos','CREAR')")
+    @PreAuthorize("@permissions.has('/admin/facilities','CREAR')")
     public Response crearcomplejo(@RequestBody ComplejoDeportivoDto complejoDto) {
         try{
             return Response.ok().setPayload(complejoService.crearComplejo(complejoDto));
@@ -54,7 +54,7 @@ public class complejoController {
     }
     @Operation(summary = "Actualizar Complejo")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Complejos Deportivos','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/admin/facilities','ACTUALIZAR')")
     public Response actualizarcomplejo(@RequestBody ComplejoDeportivoDto complejoDto) {
         try{
             return Response.ok().setPayload(complejoService.actualizarComplejo(complejoDto));
@@ -64,7 +64,7 @@ public class complejoController {
     }
     @Operation(summary = "Borrar Complejo por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Complejos Deportivos','ANULAR')")
+    @PreAuthorize("@permissions.has('/admin/facilities','ANULAR')")
     public Response deleteComplex(@Parameter(description = "Uuid para eliminar complejo")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(complejoService.eliminarComplejo(uuid));

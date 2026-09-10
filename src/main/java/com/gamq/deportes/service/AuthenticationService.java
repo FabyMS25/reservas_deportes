@@ -33,6 +33,7 @@ public class AuthenticationService {
     private final String applicationName;
     private final String adminMenu;
     private final TaxpayerMenuService taxpayerMenus;
+    private final PermissionCatalog permissionCatalog;
 
     public AuthenticationService(RestTemplate restTemplate, ObjectMapper objectMapper,
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
@@ -41,7 +42,7 @@ public class AuthenticationService {
             @Value("${deportes.application.code}") String applicationCode,
             @Value("${deportes.application.name}") String applicationName,
             @Value("${deportes.application.admin-menu}") String adminMenu,
-            TaxpayerMenuService taxpayerMenus) {
+            TaxpayerMenuService taxpayerMenus, PermissionCatalog permissionCatalog) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.taxpayerService = taxpayerService;
@@ -53,6 +54,7 @@ public class AuthenticationService {
         this.applicationName = applicationName;
         this.adminMenu = adminMenu;
         this.taxpayerMenus = taxpayerMenus;
+        this.permissionCatalog = permissionCatalog;
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) {
@@ -101,16 +103,23 @@ public class AuthenticationService {
             throw new AuthenticationFailure("NO_PERMISSIONS", "No tiene permisos para acceder a este módulo");
 
         boolean admin = containsMenu(permissions, adminMenu);
-        EncargadoComplejoDto assignment = admin ? null : staffAssignmentService.findByUserUuid(userUuid);
+        EncargadoComplejoDto assignment = null;
+        if (!admin) {
+            try { assignment = staffAssignmentService.findByUserUuid(userUuid); }
+            catch (com.gamq.deportes.exception.NotFoundException ex) {
+                throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene asignación como encargado o staff");
+            }
+        }
         if (!admin && (assignment == null || assignment.getComplejoDto() == null))
             throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene asignación como encargado o staff");
 
         // Never expose the Usuarios token to the browser.
         String usuariosToken = externalUser.path("token").asText();
         usuariosSessions.put(userUuid, usuariosToken);
+        usuariosSessions.putPerson(userUuid, externalUser.path("designacion").path("personaDto").path("uuid").asText(""));
         ((com.fasterxml.jackson.databind.node.ObjectNode) externalUser).remove("token");
         String token = tokenService.create(userUuid, "STAFF", admin,
-                PermissionCatalog.fromMenu(permissions, applicationCode, applicationName));
+                permissionCatalog.fromMenu(permissions, applicationCode, applicationName));
         return new AuthenticationResponse(token, externalUser, permissions, assignment, admin, "STAFF");
     }
 
@@ -124,7 +133,7 @@ public class AuthenticationService {
                     && !taxpayer.getOrganizacionesRepresentadas().isEmpty();
             ArrayNode menu = taxpayerMenus.forRepresentative(representative);
             String token = tokenService.create(taxpayer.getUuid(), "TAXPAYER", false,
-                    PermissionCatalog.fromMenu(menu, applicationCode, applicationName));
+                    permissionCatalog.fromMenu(menu, applicationCode, applicationName));
             return new AuthenticationResponse(token, taxpayer, menu, null, false, "TAXPAYER");
         } catch (Exception ex) {
             throw new AuthenticationFailure("BAD_CREDENTIALS", "Usuario o contraseña incorrectos");

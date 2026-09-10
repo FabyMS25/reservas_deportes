@@ -22,7 +22,7 @@ public class CategoriaController {
     private CategoriaService categoriaService;
     @Operation(summary = "Listar las Categorias")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Categorias')")
+    @PreAuthorize("@permissions.lookup('/admin/categories')")
     public Response obtenerCategorias() {
         try{
             List<CategoriaDeportivaDto> CategoriaDtos =  categoriaService.obtenerCategorias();
@@ -33,7 +33,7 @@ public class CategoriaController {
     }
     @Operation(summary = "Categoria por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Categorias')")
+    @PreAuthorize("@permissions.lookup('/admin/categories')")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
             CategoriaDeportivaDto CategoriaDto = categoriaService.findByUuid(uuidCategoria);
@@ -44,7 +44,7 @@ public class CategoriaController {
     }
     @Operation(summary = "Crear Categoria")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Categorias','CREAR')")
+    @PreAuthorize("@permissions.has('/admin/categories','CREAR')")
     public Response crearCategoria(@RequestBody CategoriaDeportivaDto CategoriaDto) {
         try{
             return Response.ok().setPayload(categoriaService.crearCategoria(CategoriaDto));
@@ -54,7 +54,7 @@ public class CategoriaController {
     }
     @Operation(summary = "Actualizar Categoria")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Categorias','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/admin/categories','ACTUALIZAR')")
     public Response actualizarCategoria(@RequestBody CategoriaDeportivaDto CategoriaDto) {
         try{
             return Response.ok().setPayload(categoriaService.actualizarCategoria(CategoriaDto));
@@ -64,7 +64,7 @@ public class CategoriaController {
     }
     @Operation(summary = "Eliminar Categoria por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Categorias','ANULAR')")
+    @PreAuthorize("@permissions.has('/admin/categories','ANULAR')")
     public Response deleteCategory(@Parameter(description = "Uuid para eliminar categoria")
                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(categoriaService.delete(uuid));

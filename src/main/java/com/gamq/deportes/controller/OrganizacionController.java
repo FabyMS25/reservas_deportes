@@ -1,5 +1,7 @@
 package com.gamq.deportes.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.OrganizacionDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.OrganizacionService;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/organizaciones")
 @Tag(name = "Organizaciones", description = "API para gestión de organizaciones")
@@ -24,6 +27,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Obtener todas las organizaciones")
     @GetMapping()
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response obtenerOrganizaciones(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size) {
@@ -43,6 +47,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organización por UUID")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionPorUuid(
             @Parameter(description = "UUID de la organización")
             @PathVariable("uuid") String uuid) {
@@ -56,6 +61,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organización por NIT")
     @GetMapping("/nit/{nroNit}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionPorNit(
             @Parameter(description = "Número de NIT")
             @PathVariable("nroNit") String nroNit) {
@@ -69,6 +75,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organización por email")
     @GetMapping("/email/{email}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionPorEmail(
             @Parameter(description = "Email de la organización")
             @PathVariable("email") String email) {
@@ -82,6 +89,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organizaciones por nombre")
     @GetMapping("/nombre/{nombre}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionesPorNombre(
             @Parameter(description = "Nombre o parte del nombre")
             @PathVariable("nombre") String nombre) {
@@ -95,6 +103,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organizaciones por tipo")
     @GetMapping("/tipo/{tipoOrganizacion}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionesPorTipo(
             @Parameter(description = "Tipo de organización")
             @PathVariable("tipoOrganizacion") String tipoOrganizacion) {
@@ -108,6 +117,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organizaciones por estado activo")
     @GetMapping("/activas/{activo}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response buscarOrganizacionesPorActivo(
             @Parameter(description = "Estado activo (true/false)")
             @PathVariable("activo") Boolean activo) {
@@ -121,6 +131,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Buscar organizaciones por representante")
     @GetMapping("/representante/{representanteUuid}")
+    @PreAuthorize("@permissions.organizationLookup() and (@permissions.staff() or @permissions.self(#p0))")
     public Response buscarOrganizacionesPorRepresentante(
             @Parameter(description = "UUID del representante")
             @PathVariable("representanteUuid") String representanteUuid) {
@@ -147,6 +158,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Verificar si existe organización por email")
     @GetMapping("/existe/email/{email}")
+    @PreAuthorize("@permissions.organizationLookup()")
     public Response verificarExistenciaPorEmail(
             @Parameter(description = "Email de la organización")
             @PathVariable("email") String email) {
@@ -160,6 +172,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Crear nueva organización")
     @PostMapping()
+    @PreAuthorize("@permissions.has('/organizations','CREAR')")
     public Response crearOrganizacion(@RequestBody OrganizacionDto organizacionDto) {
         try {
             OrganizacionDto nuevaOrganizacion = organizacionService.crearOrganizacion(organizacionDto);
@@ -171,6 +184,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Actualizar organización existente")
     @PutMapping()
+    @PreAuthorize("@permissions.has('/organizations','ACTUALIZAR')")
     public Response actualizarOrganizacion(@RequestBody OrganizacionDto organizacionDto) {
         try {
             OrganizacionDto organizacionActualizada = organizacionService.actualizarOrganizacion(organizacionDto);
@@ -182,6 +196,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Activar organización")
     @PutMapping("/{uuid}/activar")
+    @PreAuthorize("@permissions.has('/organizations','ACTUALIZAR')")
     public Response activarOrganizacion(
             @Parameter(description = "UUID de la organización")
             @PathVariable("uuid") String uuid) {
@@ -195,6 +210,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Desactivar organización")
     @PutMapping("/{uuid}/desactivar")
+    @PreAuthorize("@permissions.has('/organizations','ANULAR')")
     public Response desactivarOrganizacion(
             @Parameter(description = "UUID de la organización")
             @PathVariable("uuid") String uuid) {
@@ -208,6 +224,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Eliminar organización")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.has('/organizations','ANULAR')")
     public Response eliminarOrganizacion(
             @Parameter(description = "UUID de la organización")
             @PathVariable("uuid") String uuid) {
@@ -247,6 +264,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Obtener estadísticas por tipo de organización")
     @GetMapping("/estadisticas/tipo")
+    @PreAuthorize("@permissions.has('/organizations','VER')")
     public Response obtenerEstadisticasPorTipo() {
         try {
             List<Object[]> estadisticas = organizacionService.getEstadisticasPorTipo();
@@ -258,6 +276,7 @@ public class OrganizacionController {
 
     @Operation(summary = "Obtener estadísticas por estado activo")
     @GetMapping("/estadisticas/activo")
+    @PreAuthorize("@permissions.has('/organizations','VER')")
     public Response obtenerEstadisticasPorActivo() {
         try {
             List<Object[]> estadisticas = organizacionService.getEstadisticasPorActivo();

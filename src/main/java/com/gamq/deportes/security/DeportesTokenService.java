@@ -44,6 +44,7 @@ public class DeportesTokenService {
         payload.put("iat", now);
         payload.put("exp", now + expirationSeconds);
         payload.put("permissions", permissions);
+        payload.put("permissionVersion", 2);
         try {
             String header = encode(objectMapper.writeValueAsBytes(Map.of("alg", "HS256", "typ", "JWT")));
             String body = encode(objectMapper.writeValueAsBytes(payload));
@@ -63,6 +64,11 @@ public class DeportesTokenService {
                 throw new IllegalArgumentException("Invalid signature");
             Map<String, Object> claims = objectMapper.readValue(Base64.getUrlDecoder().decode(parts[1]),
                     new TypeReference<Map<String, Object>>() {});
+            if (!Integer.valueOf(2).equals(claims.get("permissionVersion")))
+                throw new IllegalArgumentException("Inicie sesión nuevamente para actualizar sus permisos");
+            if (!(claims.get("sub") instanceof String) || ((String) claims.get("sub")).isBlank()
+                    || !("STAFF".equals(claims.get("userType")) || "TAXPAYER".equals(claims.get("userType"))))
+                throw new IllegalArgumentException("Invalid identity");
             if (((Number) claims.get("exp")).longValue() <= Instant.now().getEpochSecond())
                 throw new IllegalArgumentException("Expired token");
             return new DeportesPrincipal(String.valueOf(claims.get("sub")),

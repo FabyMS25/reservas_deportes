@@ -30,7 +30,7 @@ public class TarifasCategoriaController {
 
     @Operation(summary = "Obtener Tarifas Categorias")
     @GetMapping()
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response obtenerTarifaCategorias() {
         try{
             List<TarifaCategoriaDto> TarifaCategoriaDtos =  tarifaCategoriaService.obtenerTarifaCategorias();
@@ -41,7 +41,7 @@ public class TarifasCategoriaController {
     }
     @Operation(summary = "Obtener Tarifa Categoria por uuid")
     @GetMapping("/{uuid}")
-    @PreAuthorize("@permissions.lookup('Campos Deportivos')")
+    @PreAuthorize("@permissions.lookup('/settings/fields')")
     public Response buscarCategoriaPorUuid( @PathVariable("uuid") String uuidCategoria) {
         try{
             TarifaCategoriaDto TarifaCategoriaDto = tarifaCategoriaService.findByUuid(uuidCategoria);
@@ -52,7 +52,7 @@ public class TarifasCategoriaController {
     }
     @Operation(summary = "Crear Tarifa Categoria")
     @PostMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','CREAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','CREAR')")
     public Response crearCategoria(@RequestBody TarifaCategoriaDto TarifaCategoriaDto) {
         try{
             return Response.ok().setPayload(tarifaCategoriaService.crearTarifaCategoria(TarifaCategoriaDto));
@@ -62,7 +62,7 @@ public class TarifasCategoriaController {
     }
     @Operation(summary = "Actualizar Tarifa Categoria")
     @PutMapping()
-    @PreAuthorize("@permissions.has('Campos Deportivos','ACTUALIZAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ACTUALIZAR')")
     public Response actualizarCategoria(@RequestBody TarifaCategoriaDto TarifaCategoriaDto) {
         try{
             return Response.ok().setPayload(tarifaCategoriaService.actualizarTarifaCategoria(TarifaCategoriaDto));
@@ -72,7 +72,7 @@ public class TarifasCategoriaController {
     }
     @Operation(summary = "Borrar Tarifa Categoria por uuid")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('Campos Deportivos','ANULAR')")
+    @PreAuthorize("@permissions.has('/settings/fields','ANULAR')")
     public Response deleteTarifaCategory(@Parameter(description = "Uuid para eliminar relacion tarida categoria")
                                                 @PathVariable("uuid") String uuid) {
         return Response.ok().setPayload(tarifaCategoriaService.delete(uuid));

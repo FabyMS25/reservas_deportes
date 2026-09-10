@@ -1,6 +1,8 @@
 package com.gamq.deportes.controller;
 
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ReservaService;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@PreAuthorize("denyAll()")
 @RestController
 @RequestMapping("/api/reservas")
 @Tag(name = "Reservas", description = "API para Reservas en Global")
@@ -33,6 +36,7 @@ public class ReservaController {
 
     @Operation(summary = "Obtener todas las reservas")
     @GetMapping
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response obtenerReservas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -66,6 +70,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reserva por UUID")
     @GetMapping("/{uuid}")
+    @PreAuthorize("@permissions.reservation('VER',#p0)")
     public Response buscarReservaPorUuid(@Parameter(description = "UUID de la reserva")
                                          @PathVariable("uuid") String uuid) {
         try {
@@ -78,6 +83,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reserva por número de reserva")
     @GetMapping("/numero/{numeroReserva}")
+    @PreAuthorize("@permissions.reservationNumber('VER',#p0)")
     public Response buscarReservaPorNumero(@Parameter(description = "Número de reserva")
                                            @PathVariable("numeroReserva") String numeroReserva) {
         try {
@@ -90,6 +96,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas por rango de fechas")
     @GetMapping("/fechas")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response buscarPorFechaReserva(
             @Parameter(description = "Fecha inicial (formato: yyyy-MM-dd HH:mm)")
             @RequestParam(name = "fechaIni") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") LocalDateTime fechaIni,
@@ -113,6 +120,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas por campo deportivo")
     @GetMapping("/campo/{uuidCampo}")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response buscarReservasPorCampoDeportivo(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("uuidCampo") String uuidCampo) {
@@ -126,6 +134,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas por contribuyente")
     @GetMapping("/contribuyente/{uuidContribuyente}")
+    @PreAuthorize("@permissions.anyReservation('VER') and (@permissions.staff() or @permissions.self(#p0))")
     public Response buscarReservasPorContribuyente(
             @Parameter(description = "UUID del contribuyente")
             @PathVariable("uuidContribuyente") String uuidContribuyente) {
@@ -139,6 +148,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas por estado")
     @GetMapping("/estado/{estadoReserva}")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response buscarReservasPorEstado(
             @Parameter(description = "Estado de la reserva")
             @PathVariable("estadoReserva") String estadoReserva) {
@@ -152,6 +162,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas por tipo")
     @GetMapping("/tipo/{tipoReserva}")
+    @PreAuthorize("@permissions.reservationType('VER',#p0)")
     public Response buscarReservasPorTipo(
             @Parameter(description = "Tipo de reserva")
             @PathVariable("tipoReserva") String tipoReserva) {
@@ -165,6 +176,7 @@ public class ReservaController {
 
     @Operation(summary = "Buscar reservas activas por campo y fecha")
     @GetMapping("/activas/campo/{uuidCampo}")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response buscarReservasActivasPorCampoYFecha(
             @Parameter(description = "UUID del campo deportivo")
             @PathVariable("uuidCampo") String uuidCampo,
@@ -182,6 +194,7 @@ public class ReservaController {
 
     @Operation(summary = "Previsualizar próximo número de reserva")
     @GetMapping("/numero-reserva/preview")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response previsualizarNumeroReserva(
             @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
             @RequestParam String tipo) {
@@ -197,6 +210,7 @@ public class ReservaController {
 
     @Operation(summary = "Generar próximo número de reserva disponible")
     @GetMapping("/numero-reserva/generar")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response generarNumeroReserva(
             @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
             @RequestParam String tipo) {
@@ -212,6 +226,7 @@ public class ReservaController {
 
     @Operation(summary = "Validar número de reserva personalizado")
     @PostMapping("/numero-reserva/validar")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response validarNumeroReservaPersonalizado(
             @Parameter(description = "Número de reserva a validar")
             @RequestBody Map<String, String> request) {
@@ -248,6 +263,7 @@ public class ReservaController {
 
     @Operation(summary = "Verificar disponibilidad de número de reserva")
     @GetMapping("/numero-reserva/verificar/{numeroReserva}")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response verificarDisponibilidadNumeroReserva(
             @Parameter(description = "Número de reserva a verificar")
             @PathVariable String numeroReserva) {
@@ -272,6 +288,7 @@ public class ReservaController {
 
     @Operation(summary = "Verificar conflictos de reserva")
     @GetMapping("/conflictos")
+    @PreAuthorize("@permissions.anyReservation('VER')")
     public Response verificarConflictosReserva(
             @Parameter(description = "UUID del campo deportivo")
             @RequestParam String uuidCampo,
@@ -291,6 +308,7 @@ public class ReservaController {
 
     @Operation(summary = "Crear nueva reserva")
     @PostMapping()
+    @PreAuthorize("@permissions.reservationBody('CREAR',#p0)")
     public Response crearReserva(@RequestBody ReservaDto reservaDto) {
         try {
             ReservaDto nuevaReserva = reservaService.crearReserva(reservaDto);
@@ -302,6 +320,7 @@ public class ReservaController {
 
     @Operation(summary = "Actualizar reserva existente")
     @PutMapping()
+    @PreAuthorize("@permissions.reservationBody('ACTUALIZAR',#p0)")
     public Response actualizarReserva(@RequestBody ReservaDto reservaDto) {
         try {
             ReservaDto reservaActualizada = reservaService.actualizarReserva(reservaDto);
@@ -313,6 +332,7 @@ public class ReservaController {
 
     @Operation(summary = "Aprobar reserva")
     @PutMapping("/{uuid}/aprobar")
+    @PreAuthorize("@permissions.reservation('VALIDAR',#p0)")
     public Response aprobarReserva(
             @Parameter(description = "UUID de la reserva")
             @PathVariable("uuid") String uuid,
@@ -328,6 +348,7 @@ public class ReservaController {
 
     @Operation(summary = "Rechazar reserva")
     @PutMapping("/{uuid}/rechazar")
+    @PreAuthorize("@permissions.reservation('VALIDAR',#p0)")
     public Response rechazarReserva(
             @Parameter(description = "UUID de la reserva")
             @PathVariable("uuid") String uuid,
@@ -345,6 +366,7 @@ public class ReservaController {
 
     @Operation(summary = "Cancelar reserva")
     @PutMapping("/{uuid}/cancelar")
+    @PreAuthorize("@permissions.reservation('ANULAR',#p0)")
     public Response cancelarReserva(
             @Parameter(description = "UUID de la reserva")
             @PathVariable("uuid") String uuid,
@@ -362,6 +384,7 @@ public class ReservaController {
 
     @Operation(summary = "Eliminar reserva")
     @DeleteMapping("/{uuid}")
+    @PreAuthorize("@permissions.reservation('ANULAR',#p0)")
     public Response eliminarReserva(@Parameter(description = "UUID de la reserva")
                                     @PathVariable("uuid") String uuid) {
         try {

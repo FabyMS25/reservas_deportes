@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Checks the server-signed snapshot, never the browser's menu. No Usuarios calls. */
 @Component("permissions")
-@Transactional(readOnly = true)
 public class PermissionAuthorizationService {
     private final ReservaRepository reservations;
     private final ReservaPuntualRepository punctual;
@@ -50,31 +49,41 @@ public class PermissionAuthorizationService {
     public boolean admin() { return staff() && principal().isAdmin(); }
     public boolean self(String uuid) { return principal() != null && principal().getSubject().equals(uuid); }
 
-    public boolean anyReservation(String action) {
-        return has("Reservas Puntuales", action) || has("Reservas Recurrentes", action)
-                || has("Escuelas Municipales", action);
+    public boolean organizationLookup() {
+        return has("/organizations", "VER") || has("/students", "VER") || anyReservation("CREAR");
     }
+
+    public boolean anyReservation(String action) {
+        return has("/reservations/one-time", action) || has("/reservations/recurrent", action)
+                || has("/reservations/schools", action);
+    }
+
+    public boolean reservationType(String action, String type) { return has(moduleForType(type), action); }
 
     /** Shared lookup data is needed by booking forms even without the administration menu. */
     public boolean lookup(String module) {
         return has(module, "VER") || anyReservation("VER") || anyReservation("CREAR")
-                || has("Mapa", "VER") || has("Calendario", "VER");
+                || has("/inicio/taxpayer", "VER") || has("/inicio/employee", "VER");
     }
 
+    @Transactional(readOnly = true)
     public boolean reservation(String action, String uuid) {
         return uuid != null && reservations.findByUuid(uuid).map(r -> allowedReservation(action, r)).orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public boolean reservationNumber(String action, String number) {
         return number != null && reservations.findByNumeroReserva(number)
                 .map(r -> allowedReservation(action, r)).orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public boolean reservationBody(String action, ReservaDto dto) {
         if (dto == null) return false;
+        Reserva original = null;
         if (!"CREAR".equals(action)) {
             if (!reservation(action, dto.getUuid())) return false;
-            Reserva original = reservations.findByUuid(dto.getUuid()).orElse(null);
+            original = reservations.findByUuid(dto.getUuid()).orElse(null);
             // A payload cannot switch to another reservation type to bypass its action policy.
             if (original == null || (dto.getTipoReserva() != null
                     && !dto.getTipoReserva().equalsIgnoreCase(original.getTipoReserva()))) return false;
@@ -83,18 +92,23 @@ public class PermissionAuthorizationService {
         if (type == null && dto.getUuid() != null)
             type = reservations.findByUuid(dto.getUuid()).map(Reserva::getTipoReserva).orElse(null);
         if (!has(moduleForType(type), action)) return false;
-        if (Boolean.FALSE.equals(dto.getCancelacionAutomatica())
-                && !has("Reservas Recurrentes", "CREAR-POSTPAGO")) return false;
+        if ("recurrente".equalsIgnoreCase(type) && !dto.isEsReservaGratuita()
+                && Boolean.FALSE.equals(dto.getCancelacionAutomatica())
+                && (original == null || !Boolean.FALSE.equals(original.getCancelacionAutomatica()))
+                && !has("/reservations/recurrent", "CREAR-POSTPAGO")) return false;
         if (staff()) return dto.getCampoDeportivoDto() == null
                 ? !"CREAR".equals(action) : fieldScope(dto.getCampoDeportivoDto().getUuid());
         // Existing owner and destination ownership must both pass.
-        boolean own = dto.getContribuyenteDto() != null && self(dto.getContribuyenteDto().getUuid());
-        boolean representative = dto.getOrganizacionDto() != null && represents(dto.getOrganizacionDto().getUuid());
+        boolean own = dto.getContribuyenteDto() != null ? self(dto.getContribuyenteDto().getUuid())
+                : original != null && original.getContribuyente() != null && self(original.getContribuyente().getUuid());
+        boolean representative = dto.getOrganizacionDto() != null ? represents(dto.getOrganizacionDto().getUuid())
+                : original != null && original.getOrganizacion() != null && represents(original.getOrganizacion().getUuid());
         if ("periodo".equalsIgnoreCase(type) && ("CREAR".equals(action) || "ACTUALIZAR".equals(action)))
             return representative;
         return own || representative;
     }
 
+    @Transactional(readOnly = true)
     public boolean child(String kind, String action, String uuid) {
         if (uuid == null) return false;
         switch (kind) {
@@ -107,6 +121,7 @@ public class PermissionAuthorizationService {
         }
     }
 
+    @Transactional(readOnly = true)
     public boolean childBody(String kind, String action, Object body) {
         ReservaDto reservation = null; String uuid = null;
         if (body instanceof ReservaPuntualDto) { reservation = ((ReservaPuntualDto) body).getReservaDto(); uuid = ((ReservaPuntualDto) body).getUuid(); }
@@ -116,12 +131,48 @@ public class PermissionAuthorizationService {
         if (body instanceof PagoDto) { reservation = ((PagoDto) body).getReservaDto(); uuid = ((PagoDto) body).getUuid(); }
         if (!"CREAR".equals(action) && !child(kind, action, uuid)) return false;
         // Child writes attach to an existing reservation: check its real type and owner.
-        return reservation != null && reservation(action, reservation.getUuid());
+        if (reservation == null) return !"CREAR".equals(action);
+        return reservation(action, reservation.getUuid()) && reservations.findByUuid(reservation.getUuid())
+                .map(r -> "detalle".equals(kind) || "pago".equals(kind) || kind.equalsIgnoreCase(r.getTipoReserva()))
+                .orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public boolean represents(String organizationUuid) {
         return principal() != null && organizationUuid != null && organizations.findByUuid(organizationUuid)
                 .map(o -> o.tieneRepresentante(principal().getSubject())).orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean punctualUpdate(ReservaPuntualDto dto) {
+        if (dto == null) return false;
+        if (childBody("puntual", "ACTUALIZAR", dto)) return true;
+        if (!child("puntual", "CAMBIAR-HORARIO", dto.getUuid())) return false;
+        return punctual.findByUuid(dto.getUuid()).map(r ->
+                java.util.Objects.equals(r.getCantidadPersonas(), dto.getCantidadPersonas())
+                && java.util.Objects.equals(r.getPrecioBaseAplicado(), dto.getPrecioBaseAplicado())
+                && java.util.Objects.equals(r.getCategoria(), dto.getCategoria())
+                && java.util.Objects.equals(r.getSuperficie(), dto.getSuperficie())
+                && java.util.Objects.equals(r.getPeriodo(), dto.getPeriodo())
+                && java.util.Objects.equals(r.getObservaciones(), dto.getObservaciones())
+                && java.util.Objects.equals(r.getFechaUsoReal(), dto.getFechaUsoReal())
+                && (dto.getReservaDto() == null || r.getReserva().getUuid().equals(dto.getReservaDto().getUuid())))
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean ruatRate(String action, String number) {
+        return number != null && reservations.findByNumeroTasa(number)
+                .map(r -> allowedReservation(action, r)).orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean ticket(String kind, String uuid) {
+        if (uuid == null) return false;
+        java.util.Optional<Reserva> direct = reservations.findByUuid(uuid);
+        if (direct.isPresent()) return kind.equalsIgnoreCase(direct.get().getTipoReserva())
+                && allowedReservation("GENERAR TICKET", direct.get());
+        return child(kind, "GENERAR TICKET", uuid);
     }
 
     private boolean allowedReservation(String action, Reserva r) {
@@ -133,6 +184,7 @@ public class PermissionAuthorizationService {
         return representative || (r.getContribuyente() != null && self(r.getContribuyente().getUuid()));
     }
 
+    @Transactional(readOnly = true)
     public boolean fieldScope(String uuid) {
         if (admin()) return true;
         if (!staff() || uuid == null) return false;
@@ -142,16 +194,24 @@ public class PermissionAuthorizationService {
                         && a.getComplejo().getUuid().equals(f.getComplejo().getUuid())).orElse(false)).orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public boolean notification(String uuid) {
         return uuid != null && notifications.findByUuid(uuid).map(n -> self(n.getUsuarioUuid())).orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean board(String action, String uuid) {
+        if (uuid == null) return false;
+        java.util.List<ReservaRecurrente> linked = recurrent.findByTableroUuid(uuid);
+        return !linked.isEmpty() && linked.stream().allMatch(r -> allowedReservation(action, r.getReserva()));
     }
 
     public static String moduleForType(String type) {
         if (type == null) return "";
         switch (type.toLowerCase(java.util.Locale.ROOT)) {
-            case "puntual": return "Reservas Puntuales";
-            case "recurrente": return "Reservas Recurrentes";
-            case "periodo": return "Escuelas Municipales";
+            case "puntual": return "/reservations/one-time";
+            case "recurrente": return "/reservations/recurrent";
+            case "periodo": return "/reservations/schools";
             default: return "";
         }
     }

@@ -31,6 +31,8 @@ import static com.gamq.deportes.exception.enums.EntityType.ORGANIZACION;
 
 @Component
 public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
+    @Autowired
+    private com.gamq.deportes.security.PermissionAuthorizationService permissions;
 
     @Autowired
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
@@ -163,6 +165,11 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
 
             if (estudianteOptional.isPresent()) {
                 EstudianteEscuela estudianteExistente = estudianteOptional.get();
+                if (estudianteDto.getActivo() != null
+                        && !java.util.Objects.equals(estudianteDto.getActivo(), estudianteExistente.getActivo())
+                        && !permissions.has("/students", Boolean.TRUE.equals(estudianteDto.getActivo()) ? "HABILITAR" : "DAR DE BAJA")) {
+                    throw new org.springframework.security.access.AccessDeniedException("No tiene permiso para cambiar el estado de la inscripción");
+                }
                 validarPuedeActualizarInscripcion(estudianteExistente, estudianteDto);
                 EstudianteEscuelaMapper.updateEntityFromDto(estudianteDto, estudianteExistente);
 
