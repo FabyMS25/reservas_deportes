@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class RegistroRequest {
 
-    private String codigoAlcaldia;
     private String codigoUsuario;
     private String numeroDocumento;
     private String tipoDocumento;

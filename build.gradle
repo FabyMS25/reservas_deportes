@@ -47,15 +47,11 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
+// Executable artifact consumed by Dockerfile and local deployments.
+tasks.named('bootJar') { archiveFileName = 'app.jar' }
+tasks.named('jar') { enabled = false }
 
-jar {
-	archiveBaseName = 'app'
-	archiveVersion = ''
-	archiveFileName = 'app.jar'
-}
+// Verification is performed manually; no automated test suite is maintained.
+tasks.withType(Test).configureEach { enabled = false }

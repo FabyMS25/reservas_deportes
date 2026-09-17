@@ -15,6 +15,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, DeportesTokenFilter tokenFilter) throws Exception {
+        // Browser login is handled by Angular and /api/auth/login, never an HTTP challenge.
+        http.httpBasic().disable();
+        http.formLogin().disable();
+        http.requestCache().disable();
         http.cors().and().csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .exceptionHandling().authenticationEntryPoint((request, response, exception) -> {

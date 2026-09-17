@@ -34,6 +34,7 @@ public class AuthenticationService {
     private final String adminMenu;
     private final TaxpayerMenuService taxpayerMenus;
     private final PermissionCatalog permissionCatalog;
+    private final ApiService ruatService;
 
     public AuthenticationService(RestTemplate restTemplate, ObjectMapper objectMapper,
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
@@ -42,7 +43,8 @@ public class AuthenticationService {
             @Value("${deportes.application.code}") String applicationCode,
             @Value("${deportes.application.name}") String applicationName,
             @Value("${deportes.application.admin-menu}") String adminMenu,
-            TaxpayerMenuService taxpayerMenus, PermissionCatalog permissionCatalog) {
+            TaxpayerMenuService taxpayerMenus, PermissionCatalog permissionCatalog,
+            ApiService ruatService) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.taxpayerService = taxpayerService;
@@ -55,19 +57,46 @@ public class AuthenticationService {
         this.adminMenu = adminMenu;
         this.taxpayerMenus = taxpayerMenus;
         this.permissionCatalog = permissionCatalog;
+        this.ruatService = ruatService;
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) {
         if (request.getUsername() == null || request.getPassword() == null)
             throw new AuthenticationFailure("BAD_CREDENTIALS", "Usuario o contraseña incorrectos");
+        JsonNode availability;
         try {
-            return loginStaff(request);
+            // The gateway guard runs before RUAT authentication in this same request.
+            availability = ruatService.checkRuatAvailability();
+            if (!availability.path("available").isBoolean()) {
+                throw new AuthenticationFailure("CONFIG_ERROR", "No se pudo confirmar la conexión de Deportes con ruat-be.");
+            }
+        } catch (org.springframework.web.client.HttpStatusCodeException ex) {
+            String message = "No se recibió un mensaje válido de ruat-be.";
+            try {
+                JsonNode body = objectMapper.readTree(ex.getResponseBodyAsString());
+                if (body != null && body.path("mensaje").isTextual()
+                        && !body.path("mensaje").asText().isBlank()) {
+                    message = body.path("mensaje").asText();
+                }
+            } catch (com.fasterxml.jackson.core.JsonProcessingException ignored) {
+                // A non-JSON response has no gateway message to forward.
+            }
+            throw new AuthenticationFailure("CONFIG_ERROR", message);
+        } catch (RestClientException | IllegalStateException | IllegalArgumentException ex) {
+            throw new AuthenticationFailure("CONFIG_ERROR", "No se pudo confirmar la conexión de Deportes con ruat-be. Contacte al administrador.");
+        }
+        AuthenticationResponse response;
+        try {
+            response = loginStaff(request);
         } catch (ExternalCredentialsRejected ignored) {
-            return loginTaxpayer(request);
+            response = loginTaxpayer(request);
         } catch (ExternalUnavailable externalUnavailable) {
             // Taxpayer authentication remains available even if Usuarios is temporarily unavailable.
-            return loginTaxpayer(request);
+            response = loginTaxpayer(request);
         }
+        response.setRuatStatus(availability.path("available").asBoolean());
+        response.setRuatMessage(availability.path("mensaje").asText("No se pudo confirmar la autenticación con RUAT."));
+        return response;
     }
 
     private AuthenticationResponse loginStaff(AuthenticationRequest request) {

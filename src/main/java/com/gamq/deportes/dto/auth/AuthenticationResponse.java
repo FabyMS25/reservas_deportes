@@ -1,8 +1,8 @@
 package com.gamq.deportes.dto.auth;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Getter;
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthenticationResponse {
     private final String token;
     private final Object user;
@@ -10,4 +10,6 @@ public class AuthenticationResponse {
     private final Object staff;
     private final boolean admin;
     private final String userType;
+    @lombok.Setter private boolean ruatStatus;
+    @lombok.Setter private String ruatMessage;
 }

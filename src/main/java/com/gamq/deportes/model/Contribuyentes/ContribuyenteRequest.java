@@ -6,7 +6,6 @@ import lombok.Data;
 public class ContribuyenteRequest {
 
 
-       private String codigoAlcaldia;
        private String numeroDocumento;
        private String tipoDocumento;
        private String expedido;

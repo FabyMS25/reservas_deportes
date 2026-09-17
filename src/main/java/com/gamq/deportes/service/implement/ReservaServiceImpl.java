@@ -29,8 +29,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -489,6 +491,26 @@ public class ReservaServiceImpl implements ReservaService {
             Reserva reservaExistente = reservaOptional.get();
             String estadoAnterior = reservaExistente.getEstadoReserva();
             String estadoValidacionAnterior = reservaExistente.getEstadoValidacion();
+
+            if (esActualizacionEstadoSimple(reservaDto)) {
+                reservaExistente.setEstadoReserva(reservaDto.getEstadoReserva());
+                reservaExistente.setFechaActualizacion(
+                        reservaDto.getFechaActualizacion() != null
+                                ? reservaDto.getFechaActualizacion()
+                                : LocalDateTime.now());
+                Reserva reservaActualizada = reservaRepository.save(reservaExistente);
+                registrarAuditoria(
+                        reservaActualizada,
+                        "UPDATE",
+                        estadoAnterior,
+                        reservaActualizada.getEstadoReserva(),
+                        reservaDto.getAprobadoPor(),
+                        "Estado de reserva actualizado",
+                        null
+                );
+                return ReservaMapper.toDto(reservaActualizada);
+            }
+
             ReservaMapper.updateEntityFromDto(reservaDto, reservaExistente);
 
             if (!Objects.equals(estadoValidacionAnterior, reservaExistente.getEstadoValidacion())
@@ -523,8 +545,7 @@ public class ReservaServiceImpl implements ReservaService {
             if ("periodo".equalsIgnoreCase(reservaExistente.getTipoReserva())
                     && reservaDto.getReservasPeriodoDtoList() != null
                     && !reservaDto.getReservasPeriodoDtoList().isEmpty()) {
-                reservaExistente.getReservasPeriodoList().clear();
-                agregarDetallesPeriodo(reservaExistente, reservaDto.getReservasPeriodoDtoList());
+                actualizarDetallesPeriodo(reservaExistente, reservaDto.getReservasPeriodoDtoList());
             }
 
             reservaExistente.setFechaActualizacion(LocalDateTime.now());
@@ -545,6 +566,34 @@ public class ReservaServiceImpl implements ReservaService {
         } else {
             throw new NotFoundException(RESERVA, reservaDto.getUuid());
         }
+    }
+
+    private boolean esActualizacionEstadoSimple(ReservaDto reservaDto) {
+        return reservaDto.getEstadoReserva() != null
+                && reservaDto.getFechaReserva() == null
+                && reservaDto.getFechaLimitePago() == null
+                && reservaDto.getAutorizadoPor() == null
+                && reservaDto.getFechaAprobacion() == null
+                && reservaDto.getFechaRechazo() == null
+                && reservaDto.getMotivoRechazo() == null
+                && reservaDto.getAprobadoPor() == null
+                && reservaDto.getCreadoPor() == null
+                && reservaDto.getAnuladoPor() == null
+                && reservaDto.getEstadoValidacion() == null
+                && reservaDto.getTipoReserva() == null
+                && reservaDto.getNumeroReserva() == null
+                && reservaDto.getNumeroTasa() == null
+                && reservaDto.getMontoTotal() == null
+                && reservaDto.getClasificadorRuatId() == null
+                && reservaDto.getCampoDeportivoDto() == null
+                && reservaDto.getContribuyenteDto() == null
+                && reservaDto.getOrganizacionDto() == null
+                && reservaDto.getTarifaDto() == null
+                && reservaDto.getReservasPeriodoDtoList() == null
+                && reservaDto.getReservaPuntualDto() == null
+                && reservaDto.getReservaRecurrenteDto() == null
+                && reservaDto.getPagosDtoList() == null
+                && reservaDto.getTarifaDetallesDtoList() == null;
     }
 
     @Override
@@ -619,6 +668,9 @@ public class ReservaServiceImpl implements ReservaService {
         String estadoAnterior = reserva.getEstadoReserva();
 
         reserva.setEstadoReserva("CANCELADA");
+        if (reserva.getReservasPeriodoList() != null) {
+            reserva.getReservasPeriodoList().forEach(periodo -> periodo.setEstado(true));
+        }
         reserva.setMotivoRechazo(motivo);
         reserva.setAnuladoPor(anuladoPor);
         reserva.setFechaActualizacion(LocalDateTime.now());
@@ -749,6 +801,29 @@ public class ReservaServiceImpl implements ReservaService {
             periodo.setEstudianteEscuela(inscripcion);
             periodo.setMatricula(inscripcion.getMatricula());
             reserva.getReservasPeriodoList().add(periodo);
+        }
+    }
+
+    private void actualizarDetallesPeriodo(
+            Reserva reserva, List<com.gamq.deportes.dto.ReservaPeriodoDto> detallesDto) {
+        Map<String, ReservaPeriodo> detallesExistentes = reserva.getReservasPeriodoList().stream()
+                .filter(detalle -> detalle.getUuid() != null)
+                .collect(Collectors.toMap(ReservaPeriodo::getUuid, detalle -> detalle, (first, second) -> first));
+        List<com.gamq.deportes.dto.ReservaPeriodoDto> detallesNuevos = new ArrayList<>();
+
+        for (com.gamq.deportes.dto.ReservaPeriodoDto detalleDto : detallesDto) {
+            ReservaPeriodo detalleExistente = detalleDto.getUuid() == null
+                    ? null
+                    : detallesExistentes.get(detalleDto.getUuid());
+            if (detalleExistente != null) {
+                ReservaPeriodoMapper.updateEntityFromDto(detalleDto, detalleExistente);
+            } else {
+                detallesNuevos.add(detalleDto);
+            }
+        }
+
+        if (!detallesNuevos.isEmpty()) {
+            agregarDetallesPeriodo(reserva, detallesNuevos);
         }
     }
 

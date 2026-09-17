@@ -24,7 +24,7 @@ public class DeportesTokenService {
 
     public DeportesTokenService(ObjectMapper objectMapper,
             @Value("${deportes.security.jwt-secret}") String secret,
-            @Value("${deportes.security.token-expiration-seconds:28800}") long expirationSeconds) {
+            @Value("${deportes.security.token-expiration-seconds}") long expirationSeconds) {
         this.objectMapper = objectMapper;
         this.secret = secret.getBytes(StandardCharsets.UTF_8);
         this.expirationSeconds = expirationSeconds;

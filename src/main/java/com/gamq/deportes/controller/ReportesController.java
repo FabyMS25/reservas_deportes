@@ -34,6 +34,7 @@ import java.util.*;
 @RequestMapping("/api/reporte")
 @Tag(name = "Reportes", description = "API para Reportes imprimibles del Sistema")
 public class ReportesController {
+    private static final org.slf4j.Logger applicationLog = org.slf4j.LoggerFactory.getLogger(ReportesController.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
@@ -81,8 +82,7 @@ public class ReportesController {
                 throw new RuntimeException(ex);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            applicationLog.error("Report operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar ticket de reserva puntual.");
         }
     }
@@ -112,10 +112,10 @@ public class ReportesController {
             registrarReporteGenerado(headers, "TICKET_RESERVA_PUNTUAL_PERSONA", "reserva", uuid,
                     "Generó ticket de reserva puntual por persona", "{\"uuid\":\"" + safeValue(uuid) + "\"}");
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            applicationLog.error("Report operation failed", ex);
             sendErrorResponse(response, 500, "Error SQL al generar ticketPuntualperson.");
         } catch (Exception e) {
-            e.printStackTrace();
+            applicationLog.error("Operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar ticketPuntualperson.");
         }
     }
@@ -153,8 +153,7 @@ public class ReportesController {
                 throw new RuntimeException(ex);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            applicationLog.error("Report operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar ticket de reserva puntual por evento.");
         }
     }
@@ -203,7 +202,7 @@ public class ReportesController {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            applicationLog.error("Operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas.");
         }
     }
@@ -249,7 +248,7 @@ public class ReportesController {
                 throw new RuntimeException(ex);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            applicationLog.error("Operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas recurrentes.");
         }
     }
@@ -600,7 +599,7 @@ public class ReportesController {
             response.setContentType("text/plain");
             response.getWriter().write(message);
         } catch (IOException e) {
-            System.err.println("Failed to send error response: " + e.getMessage());
+            applicationLog.warn("{}", "Failed to send error response: " + e.getMessage());
         }
     }
 
@@ -647,7 +646,7 @@ public class ReportesController {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            applicationLog.error("Operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar listado de pagos.");
         }
     }
@@ -696,7 +695,7 @@ public void reporteListaMensuales (
 
         }
     } catch (Exception e) {
-        e.printStackTrace();
+        applicationLog.error("Operation failed", e);
         sendErrorResponse(response, 500, "Error inesperado al generar listado de reservas mensuales.");
     }
 }
@@ -747,7 +746,7 @@ public void reporteListaMensAlumno (
 
         }
     } catch (Exception e) {
-        e.printStackTrace();
+        applicationLog.error("Operation failed", e);
         sendErrorResponse(response, 500, "Error inesperado al generar listado por alumno.");
     }
 }
@@ -785,8 +784,7 @@ public void reporteListaMensAlumno (
 
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getLocalizedMessage());
+            applicationLog.error("Report operation failed", e);
             sendErrorResponse(response, 500, "Error inesperado al generar ticket mensual.");
         }
     }
@@ -807,7 +805,7 @@ public void reporteListaMensAlumno (
             );
         } catch (RuntimeException exception) {
             // El PDF ya fue generado. Un fallo de auditoría no debe invalidar la descarga.
-            System.err.println("No se pudo registrar la auditoría del reporte: " + exception.getMessage());
+            applicationLog.warn("{}", "No se pudo registrar la auditoría del reporte: " + exception.getMessage());
         }
     }
 

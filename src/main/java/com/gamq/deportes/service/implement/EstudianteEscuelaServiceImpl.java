@@ -338,9 +338,9 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
         if (contribuyenteUuid == null) return;
         boolean esResponsable = responsable != null && contribuyenteUuid.equals(responsable.getUuid());
         boolean gestionaEscuela = representaOrganizacion(organizacion, contribuyenteUuid);
-        if (!esResponsable && !gestionaEscuela) {
+        if (!esResponsable || !gestionaEscuela) {
             throw new IllegalArgumentException(
-                    "Solo puede inscribir estudiantes bajo su responsabilidad o de escuelas que representa");
+                    "Solo puede inscribir estudiantes bajo su responsabilidad y en escuelas que representa");
         }
     }
 

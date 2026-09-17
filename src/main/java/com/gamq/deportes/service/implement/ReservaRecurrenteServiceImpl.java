@@ -44,6 +44,7 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
+    private static final org.slf4j.Logger applicationLog = org.slf4j.LoggerFactory.getLogger(ReservaRecurrenteServiceImpl.class);
     @Autowired
     private com.gamq.deportes.security.ReservationListScope listScope;
 
@@ -197,7 +198,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                     updatedReservas.add(ReservaRecurrenteMapper.toDto(reserva, true));
                 }
             } catch (Exception e) {
-                System.err.println("Error updating expired reserva: " + e.getMessage());
+                applicationLog.warn("{}", "Error updating expired reserva: " + e.getMessage());
             }
         }
         return updatedReservas;

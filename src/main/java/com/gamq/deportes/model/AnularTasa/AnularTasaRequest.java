@@ -5,10 +5,8 @@ import lombok.Data;
 
 @Data
 public class AnularTasaRequest {
-     private String codigoAlcaldia;
      private String codigoUsuario;
      private String numeroTasa;
-     private String tipoTasa;
      private String motivoTasa;
      @JsonAlias("observaciones")
      private String observacion;

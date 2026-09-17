@@ -66,7 +66,8 @@
         {
           "uuid": "9dcd3b8b-5623-4451-9158-55b713bf610f",
           "accion": "CREAR",
-          "ruta": "/students"
+          "ruta": "/students",
+          "representativeOnly": true
         },
         {
           "uuid": "801ad8a5-1c2c-4daf-9e63-865909be79f0",
@@ -187,14 +188,12 @@
         {
           "uuid": "6ba7f3f5-cc94-4df6-b73c-9afc26056dd3",
           "accion": "CREAR",
-          "ruta": "/reservations/schools",
-          "representativeOnly": true
+          "ruta": "/reservations/schools"
         },
         {
           "uuid": "7234a26e-8116-46e1-be5f-39d78e7e69ed",
           "accion": "ACTUALIZAR",
-          "ruta": "/reservations/schools",
-          "representativeOnly": true
+          "ruta": "/reservations/schools"
         },
         {
           "uuid": "6ba7f3f5-cc94-4df6-b73c-9afc26056dd3",

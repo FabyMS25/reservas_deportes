@@ -43,6 +43,7 @@ import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class ReservaPuntualServiceImpl implements ReservaPuntualService {
+    private static final org.slf4j.Logger applicationLog = org.slf4j.LoggerFactory.getLogger(ReservaPuntualServiceImpl.class);
     @Autowired
     private com.gamq.deportes.security.ReservationListScope listScope;
 
@@ -152,23 +153,13 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     public List<ReservaPuntualDto> checkAndUpdateExpiredReservations() {
         LocalDateTime now = LocalDateTime.now();
 
-        System.out.println("=== DEBUG: Checking expired reservations ===");
-        System.out.println("Current time: " + now);
-        System.out.println("Using fecha_limite_pago as expiration deadline");
-        System.out.println("Looking for reservations with estado: PENDIENTE");
-
         List<ReservaPuntual> expiredReservas = reservaPuntualRepository
                 .findExpiredPendingReservations(now, "PENDIENTE");
-
-        System.out.println("Found " + expiredReservas.size() + " expired reservations");
 
         List<ReservaPuntualDto> updatedReservas = new ArrayList<>();
 
         for (ReservaPuntual reserva : expiredReservas) {
             try {
-                System.out.println("Processing reservation: " + reserva.getReserva().getNumeroReserva());
-                System.out.println("Created at: " + reserva.getReserva().getFechaCreacion());
-                System.out.println("Current state: " + reserva.getReserva().getEstadoReserva());
 
                 // Store original state for comparison
                 String originalEstado = reserva.getReserva().getEstadoReserva();
@@ -193,15 +184,11 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
                     );
                     reservaNotificacionService.notificarExpirada(updatedReserva);
                     updatedReservas.add(ReservaPuntualMapper.toDto(reserva, true));
-                    System.out.println("Successfully updated reservation to EXPIRADA");
                 }
             } catch (Exception e) {
-                System.err.println("Error updating expired reserva: " + e.getMessage());
-                e.printStackTrace();
+                applicationLog.error("Failed to expire reservation {}", reserva.getReserva().getNumeroReserva(), e);
             }
         }
-
-        System.out.println("Total updated reservations: " + updatedReservas.size());
         return updatedReservas;
     }
 

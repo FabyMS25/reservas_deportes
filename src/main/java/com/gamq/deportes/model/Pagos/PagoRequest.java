@@ -5,8 +5,6 @@ import lombok.Data;
 @Data
 public class PagoRequest {
 
-      private String codigoAlcaldia;
       private String numeroTasa;
-      private String tipoTasa;
 
 }

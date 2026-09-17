@@ -18,6 +18,7 @@ import java.util.zip.ZipOutputStream;
 
 @Component
 public class Utilitario {
+    private static final org.slf4j.Logger applicationLog = org.slf4j.LoggerFactory.getLogger(Utilitario.class);
     private String pattern = "dd/MM/yyyy";
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     private Calendar calendar = Calendar.getInstance();
@@ -204,10 +205,10 @@ public class Utilitario {
                 res[0] = "";
                 res[1] = "";
                 res[2] = "ERROR";
-                System.out.println("No se pudo crear la carpeta");
+                applicationLog.warn("{}", "No se pudo crear la carpeta");
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            applicationLog.warn("{}", e.getMessage());
         }
 
         return res;
@@ -226,7 +227,7 @@ public class Utilitario {
         try {
             archivoZip = this.zipFolder(new File(rutaCarpeta), new File(nombreZip));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            applicationLog.warn("{}", e.getMessage());
         }
         return archivoZip;
     }
@@ -242,7 +243,7 @@ public class Utilitario {
             zip.closeEntry();
             zip.close();
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            applicationLog.warn("{}", e.getMessage());
         }
 
         return archivoZip;
@@ -342,8 +343,6 @@ public class Utilitario {
             int anio2 = calendar.get(Calendar.YEAR);
             int hora2 = calendar.get(Calendar.HOUR_OF_DAY);
             int min2 = calendar.get(Calendar.MINUTE);
-            //System.out.println(String.format("Uno %s/%s/%s %s:%s", dia1,mes1,anio1,hora1,min1));
-            //System.out.println(String.format("Dos %s/%s/%s %s:%s", dia2,mes2,anio2,hora2,min2));
 
             if(anio1<anio2) {
                 res = 1;
@@ -429,7 +428,6 @@ public class Utilitario {
         Collections.sort(list,(i1,i2) -> i1.getValue().compareTo(i2.getValue()));
         HashMap<String, String> temp = new LinkedHashMap<String, String>();
         for (Map.Entry<String, String> aa : list) {
-            //System.out.println(aa.getKey()+" "+aa.getValue());
             temp.put(aa.getKey(), aa.getValue());
         }
         return temp;
