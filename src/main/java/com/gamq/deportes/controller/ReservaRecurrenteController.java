@@ -44,10 +44,15 @@ public class ReservaRecurrenteController {
             @Parameter(description = "Tipo de recurrencia") @RequestParam(required = false) String tipoRecurrencia,
             @Parameter(description = "Activo (true/false)") @RequestParam(required = false) String activo,
             @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
-            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate) {
+            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String tipoBeneficiario,
+            @RequestParam(required = false) String tipoContribuyente,
+            @RequestParam(required = false) String tipoOrganizacion,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection) {
         try {
             // Create Pageable with default sorting by fechaCreacion descending
-            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(resolveDirection(sortDirection), resolveSort(sortBy)));
 
             // Create filter object
             ReservaRecurrenteFilter filter = new ReservaRecurrenteFilter();
@@ -56,6 +61,9 @@ public class ReservaRecurrenteController {
             filter.setEstadoReserva(estadoReserva);
             filter.setEstadoValidacion(estadoValidacion);
             filter.setCategoria(categoria);
+            filter.setTipoBeneficiario(tipoBeneficiario);
+            filter.setTipoContribuyente(tipoContribuyente);
+            filter.setTipoOrganizacion(tipoOrganizacion);
             filter.setTipoRecurrencia(tipoRecurrencia);
             if (activo != null && !activo.isEmpty()) {
                 filter.setActivo(Boolean.parseBoolean(activo));
@@ -75,6 +83,23 @@ public class ReservaRecurrenteController {
     }
 
     @Operation(summary = "Obtener todas las reservas")
+    private String resolveSort(String sortBy) {
+        if ("categoria".equals(sortBy)) return "categoria";
+        if ("numeroReserva".equals(sortBy)) return "reserva.numeroReserva";
+        if ("contribuyente".equals(sortBy)) return "reserva.contribuyente.nombre";
+        if ("complejo".equals(sortBy)) return "reserva.campoDeportivo.complejo.nombre";
+        if ("campoDeportivo".equals(sortBy)) return "reserva.campoDeportivo.nombre";
+        if ("tipoCobro".equals(sortBy)) return "reserva.tarifa.tipoCobro";
+        if ("montoTotal".equals(sortBy)) return "reserva.montoTotal";
+        if ("numeroTasa".equals(sortBy)) return "reserva.numeroTasa";
+        if ("estadoReserva".equals(sortBy)) return "reserva.estadoReserva";
+        return "fechaInicio";
+    }
+
+    private Sort.Direction resolveDirection(String direction) {
+        return "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    }
+
     @GetMapping("/all")
     @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
     public Response obtenerTodasReservas(

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.criteria.JoinType;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
 
@@ -121,6 +123,9 @@ public class ReservaServiceImpl implements ReservaService {
     private ReservaNotificacionService reservaNotificacionService;
 
     @Autowired
+    private com.gamq.deportes.security.ReservationListScope listScope;
+
+    @Autowired
     private NotificacionDestinatariosReservaService destinatariosService;
 
     @Override
@@ -137,7 +142,8 @@ public class ReservaServiceImpl implements ReservaService {
             Integer anioFiltro
     ) {
 
-        // Quick filters from the tabs
+        Specification<Reserva> spec = listScope.reservations();
+
         if (tab != null) {
             switch (tab) {
                 case 1: // Pendientes de Pago
@@ -167,17 +173,65 @@ public class ReservaServiceImpl implements ReservaService {
             }
         }
 
-        return reservaRepository.buscarReservas(
-                searchTerm,
-                typeReserva,
-                estadoReserva,
-                estadoValidacion,
-                esReservaGratuita,
-                organization,
-                mesFiltro,
-                anioFiltro,
-                pageable
-        ).map(ReservaMapper::toDto);
+        final String resolvedTypeReserva = typeReserva;
+        final String resolvedEstadoReserva = estadoReserva;
+        final String resolvedEstadoValidacion = estadoValidacion;
+        final Boolean resolvedEsReservaGratuita = esReservaGratuita;
+        final String resolvedOrganization = organization;
+        final Integer resolvedMesFiltro = mesFiltro;
+        final Integer resolvedAnioFiltro = anioFiltro;
+
+        if (resolvedTypeReserva != null && !resolvedTypeReserva.isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("tipoReserva"), resolvedTypeReserva));
+        }
+        if (resolvedEstadoReserva != null && !resolvedEstadoReserva.isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("estadoReserva"), resolvedEstadoReserva));
+        }
+        if (resolvedEstadoValidacion != null && !resolvedEstadoValidacion.isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("estadoValidacion"), resolvedEstadoValidacion));
+        }
+        if (resolvedEsReservaGratuita != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("esReservaGratuita"), resolvedEsReservaGratuita));
+        }
+        if (resolvedOrganization != null && !resolvedOrganization.isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.equal(
+                    root.join("organizacion", JoinType.LEFT).get("uuid"), resolvedOrganization));
+        }
+        if (resolvedMesFiltro != null || resolvedAnioFiltro != null) {
+            spec = spec.and((root, query, cb) -> {
+                query.distinct(true);
+                javax.persistence.criteria.Join<Reserva, ReservaPeriodo> period =
+                        root.join("reservasPeriodoList", JoinType.LEFT);
+                javax.persistence.criteria.Predicate result = cb.conjunction();
+                if (resolvedMesFiltro != null) result = cb.and(result, cb.equal(period.get("mes"), resolvedMesFiltro));
+                if (resolvedAnioFiltro != null) result = cb.and(result, cb.equal(period.get("año"), resolvedAnioFiltro));
+                return result;
+            });
+        }
+        if (searchTerm != null && !searchTerm.isBlank()) {
+            String term = "%" + searchTerm.trim().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> {
+                javax.persistence.criteria.Join<Reserva, Contribuyente> contributor =
+                        root.join("contribuyente", JoinType.LEFT);
+                javax.persistence.criteria.Join<Reserva, Organizacion> organizationJoin =
+                        root.join("organizacion", JoinType.LEFT);
+                javax.persistence.criteria.Join<Reserva, CampoDeportivo> field =
+                        root.join("campoDeportivo", JoinType.LEFT);
+                return cb.or(
+                        cb.like(cb.lower(cb.concat(cb.concat(cb.coalesce(contributor.get("nombre"), ""), " "),
+                                cb.concat(cb.coalesce(contributor.get("primerApellido"), ""),
+                                        cb.concat(" ", cb.coalesce(contributor.get("segundoApellido"), ""))))), term),
+                        cb.like(cb.lower(organizationJoin.get("nombre")), term),
+                        cb.like(cb.lower(field.get("nombre")), term),
+                        cb.like(cb.lower(root.get("numeroReserva")), term),
+                        cb.like(cb.lower(root.get("numeroTasa")), term),
+                        cb.like(cb.lower(root.get("motivoRechazo")), term),
+                        cb.like(cb.lower(root.get("motivoGratuidad")), term)
+                );
+            });
+        }
+
+        return reservaRepository.findAll(spec, pageable).map(ReservaMapper::toDto);
     }
 //    @Override
 //    public List<ReservaDto> obtenerReservas() {
@@ -358,6 +412,7 @@ public class ReservaServiceImpl implements ReservaService {
 
         CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
         Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
+        validarContribuyentePropio(contribuyente);
         validateTaxpayerEligibleForReservation(contribuyente);
 
         // Handle tarifa - can be null for periodo reservations
@@ -529,6 +584,7 @@ public class ReservaServiceImpl implements ReservaService {
 
             if (reservaDto.getContribuyenteDto() != null) {
                 Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
+                validarContribuyentePropio(contribuyente);
                 reservaExistente.setContribuyente(contribuyente);
             }
 
@@ -951,6 +1007,14 @@ public class ReservaServiceImpl implements ReservaService {
         return "TAXPAYER".equalsIgnoreCase(principal.getUserType()) ? principal.getSubject() : null;
     }
 
+    private void validarContribuyentePropio(Contribuyente contribuyente) {
+        String actualUuid = contribuyenteActualUuid();
+        if (actualUuid != null && (contribuyente == null || !actualUuid.equals(contribuyente.getUuid()))) {
+            throw new IllegalArgumentException(
+                    "Un contribuyente no puede registrar una reserva a nombre de otra persona");
+        }
+    }
+
     private void validarContribuyentePuedeGenerarMensualidad(Reserva reserva) {
         String contribuyenteUuid = contribuyenteActualUuid();
         if (contribuyenteUuid == null) {
@@ -960,9 +1024,9 @@ public class ReservaServiceImpl implements ReservaService {
                 && contribuyenteUuid.equals(reserva.getContribuyente().getUuid());
         boolean representaEscuela = reserva.getOrganizacion() != null
                 && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
-        if (!esPagador && !representaEscuela) {
+        if (!esPagador) {
             throw new IllegalArgumentException(
-                    "Solo el pagador o un representante de la escuela puede generar esta mensualidad");
+                    "Un contribuyente solo puede generar la mensualidad a su propio nombre");
         }
     }
 

@@ -49,22 +49,23 @@ public abstract class AbstractClient {
         log.info("requestId={} stage=deportes-to-gateway inbound={} targetHost={} targetPort={} operation={} payloadType={} keyPresent=true",
                 requestId, context == null ? "internal" : context.getRequest().getServletPath(),
                 destination.getHost(), destination.getPort(), path, payload.getClass().getSimpleName());
+        String target = gatewayUrl.replaceAll("/+$", "") + path;
         ResponseEntity<byte[]> response;
         try {
-            response = restTemplate.exchange(gatewayUrl.replaceAll("/+$", "") + path,
+            response = restTemplate.exchange(target,
                     HttpMethod.POST, new HttpEntity<>(payload, headers), byte[].class);
             log.info("requestId={} stage=gateway-response status={} elapsedMs={}", requestId,
                     response.getStatusCodeValue(), (System.nanoTime() - started) / 1000000);
         } catch (RestClientResponseException ex) {
             log.warn("requestId={} stage=gateway-response status={} elapsedMs={}", requestId,
                     ex.getRawStatusCode(), (System.nanoTime() - started) / 1000000);
-            return forwardResponse(ex.getRawStatusCode(), ex.getResponseHeaders(), ex.getResponseBodyAsByteArray());
+            return forwardResponse(target, ex.getRawStatusCode(), ex.getResponseHeaders(), ex.getResponseBodyAsByteArray());
         } catch (RestClientException ex) {
             log.warn("requestId={} stage=gateway-transport failure={} elapsedMs={}", requestId,
                     ex.getClass().getSimpleName(), (System.nanoTime() - started) / 1000000);
             throw ex;
         }
-        return forwardResponse(response.getStatusCodeValue(), response.getHeaders(), response.getBody());
+        return forwardResponse(target, response.getStatusCodeValue(), response.getHeaders(), response.getBody());
     }
 
     protected JsonNode gatewayAvailability() {
@@ -80,10 +81,10 @@ public abstract class AbstractClient {
         }
     }
 
-    private ResponseEntity<byte[]> forwardResponse(int status, HttpHeaders upstream, byte[] body) {
+    private ResponseEntity<byte[]> forwardResponse(String target, int status, HttpHeaders upstream, byte[] body) {
         ServletRequestAttributes context = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         String id = context == null ? null : (String) context.getRequest().getAttribute("ruat.requestId");
-        com.gamq.deportes.context.RuatHttpLoggingInterceptor.logResponse("deportes-be->ruat-be", id, status, upstream, body);
+        com.gamq.deportes.context.RuatHttpLoggingInterceptor.logResponse("deportes-be->ruat-be", id, target, status, upstream, body);
         HttpHeaders headers = new HttpHeaders();
         if (upstream != null) {
             for (String name : new String[]{HttpHeaders.CONTENT_TYPE, HttpHeaders.CONTENT_ENCODING,

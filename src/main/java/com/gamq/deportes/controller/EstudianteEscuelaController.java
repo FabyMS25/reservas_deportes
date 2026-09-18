@@ -151,6 +151,17 @@ public class EstudianteEscuelaController {
             return Response.unprocessableEntity().setPayload(ex.getMessage());
         }
     }
+
+    @Operation(summary = "Buscar estudiantes existentes para crear una relación")
+    @GetMapping("/buscar-existente")
+    @PreAuthorize("@permissions.has('/students','VER')")
+    public Response buscarEstudiantesExistentes(@RequestParam String term) {
+        try {
+            return Response.ok().setPayload(estudianteEscuelaService.searchExistingStudents(term));
+        } catch (Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+        }
+    }
     @Operation(summary = "Eliminar Estudiante")
     @DeleteMapping("/{uuid}")
     @PreAuthorize("@permissions.has('/students','ANULAR')")

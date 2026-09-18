@@ -43,12 +43,16 @@ public class RuatHttpLoggingInterceptor implements ClientHttpRequestInterceptor 
     }
 
     public static void logResponse(String hop, String id, int status, HttpHeaders headers, byte[] body) {
+        logResponse(hop, id, null, status, headers, body);
+    }
+
+    public static void logResponse(String hop, String id, String url, int status, HttpHeaders headers, byte[] body) {
         try {
             if (!log.isInfoEnabled()) return;
             HttpHeaders safeHeaders = headers == null ? new HttpHeaders() : headers;
             byte[] bytes = body == null ? new byte[0] : body;
-            log.info("requestId={} hop={} direction=response\nstatus={} contentType={} bytes={}\nbody:\n{}\n[end response]",
-                    id, hop, status, safeHeaders.getFirst("Content-Type"), bytes.length, printable(bytes, safeHeaders));
+            log.info("requestId={} hop={} direction=response\nurl={}\nstatus={} contentType={} bytes={}\nbody:\n{}\n[end response]",
+                    id, hop, url, status, safeHeaders.getFirst("Content-Type"), bytes.length, printable(bytes, safeHeaders));
         } catch (RuntimeException loggingFailure) {
             // The complete response remains available even if formatting/logging fails.
         }

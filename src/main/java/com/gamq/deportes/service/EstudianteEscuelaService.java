@@ -15,6 +15,8 @@ public interface EstudianteEscuelaService {
     List<EstudianteEscuelaDto> findByContribuyenteUuid(String uuidContribuyente);
     List<EstudianteEscuelaDto> findByOrganizacionUuid(String uuidOrganizacion);
     List<EstudianteEscuelaDto> findByActivoTrue();
+
+    List<EstudianteEscuelaDto> searchExistingStudents(String term);
     List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion);
     EstudianteEscuelaDto crearEstudiante(EstudianteEscuelaDto estudianteDto);
     EstudianteEscuelaDto actualizarEstudiante(EstudianteEscuelaDto estudianteDto);

@@ -9,6 +9,9 @@ public class ReservaRecurrenteFilter {
     private String estadoReserva;
     private String estadoValidacion;
     private String categoria;
+    private String tipoBeneficiario;
+    private String tipoContribuyente;
+    private String tipoOrganizacion;
     private String tipoRecurrencia;
     private Boolean activo;
     private LocalDate fromDate;

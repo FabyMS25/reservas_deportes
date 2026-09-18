@@ -66,15 +66,23 @@ public class ReservaPuntualController {
             @Parameter(description = "Estado de validación")@RequestParam(required = false) String estadoValidacion,
             @Parameter(description = "Categoría")           @RequestParam(required = false) String categoria,
             @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
-            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate) {
+            @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String tipoBeneficiario,
+            @RequestParam(required = false) String tipoContribuyente,
+            @RequestParam(required = false) String tipoOrganizacion,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(resolveDirection(sortDirection), resolveSort(sortBy)));
             ReservaPuntualFilter filter = new ReservaPuntualFilter();
             filter.setTab(tab);
             filter.setSearchTerm(searchTerm);
             filter.setEstadoReserva(estadoReserva);
             filter.setEstadoValidacion(estadoValidacion);
             filter.setCategoria(categoria);
+            filter.setTipoBeneficiario(tipoBeneficiario);
+            filter.setTipoContribuyente(tipoContribuyente);
+            filter.setTipoOrganizacion(tipoOrganizacion);
             if (fromDate != null && !fromDate.isEmpty()) {
                 filter.setFromDate(LocalDate.parse(fromDate.substring(0, 10)));
             }
@@ -87,6 +95,23 @@ public class ReservaPuntualController {
             return Response.notContent().setPayload(ex.getMessage());
 //            return Response.serverError().setPayload("Error al obtener reservas: " + ex.getMessage());
         }
+    }
+
+    private String resolveSort(String sortBy) {
+        if ("categoria".equals(sortBy)) return "categoria";
+        if ("numeroReserva".equals(sortBy)) return "reserva.numeroReserva";
+        if ("contribuyente".equals(sortBy)) return "reserva.contribuyente.nombre";
+        if ("complejo".equals(sortBy)) return "reserva.campoDeportivo.complejo.nombre";
+        if ("campoDeportivo".equals(sortBy)) return "reserva.campoDeportivo.nombre";
+        if ("tipoCobro".equals(sortBy)) return "reserva.tarifa.tipoCobro";
+        if ("montoTotal".equals(sortBy)) return "reserva.montoTotal";
+        if ("numeroTasa".equals(sortBy)) return "reserva.numeroTasa";
+        if ("estadoReserva".equals(sortBy)) return "reserva.estadoReserva";
+        return "fechaUso";
+    }
+
+    private Sort.Direction resolveDirection(String direction) {
+        return "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
     }
 
     @GetMapping("/all")

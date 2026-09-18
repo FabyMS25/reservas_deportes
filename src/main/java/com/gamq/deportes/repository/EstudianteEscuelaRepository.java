@@ -42,6 +42,12 @@ public interface EstudianteEscuelaRepository extends JpaRepository<EstudianteEsc
     List<EstudianteEscuela> findActiveVisibleToContribuyente(
             @Param("contribuyenteUuid") String contribuyenteUuid);
 
+    @Query("SELECT e FROM EstudianteEscuela e WHERE " +
+            "LOWER(e.estudiante.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(e.estudiante.numeroDocumento) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(e.matricula) LIKE LOWER(CONCAT('%', :term, '%'))")
+    List<EstudianteEscuela> searchExistingStudents(@Param("term") String term);
+
     @Query("SELECT e FROM EstudianteEscuela e WHERE e.activo = true AND e.organizacionDto.uuid = ?1")
     List<EstudianteEscuela> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion);
 

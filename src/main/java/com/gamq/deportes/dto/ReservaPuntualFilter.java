@@ -10,6 +10,9 @@ public class ReservaPuntualFilter {
     private String estadoReserva;
     private String estadoValidacion;
     private String categoria;
+    private String tipoBeneficiario;
+    private String tipoContribuyente;
+    private String tipoOrganizacion;
     private LocalDate fromDate;
     private LocalDate toDate;
 

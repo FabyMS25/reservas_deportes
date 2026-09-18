@@ -109,6 +109,29 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
         }
+        if (filter.getTipoBeneficiario() != null && !filter.getTipoBeneficiario().isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                Join<ReservaRecurrente, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
+                if ("ORGANIZACION".equalsIgnoreCase(filter.getTipoBeneficiario())) {
+                    return cb.isNotNull(reservaJoin.get("organizacion"));
+                }
+                if ("CONTRIBUYENTE".equalsIgnoreCase(filter.getTipoBeneficiario())) {
+                    return cb.and(cb.isNotNull(reservaJoin.get("contribuyente")),
+                            cb.isNull(reservaJoin.get("organizacion")));
+                }
+                return cb.conjunction();
+            });
+        }
+        if (filter.getTipoContribuyente() != null && !filter.getTipoContribuyente().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.join("reserva", JoinType.LEFT).join("contribuyente", JoinType.LEFT)
+                            .get("tipoContribuyente"), filter.getTipoContribuyente()));
+        }
+        if (filter.getTipoOrganizacion() != null && !filter.getTipoOrganizacion().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.join("reserva", JoinType.LEFT).join("organizacion", JoinType.LEFT)
+                            .get("tipoOrganizacion"), filter.getTipoOrganizacion()));
+        }
         if (filter.getTipoRecurrencia() != null && !filter.getTipoRecurrencia().isEmpty()) {
             spec = spec.and((root, query, cb) ->
                     cb.equal(root.get("tipoRecurrencia"), filter.getTipoRecurrencia()));
@@ -156,7 +179,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
         }
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("fechaCreacion").descending());
+                    Sort.by(Sort.Order.desc("fechaInicio"), Sort.Order.desc("idReservaRecurrente")));
         }
         Page<ReservaRecurrente> reservasPage = reservaRecurrenteRepository.findAll(spec, pageable);
         return reservasPage.map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));

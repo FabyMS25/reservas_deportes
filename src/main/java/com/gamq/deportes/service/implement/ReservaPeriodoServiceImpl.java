@@ -83,7 +83,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     }
     @Override
     public Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
-        Specification<ReservaPeriodo> spec = listScope.children();
+        Specification<ReservaPeriodo> spec = listScope.periodos();
         LocalDate now = LocalDate.now();
         int currentYear = now.getYear();
         int currentMonth = now.getMonthValue();

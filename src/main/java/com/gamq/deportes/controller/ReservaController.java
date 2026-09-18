@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,10 +49,16 @@ public class ReservaController {
             @RequestParam(required = false) Boolean esReservaGratuita,
             @RequestParam(required = false) String organization,
             @RequestParam(required = false) Integer mesFiltro,
-            @RequestParam(required = false) Integer anioFiltro
+            @RequestParam(required = false) Integer anioFiltro,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection
     ) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(resolveDirection(sortDirection), resolveSort(sortBy))
+        );
         return Response.ok().setPayload(
                 reservaService.obtenerReservas(
                         pageable,
@@ -66,6 +73,21 @@ public class ReservaController {
                         anioFiltro
                 )
         );
+    }
+
+    private Sort.Direction resolveDirection(String sortDirection) {
+        return "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+    }
+
+    private String resolveSort(String sortBy) {
+        if ("numeroReserva".equals(sortBy)) return "numeroReserva";
+        if ("contribuyente".equals(sortBy)) return "contribuyente.nombre";
+        if ("organizacion".equals(sortBy)) return "organizacion.nombre";
+        if ("montoTotal".equals(sortBy)) return "montoTotal";
+        if ("numeroTasa".equals(sortBy)) return "numeroTasa";
+        if ("estadoReserva".equals(sortBy)) return "estadoReserva";
+        if ("fechaCreacion".equals(sortBy)) return "fechaCreacion";
+        return "fechaCreacion";
     }
 
     @Operation(summary = "Buscar reserva por UUID")

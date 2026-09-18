@@ -123,6 +123,18 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     }
 
     @Override
+    @Transactional
+    public List<EstudianteEscuelaDto> searchExistingStudents(String term) {
+        if (term == null || term.trim().length() < 3) {
+            return List.of();
+        }
+        return estudianteEscuelaRepository.searchExistingStudents(term.trim()).stream()
+                .limit(20)
+                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<EstudianteEscuelaDto> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion) {
         validarPuedeGestionarOrganizacion(uuidOrganizacion);
         return estudianteEscuelaRepository.findByActivoTrueAndOrganizacionUuid(uuidOrganizacion).stream()

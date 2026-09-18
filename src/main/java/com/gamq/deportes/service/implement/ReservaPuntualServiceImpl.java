@@ -94,6 +94,29 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
         }
+        if (filter.getTipoBeneficiario() != null && !filter.getTipoBeneficiario().isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                Join<ReservaPuntual, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
+                if ("ORGANIZACION".equalsIgnoreCase(filter.getTipoBeneficiario())) {
+                    return cb.isNotNull(reservaJoin.get("organizacion"));
+                }
+                if ("CONTRIBUYENTE".equalsIgnoreCase(filter.getTipoBeneficiario())) {
+                    return cb.and(cb.isNotNull(reservaJoin.get("contribuyente")),
+                            cb.isNull(reservaJoin.get("organizacion")));
+                }
+                return cb.conjunction();
+            });
+        }
+        if (filter.getTipoContribuyente() != null && !filter.getTipoContribuyente().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.join("reserva", JoinType.LEFT).join("contribuyente", JoinType.LEFT)
+                            .get("tipoContribuyente"), filter.getTipoContribuyente()));
+        }
+        if (filter.getTipoOrganizacion() != null && !filter.getTipoOrganizacion().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.join("reserva", JoinType.LEFT).join("organizacion", JoinType.LEFT)
+                            .get("tipoOrganizacion"), filter.getTipoOrganizacion()));
+        }
         if (filter.getFromDate() != null) {
             spec = spec.and((root, query, cb) ->
                     cb.greaterThanOrEqualTo(root.get("fechaUso"), filter.getFromDate()));
@@ -126,7 +149,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
         }
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("fechaCreacion").descending());
+                    Sort.by(Sort.Order.desc("fechaUso"), Sort.Order.desc("idReservaPuntual")));
         }
         Page<ReservaPuntual> reservasPage = reservaPuntualRepository.findAll(spec, pageable);
         return reservasPage.map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
