@@ -36,6 +36,7 @@ public class ReservaPeriodoController {
     public Response obtenerReservasPeriodo(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "true") boolean revisarEstados,
             @Parameter(description = "Pestaña seleccionada (0=Todas,1=Pendientes,2=Pagadas,3=Vencidas,4=Este Mes)")
             @RequestParam(required = false) Integer tab,
             @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
@@ -47,6 +48,7 @@ public class ReservaPeriodoController {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
             ReservaPeriodoFilter filter = new ReservaPeriodoFilter();
+            filter.setRevisarEstados(revisarEstados);
             filter.setTab(tab);
             filter.setSearchTerm(searchTerm);
             filter.setEstadoReserva(estadoReserva);

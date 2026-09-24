@@ -17,7 +17,7 @@ public interface ReservaPuntualService {
     List<ReservaPuntualDto> obtenerReservas();
     Page<ReservaPuntualDto> obtenerReservas(Pageable pageable);
     Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable);
-    List<ReservaPuntualDto> checkAndUpdateExpiredReservations();
+    Page<ReservaPuntualDto> checkAndUpdateExpiredReservations();
     ReservaPuntualDto findByUuid(String uuid);
     ReservaPuntualDto findByReservaUuid(String reservaUuid);
     List<ReservaPuntualDto> findByFechaUso(LocalDate fechaUso);

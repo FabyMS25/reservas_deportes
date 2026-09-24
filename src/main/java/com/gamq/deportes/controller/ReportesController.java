@@ -650,6 +650,76 @@ public class ReportesController {
             sendErrorResponse(response, 500, "Error inesperado al generar listado de pagos.");
         }
     }
+
+    @Operation(summary = "Reporte simple de mensualidades por escuela")
+    @RequestMapping(value="/lista-mensuales-resumen", method=RequestMethod.GET)
+    @ResponseBody
+    @PreAuthorize("@permissions.has('/reports/list/mensual','GENERAR')")
+    public void reporteMensualesResumen(
+            @RequestParam(name = "fecha_ini", required = false)
+            @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_ini,
+
+            @RequestParam(name = "fecha_fin", required = false)
+            @DateTimeFormat(pattern="dd/MM/yyyy") Date fecha_fin,
+
+            @RequestParam(name = "estado", required = false) String estado,
+            @RequestParam(name = "escuela", required = false) String escuela,
+            @RequestParam(name = "contribuyente", required = false) String contribuyente,
+
+            @RequestHeader Map<String, String> headers,
+            HttpServletResponse response
+    ) {
+        try {
+            estado = normalizeFilter(estado);
+            escuela = normalizeFilter(escuela);
+            contribuyente = normalizeFilter(contribuyente);
+
+            HashMap<String, Object> parametros = new HashMap<>();
+
+            parametros.put("fecha_ini", fecha_ini);
+            parametros.put("fecha_fin", fecha_fin);
+            parametros.put("estado", estado);
+            parametros.put("escuela", escuela);
+            parametros.put("contribuyente", contribuyente);
+
+            parametros.put(
+                    JRParameter.REPORT_LOCALE,
+                    new Locale("es", "ES")
+            );
+
+            generadorReporte.generarSqlReportePdf(
+                    "MensualidadesResumen",
+                    "classpath:reportes/ListadoMensualResumen.jrxml",
+                    parametros,
+                    response
+            );
+
+            registrarReporteGenerado(
+                    headers,
+                    "REPORTE_MENSUALIDADES_RESUMEN",
+                    "reporte",
+                    null,
+                    "Generó reporte simple de mensualidades",
+                    buildReportFilters(parametros)
+            );
+
+        } catch (SQLException ex) {
+            applicationLog.error("Error SQL al generar reporte simple de mensualidades", ex);
+            sendErrorResponse(
+                    response,
+                    500,
+                    "Error SQL al generar reporte simple de mensualidades."
+            );
+        } catch (Exception e) {
+            applicationLog.error("Error al generar reporte simple de mensualidades", e);
+            sendErrorResponse(
+                    response,
+                    500,
+                    "Error inesperado al generar reporte simple de mensualidades."
+            );
+        }
+    }
+
 /////////////////////Listado Ticket Mensual ///////////////////////////////////////////////////
 @Operation(summary = "Reporte lista de reserva Mensual")
 @RequestMapping(value="/lista-mensuales",method= RequestMethod.GET)
@@ -664,10 +734,6 @@ public void reporteListaMensuales (
         HttpServletResponse response
 ) {
     try {
-        //usuario
-        //String usuario = headers.getOrDefault("usuario", "Default");
-        //ingreso almacen
-
         estado = normalizeFilter(estado);
         escuelita = normalizeFilter(escuelita);
         HashMap<String, Object> parametros = new HashMap<String,Object>();
@@ -675,10 +741,6 @@ public void reporteListaMensuales (
         parametros.put("fechafin",fecha_fin);
         parametros.put("estado",estado);
         parametros.put("escuelita",escuelita);
-
-        //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-        //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
         parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
         try {
             generadorReporte.generarSqlReportePdf(
@@ -715,8 +777,6 @@ public void reporteListaMensAlumno (
         HttpServletResponse response
 ) {
     try {
-        //usuario
-        //String usuario = headers.getOrDefault("usuario", "Default");
         estado = normalizeFilter(estado);
         matricula = normalizeFilter(matricula);
         alumno = normalizeFilter(alumno);
@@ -726,10 +786,6 @@ public void reporteListaMensAlumno (
         parametros.put("estado",estado);
         parametros.put("matricula",matricula);
         parametros.put("alumno",alumno);
-
-        //parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
-        //parametros.put("logo64","iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk");
-
         parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
         try {
             generadorReporte.generarSqlReportePdf(
@@ -750,6 +806,8 @@ public void reporteListaMensAlumno (
         sendErrorResponse(response, 500, "Error inesperado al generar listado por alumno.");
     }
 }
+
+
 ////////////////////Ticket Mensual///////////////////////////////////////
     @Operation(summary = "Reporte de ticket de Reserva Mensual (Escuela)")
     @RequestMapping(value="/ticket-mensual", method = RequestMethod.GET)

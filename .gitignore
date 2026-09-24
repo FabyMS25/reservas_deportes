@@ -41,3 +41,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Runtime secrets used by Docker Compose
+.env
+.env.*
+!.env.example

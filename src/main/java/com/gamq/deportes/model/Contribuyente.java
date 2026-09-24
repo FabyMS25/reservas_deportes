@@ -145,6 +145,10 @@ public class Contribuyente {
     @Transient
     private String nombreCompleto;
 
+    // PostgreSQL btrim avoids Hibernate's ANSI trim parser for concatenated expressions.
+    @org.hibernate.annotations.Formula("btrim(coalesce(nombre, '') || ' ' || coalesce(primer_apellido, '') || ' ' || coalesce(segundo_apellido, ''))")
+    private String nombreCompletoOrden;
+
     @Transient
     private Boolean puedeReservarGratis;
 

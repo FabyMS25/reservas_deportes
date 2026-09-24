@@ -131,7 +131,12 @@ public class Reserva {
     private List<ReservaPeriodo> reservasPeriodoList = new ArrayList<>();
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("idPago ASC")
     private List<Pago> pagosList = new ArrayList<>();
+
+    // Same first non-deleted payment displayed in the list, without a collection join that duplicates rows.
+    @org.hibernate.annotations.Formula("(select p.estado_pago from pagos p where p.id_reserva = id_reserva and p.estado = false order by p.id_pago asc limit 1)")
+    private String estadoPagoOrden;
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ReservaAuditoria> auditoriasList = new ArrayList<>();
@@ -141,6 +146,11 @@ public class Reserva {
 
     public Reserva(String uuid) {
         this.uuid = uuid;
+    }
+
+    public boolean esRecurrenteGratuitaDeEscuela() {
+        return "recurrente".equalsIgnoreCase(tipoReserva) && Boolean.TRUE.equals(esReservaGratuita)
+                && organizacion != null && "ESCUELA_MUNICIPAL".equalsIgnoreCase(organizacion.getTipoOrganizacion());
     }
 
     @PrePersist

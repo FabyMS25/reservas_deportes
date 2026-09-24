@@ -62,6 +62,8 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     private ReservaNotificacionService reservaNotificacionService;
     @Autowired
     private NotificacionDestinatariosReservaService destinatariosService;
+    @Autowired
+    private ReservaRuatRevisionService ruatRevisionService;
 
     @Override
     public List<ReservaRecurrenteDto> obtenerReservas() {
@@ -80,8 +82,10 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
 
     @Override
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Page<ReservaRecurrenteDto> obtenerReservasConFiltros(ReservaRecurrenteFilter filter, Pageable pageable) {
         Specification<ReservaRecurrente> spec = listScope.children();
+        final Specification<ReservaRecurrente> reviewScope = spec;
         if (filter.getTab() != null && filter.getTab() > 0) {
             String tabEstado = filter.getEstadoReservaFromTab();
             if (tabEstado != null) {
@@ -109,18 +113,10 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
         }
-        if (filter.getTipoBeneficiario() != null && !filter.getTipoBeneficiario().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                Join<ReservaRecurrente, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
-                if ("ORGANIZACION".equalsIgnoreCase(filter.getTipoBeneficiario())) {
-                    return cb.isNotNull(reservaJoin.get("organizacion"));
-                }
-                if ("CONTRIBUYENTE".equalsIgnoreCase(filter.getTipoBeneficiario())) {
-                    return cb.and(cb.isNotNull(reservaJoin.get("contribuyente")),
-                            cb.isNull(reservaJoin.get("organizacion")));
-                }
-                return cb.conjunction();
-            });
+        if (filter.getConOrganizacion() != null) {
+            spec = spec.and((root, query, cb) -> filter.getConOrganizacion()
+                    ? cb.isNotNull(root.join("reserva", JoinType.LEFT).get("organizacion"))
+                    : cb.isNull(root.join("reserva", JoinType.LEFT).get("organizacion")));
         }
         if (filter.getTipoContribuyente() != null && !filter.getTipoContribuyente().isEmpty()) {
             spec = spec.and((root, query, cb) ->
@@ -181,52 +177,19 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                     Sort.by(Sort.Order.desc("fechaInicio"), Sort.Order.desc("idReservaRecurrente")));
         }
-        Page<ReservaRecurrente> reservasPage = reservaRecurrenteRepository.findAll(spec, pageable);
-        return reservasPage.map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));
-    }
-    @Override
-    @Transactional
-    public List<ReservaRecurrenteDto> checkAndUpdateExpiredReservations() {
-        LocalDateTime now = LocalDateTime.now();
-
-        List<ReservaRecurrente> expiredReservas = reservaRecurrenteRepository
-                .findExpiredPendingReservations(now, "PENDIENTE");
-
-        List<ReservaRecurrenteDto> updatedReservas = new ArrayList<>();
-
-        for (ReservaRecurrente reserva : expiredReservas) {
-            try {
-                String originalEstado = reserva.getReserva().getEstadoReserva();
-                String contribuyenteUuid = reserva.getReserva().getContribuyente().getUuid();
-
-                reserva.getReserva().setEstadoReserva("EXPIRADA");
-                reserva.getReserva().setAnuladoPor(null);
-                reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
-                reserva.getReserva().setFechaRechazo(LocalDateTime.now());
-
-                Reserva updatedReserva = reservaRepository.save(reserva.getReserva());
-                reserva.setReserva(updatedReserva);
-
-                if (!originalEstado.equals("EXPIRADA")) {
-                    registrarAuditoria(
-                            updatedReserva,
-                            "EXPIRE",
-                            originalEstado,
-                            updatedReserva.getEstadoReserva(),
-                            null,
-                            "Reserva recurrente expirada por falta de pago",
-                            null
-                    );
-                    reservaNotificacionService.notificarExpirada(updatedReserva);
-                    updatedReservas.add(ReservaRecurrenteMapper.toDto(reserva, true));
-                }
-            } catch (Exception e) {
-                applicationLog.warn("{}", "Error updating expired reserva: " + e.getMessage());
-            }
+        final Specification<ReservaRecurrente> listSpec = spec;
+        final Pageable listPage = pageable;
+        if (Boolean.FALSE.equals(filter.getRevisarEstados())) {
+            return ruatRevisionService.leerPagina(() -> reservaRecurrenteRepository.findAll(listSpec, listPage),
+                    r -> ReservaRecurrenteMapper.toDto(r, true));
         }
-        return updatedReservas;
+        return ruatRevisionService.revisarLista(
+                () -> reservaRecurrenteRepository.findAll(listSpec, listPage),
+                r -> r.getReserva(), r -> ReservaRecurrenteMapper.toDto(r, true),
+                after -> reservaRecurrenteRepository.findAll(
+                        ReservaRuatRevisionService.candidatas(reviewScope, "reserva", after),
+                        PageRequest.of(0, 100, Sort.by("reserva.idReserva"))));
     }
-
     @Override
     @Transactional(readOnly = true)
     public ReservaRecurrenteDto findByUuid(String uuid) {
@@ -385,6 +348,12 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
     }
 
     @Override
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public Page<ReservaRecurrenteDto> checkAndUpdateExpiredReservations() {
+        return obtenerReservasConFiltros(new ReservaRecurrenteFilter(), PageRequest.of(0, 100));
+    }
+
+    @Override
     @Transactional
     public ReservaRecurrenteDto actualizarReservaRecurrente(ReservaRecurrenteDto reservaRecurrenteDto) {
         if (reservaRecurrenteDto == null) {
@@ -395,6 +364,10 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
         if (reservaRecurrenteOptional.isPresent()) {
             ReservaRecurrente reservaRecurrenteExistente = reservaRecurrenteOptional.get();
+            if (reservaRecurrenteExistente.getReserva().getNumeroTasa() != null
+                    && !reservaRecurrenteExistente.getReserva().getNumeroTasa().isBlank()) {
+                throw new IllegalStateException("Una reserva recurrente con tasa no admite edición general");
+            }
             LocalDate fechaInicioAnterior = reservaRecurrenteExistente.getFechaInicio();
             LocalDate fechaFinAnterior = reservaRecurrenteExistente.getFechaFin();
             String diasSemanaAnteriores = reservaRecurrenteExistente.getDiasSemana();

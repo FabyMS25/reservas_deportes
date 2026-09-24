@@ -39,26 +39,13 @@ public class ReservaPuntualController {
     @Autowired
     private ReservaService reservaService;
 
-    @Operation(summary = "Verificar y actualizar reservas expiradas")
-    @PostMapping("/verificar-expiradas")
-    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
-    public Response verificarReservasExpiradas() {
-        try {
-
-            List<ReservaPuntualDto> updatedReservas = reservaPuntualService.checkAndUpdateExpiredReservations();
-            return Response.ok().setPayload(updatedReservas);
-        } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
-        }
-    }
-
-
     @Operation(summary = "Obtener todas las reservas con filtros y paginación")
     @GetMapping()
     @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
     public Response obtenerReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "true") boolean revisarEstados,
             @Parameter(description = "Pestaña seleccionada (0=Todas,1=Solicitadas,2=Pendientes,etc)")
             @RequestParam(required = false) Integer tab,
             @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
@@ -67,20 +54,21 @@ public class ReservaPuntualController {
             @Parameter(description = "Categoría")           @RequestParam(required = false) String categoria,
             @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
             @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate,
-            @RequestParam(required = false) String tipoBeneficiario,
+            @RequestParam(required = false) Boolean conOrganizacion,
             @RequestParam(required = false) String tipoContribuyente,
             @RequestParam(required = false) String tipoOrganizacion,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortDirection) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(resolveDirection(sortDirection), resolveSort(sortBy)));
+            Pageable pageable = PageRequest.of(page, size, com.gamq.deportes.service.implement.ReservaServiceImpl.ordenListado(sortBy, sortDirection, "puntual"));
             ReservaPuntualFilter filter = new ReservaPuntualFilter();
+            filter.setRevisarEstados(revisarEstados);
             filter.setTab(tab);
             filter.setSearchTerm(searchTerm);
             filter.setEstadoReserva(estadoReserva);
             filter.setEstadoValidacion(estadoValidacion);
             filter.setCategoria(categoria);
-            filter.setTipoBeneficiario(tipoBeneficiario);
+            filter.setConOrganizacion(conOrganizacion);
             filter.setTipoContribuyente(tipoContribuyente);
             filter.setTipoOrganizacion(tipoOrganizacion);
             if (fromDate != null && !fromDate.isEmpty()) {
@@ -97,21 +85,11 @@ public class ReservaPuntualController {
         }
     }
 
-    private String resolveSort(String sortBy) {
-        if ("categoria".equals(sortBy)) return "categoria";
-        if ("numeroReserva".equals(sortBy)) return "reserva.numeroReserva";
-        if ("contribuyente".equals(sortBy)) return "reserva.contribuyente.nombre";
-        if ("complejo".equals(sortBy)) return "reserva.campoDeportivo.complejo.nombre";
-        if ("campoDeportivo".equals(sortBy)) return "reserva.campoDeportivo.nombre";
-        if ("tipoCobro".equals(sortBy)) return "reserva.tarifa.tipoCobro";
-        if ("montoTotal".equals(sortBy)) return "reserva.montoTotal";
-        if ("numeroTasa".equals(sortBy)) return "reserva.numeroTasa";
-        if ("estadoReserva".equals(sortBy)) return "reserva.estadoReserva";
-        return "fechaUso";
-    }
-
-    private Sort.Direction resolveDirection(String direction) {
-        return "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    @Operation(summary = "Verificar reservas mediante RUAT")
+    @PostMapping("/verificar-expiradas")
+    @PreAuthorize("@permissions.has('/reservations/one-time','VER')")
+    public Response verificarReservasExpiradas() {
+        return Response.ok().setPayload(reservaPuntualService.checkAndUpdateExpiredReservations());
     }
 
     @GetMapping("/all")
@@ -306,10 +284,11 @@ public class ReservaPuntualController {
         }
     }
 
-    @Operation(summary = "Actualizar reserva puntual")
-    @PutMapping()
-    @PreAuthorize("@permissions.punctualUpdate(#p0)")
-    public Response actualizarReservaPuntual(@RequestBody ReservaPuntualDto reservaPuntualDto) {
+    @Operation(summary = "Cambiar horario de reserva puntual pendiente")
+    @PutMapping("/cambiar-horario")
+    @PreAuthorize("@permissions.child('puntual','CAMBIAR-HORARIO',#p0) or @permissions.child('puntual','ACTUALIZAR',#p0)")
+    public Response actualizarReservaPuntual(@RequestParam("uuid") String uuid, @RequestBody ReservaPuntualDto reservaPuntualDto) {
+        reservaPuntualDto.setUuid(uuid);
         try {
             ReservaPuntualDto reservaActualizada = reservaPuntualService.actualizarReservaPuntual(reservaPuntualDto);
             return Response.ok().setPayload(reservaActualizada);

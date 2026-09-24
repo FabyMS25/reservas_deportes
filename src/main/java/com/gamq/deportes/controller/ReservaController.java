@@ -41,6 +41,7 @@ public class ReservaController {
     public Response obtenerReservas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "true") boolean revisarEstados,
             @RequestParam(required = false) Integer tab,
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String typeReserva,
@@ -57,7 +58,7 @@ public class ReservaController {
         Pageable pageable = PageRequest.of(
                 page,
                 size,
-                Sort.by(resolveDirection(sortDirection), resolveSort(sortBy))
+                com.gamq.deportes.service.implement.ReservaServiceImpl.ordenListado(sortBy, sortDirection, "periodo")
         );
         return Response.ok().setPayload(
                 reservaService.obtenerReservas(
@@ -70,24 +71,10 @@ public class ReservaController {
                         esReservaGratuita,
                         organization,
                         mesFiltro,
-                        anioFiltro
+                        anioFiltro,
+                        revisarEstados
                 )
         );
-    }
-
-    private Sort.Direction resolveDirection(String sortDirection) {
-        return "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
-    }
-
-    private String resolveSort(String sortBy) {
-        if ("numeroReserva".equals(sortBy)) return "numeroReserva";
-        if ("contribuyente".equals(sortBy)) return "contribuyente.nombre";
-        if ("organizacion".equals(sortBy)) return "organizacion.nombre";
-        if ("montoTotal".equals(sortBy)) return "montoTotal";
-        if ("numeroTasa".equals(sortBy)) return "numeroTasa";
-        if ("estadoReserva".equals(sortBy)) return "estadoReserva";
-        if ("fechaCreacion".equals(sortBy)) return "fechaCreacion";
-        return "fechaCreacion";
     }
 
     @Operation(summary = "Buscar reserva por UUID")
@@ -368,6 +355,40 @@ public class ReservaController {
         }
     }
 
+    @Operation(summary = "Completar reserva recurrente gratuita de escuela")
+    @PutMapping("/completar-escuela")
+    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    public Response completarReservaEscuela(@RequestParam("uuid") String uuid) {
+        try {
+            return Response.ok().setPayload(reservaService.completarReservaEscuela(uuid));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Registrar No Show")
+    @PutMapping("/update-not-show")
+    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    public Response marcarNoShow(@RequestParam("uuid") String uuid,
+                                @RequestParam(required = false) String observacion) {
+        return actualizarEstadoUso(uuid, "NO_SHOW", observacion);
+    }
+
+    @Operation(summary = "Confirmar uso completo de reserva")
+    @PutMapping("/completar")
+    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    public Response completarUso(@RequestParam("uuid") String uuid) {
+        return actualizarEstadoUso(uuid, "COMPLETADA", null);
+    }
+
+    private Response actualizarEstadoUso(String uuid, String estado, String observacion) {
+        try {
+            return Response.ok().setPayload(reservaService.actualizarEstadoUso(uuid, estado, observacion));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+
     @Operation(summary = "Rechazar reserva")
     @PutMapping("/{uuid}/rechazar")
     @PreAuthorize("@permissions.reservation('VALIDAR',#p0)")
@@ -394,10 +415,11 @@ public class ReservaController {
             @PathVariable("uuid") String uuid,
             @Parameter(description = "Motivo de la cancelación")
             @RequestParam String motivo,
+            @RequestParam(required = false) String observacion,
             @Parameter(description = "UUID del usuario que realiza la cancelación")
             @RequestParam(required = false) String anuladoPor) {
         try {
-            ReservaDto reservaCancelada = reservaService.cancelarReserva(uuid, motivo, anuladoPor);
+            var reservaCancelada = reservaService.cancelarReserva(uuid, motivo, observacion, anuladoPor);
             return Response.ok().setPayload(reservaCancelada);
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al cancelar reserva: " + ex.getMessage());

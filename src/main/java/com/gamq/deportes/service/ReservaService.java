@@ -22,7 +22,8 @@ public interface ReservaService {
             Boolean esReservaGratuita,
             String organization,
             Integer mesFiltro,
-            Integer anioFiltro
+            Integer anioFiltro,
+            boolean revisarEstados
     );
 //    List<ReservaDto> obtenerReservas();
 //    Page<ReservaDto> obtenerReservas(Pageable pageable);
@@ -41,7 +42,10 @@ public interface ReservaService {
     ReservaDto crearReserva(ReservaDto reservasDto);
     ReservaDto actualizarReserva(ReservaDto reservasDto);
     ReservaDto aprobarReserva(String uuid, String aprobadoPor);
+    ReservaDto completarReservaEscuela(String uuid);
+    ReservaDto actualizarEstadoUso(String uuid, String estado, String observacion);
     ReservaDto rechazarReserva(String uuid, String motivoRechazo, String aprobadoPor);
     ReservaDto cancelarReserva(String uuid, String motivo, String anuladoPor);
+    com.gamq.deportes.dto.ReservaRevisionPage.Resultado cancelarReserva(String uuid, String motivo, String observacion, String anuladoPor);
     String eliminarReserva(String uuid);
 }

@@ -5,12 +5,13 @@ import java.time.LocalDate;
 
 @Data
 public class ReservaPuntualFilter {
+    private Boolean revisarEstados;
     private Integer tab; // 0=Todas, 1=Solicitadas, 2=Pendientes, 3=Pagadas, 4=En Curso, 5=Completadas, 6=Canceladas/Rechazadas
     private String searchTerm;
     private String estadoReserva;
     private String estadoValidacion;
     private String categoria;
-    private String tipoBeneficiario;
+    private Boolean conOrganizacion;
     private String tipoContribuyente;
     private String tipoOrganizacion;
     private LocalDate fromDate;

@@ -18,13 +18,6 @@ import java.util.Optional;
 @Repository
 public interface ReservaPuntualRepository extends JpaRepository<ReservaPuntual, Long>,
         JpaSpecificationExecutor<ReservaPuntual> {
-    @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.estadoReserva = :estadoReserva " +
-            "AND COALESCE(rp.reserva.cancelacionAutomatica, true) = true " +
-            "AND rp.reserva.fechaLimitePago IS NOT NULL " +
-            "AND rp.reserva.fechaLimitePago < :now")
-    List<ReservaPuntual> findExpiredPendingReservations(
-            @Param("now") LocalDateTime now,
-            @Param("estadoReserva") String estadoReserva);
 
     @Query("SELECT rp FROM ReservaPuntual rp WHERE rp.reserva.estadoReserva = 'SOLICITADA' " +
             "AND rp.reserva.estadoValidacion = 'PENDIENTE' " +

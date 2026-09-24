@@ -15,7 +15,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public final ResponseEntity<ApiError> handleAccessDenied(
             org.springframework.security.access.AccessDeniedException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.of(
-                "FORBIDDEN", "No tiene permiso para realizar esta operación", request.getRequestURI()));
+                "FORBIDDEN", request.getRequestURI().endsWith("/ruat/creartasa")
+                        ? "No tiene el permiso CREAR requerido para registrar una tasa en RUAT."
+                        : "No tiene permiso para realizar esta operación", request.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)

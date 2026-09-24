@@ -19,9 +19,11 @@ public class AppContext {
     RestTemplate restTemplate(
             RestTemplateBuilder restTemplateBuilder,
             @Value("${ruat.client.connect-timeout}") Duration connectTimeout,
-            @Value("${ruat.client.read-timeout}") Duration readTimeout) {
+            @Value("${ruat.client.read-timeout}") Duration readTimeout,
+            @Value("${usuarios.base-url}") String usuariosUrl,
+            @Value("${ruat.gateway.base-url}") String ruatUrl) {
         RestTemplate restTemplate = restTemplateBuilder
-                .additionalInterceptors(new RuatHttpLoggingInterceptor("deportes-be->ruat-be"))
+                .additionalInterceptors(new ExternalHttpLoggingInterceptor(usuariosUrl, ruatUrl))
                 .requestFactory(() -> {
                     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
                     // Preserve authentication-error bodies on POST requests with the JDK client.

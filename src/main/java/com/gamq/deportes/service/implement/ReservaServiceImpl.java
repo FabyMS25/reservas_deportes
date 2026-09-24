@@ -75,6 +75,12 @@ public class ReservaServiceImpl implements ReservaService {
     private ReservaRepository reservaRepository;
 
     @Autowired
+    private ReservaRuatRevisionService ruatRevisionService;
+
+    @Autowired
+    private com.gamq.deportes.service.ApiService apiService;
+
+    @Autowired
     private CampoDeportivoRepository campoDeportivoRepository;
 
     @Autowired
@@ -117,7 +123,7 @@ public class ReservaServiceImpl implements ReservaService {
     private ReservationNumberService reservationNumberService;
 
     @Autowired
-    private ReservaPeriodoMapper reservaPeriodoMapper; // Add this
+    private ReservaPeriodoMapper reservaPeriodoMapper;
 
     @Autowired
     private ReservaNotificacionService reservaNotificacionService;
@@ -129,6 +135,7 @@ public class ReservaServiceImpl implements ReservaService {
     private NotificacionDestinatariosReservaService destinatariosService;
 
     @Override
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Page<ReservaDto> obtenerReservas(
             Pageable pageable,
             Integer tab,
@@ -139,10 +146,13 @@ public class ReservaServiceImpl implements ReservaService {
             Boolean esReservaGratuita,
             String organization,
             Integer mesFiltro,
-            Integer anioFiltro
+            Integer anioFiltro,
+            boolean revisarEstados
     ) {
 
         Specification<Reserva> spec = listScope.reservations();
+        final Specification<Reserva> reviewScope = typeReserva == null || typeReserva.isBlank() ? spec
+                : spec.and((root, query, cb) -> cb.equal(root.get("tipoReserva"), typeReserva));
 
         if (tab != null) {
             switch (tab) {
@@ -199,13 +209,14 @@ public class ReservaServiceImpl implements ReservaService {
         }
         if (resolvedMesFiltro != null || resolvedAnioFiltro != null) {
             spec = spec.and((root, query, cb) -> {
-                query.distinct(true);
-                javax.persistence.criteria.Join<Reserva, ReservaPeriodo> period =
-                        root.join("reservasPeriodoList", JoinType.LEFT);
-                javax.persistence.criteria.Predicate result = cb.conjunction();
+                javax.persistence.criteria.Subquery<Long> matchingPeriod = query.subquery(Long.class);
+                javax.persistence.criteria.Root<ReservaPeriodo> period = matchingPeriod.from(ReservaPeriodo.class);
+                javax.persistence.criteria.Predicate result = cb.and(cb.equal(period.get("reserva"), root),
+                        cb.isFalse(period.get("estado")));
                 if (resolvedMesFiltro != null) result = cb.and(result, cb.equal(period.get("mes"), resolvedMesFiltro));
                 if (resolvedAnioFiltro != null) result = cb.and(result, cb.equal(period.get("año"), resolvedAnioFiltro));
-                return result;
+                matchingPeriod.select(period.get("idReservaPeriodo")).where(result);
+                return cb.exists(matchingPeriod);
             });
         }
         if (searchTerm != null && !searchTerm.isBlank()) {
@@ -231,7 +242,15 @@ public class ReservaServiceImpl implements ReservaService {
             });
         }
 
-        return reservaRepository.findAll(spec, pageable).map(ReservaMapper::toDto);
+        final Specification<Reserva> listSpec = spec;
+        if (!revisarEstados) return ruatRevisionService.leerPagina(
+                () -> reservaRepository.findAll(listSpec, pageable), ReservaMapper::toDto);
+        return ruatRevisionService.revisarLista(() -> reservaRepository.findAll(listSpec, pageable),
+                r -> r, ReservaMapper::toDto,
+                after -> reservaRepository.findAll(
+                        ReservaRuatRevisionService.candidatas(reviewScope, "", after),
+                        org.springframework.data.domain.PageRequest.of(0, 100,
+                                org.springframework.data.domain.Sort.by("idReserva"))));
     }
 //    @Override
 //    public List<ReservaDto> obtenerReservas() {
@@ -250,7 +269,6 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaRepository.findAll(pageable)
                 .map(ReservaMapper::toDto);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -282,7 +300,6 @@ public class ReservaServiceImpl implements ReservaService {
         if (reservas.isEmpty()) {
             return List.of();
         }
-
         return reservas.stream()
                 .map(ReservaMapper::toDto)
                 .collect(Collectors.toList());
@@ -293,7 +310,6 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaRepository.findByFechaReservaBetween(fechaIni, fechaFin, pageable)
                 .map(ReservaMapper::toDto);
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<ReservaDto> findReservasByCampoDeportivo(String uuidCampo) {
@@ -302,13 +318,10 @@ public class ReservaServiceImpl implements ReservaService {
             if (!optional.isPresent()) {
                 return List.of();
             }
-
             List<Reserva> reservas = reservaRepository.findByCampoDeportivoUuid(uuidCampo);
-
             return reservas.stream()
                     .map(ReservaMapper::toDto)
                     .collect(Collectors.toList());
-
         } catch (Exception e) {
             return List.of();
         }
@@ -322,13 +335,10 @@ public class ReservaServiceImpl implements ReservaService {
             if (!optional.isPresent()) {
                 return List.of();
             }
-
             List<Reserva> reservas = reservaRepository.findByContribuyenteUuid(uuidContribuyente);
-
             return reservas.stream()
                     .map(ReservaMapper::toDto)
                     .collect(Collectors.toList());
-
         } catch (Exception e) {
             return List.of();
         }
@@ -337,11 +347,9 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional(readOnly = true)
     public List<ReservaDto> findByEstadoReserva(String estadoReserva) {
         List<Reserva> reservas = reservaRepository.findByEstadoReserva(estadoReserva);
-
         if (reservas.isEmpty()) {
             return List.of();
         }
-
         return reservas.stream()
                 .map(ReservaMapper::toDto)
                 .collect(Collectors.toList());
@@ -547,6 +555,16 @@ public class ReservaServiceImpl implements ReservaService {
             String estadoAnterior = reservaExistente.getEstadoReserva();
             String estadoValidacionAnterior = reservaExistente.getEstadoValidacion();
 
+            // Expiration must only be committed by the RUAT-first review, not by a stale client PUT.
+            if ("EXPIRADA".equalsIgnoreCase(reservaDto.getEstadoReserva())
+                    && !"EXPIRADA".equalsIgnoreCase(estadoAnterior)) {
+                throw new IllegalArgumentException(
+                        "La expiración requiere consultar el pago y confirmar la anulación en la revisión RUAT");
+            }
+
+            if (reservaExistente.getNumeroTasa() != null && !reservaExistente.getNumeroTasa().isBlank()) {
+                throw new IllegalStateException("Una reserva con tasa no admite edición general. Utilice la acción específica autorizada.");
+            }
             if (esActualizacionEstadoSimple(reservaDto)) {
                 reservaExistente.setEstadoReserva(reservaDto.getEstadoReserva());
                 reservaExistente.setFechaActualizacion(
@@ -655,16 +673,44 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     @Transactional
     public ReservaDto aprobarReserva(String uuid, String aprobadoPor) {
-        Reserva reserva = reservaRepository.findByUuid(uuid)
+        Reserva reserva = reservaRepository.findByUuidForRevision(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
         String estadoAnterior = reserva.getEstadoReserva();
         String estadoValidacionAnterior = reserva.getEstadoValidacion();
 
+        boolean recalcularPlazo = "puntual".equalsIgnoreCase(reserva.getTipoReserva())
+                || "recurrente".equalsIgnoreCase(reserva.getTipoReserva());
+        if (recalcularPlazo) {
+            // A repeated approval must not restart the payment window or regress the state.
+            if ("APROBADA".equalsIgnoreCase(estadoValidacionAnterior)
+                    && !"SOLICITADA".equalsIgnoreCase(estadoAnterior)) {
+                return ReservaMapper.toDto(reserva);
+            }
+            if (!"SOLICITADA".equalsIgnoreCase(estadoAnterior)) {
+                throw new IllegalArgumentException("Solo se puede aprobar una reserva solicitada");
+            }
+            // The existing approval flow registers and saves the RUAT rate first.
+            if (!Boolean.TRUE.equals(reserva.getEsReservaGratuita())
+                    && (reserva.getNumeroTasa() == null || reserva.getNumeroTasa().isBlank())) {
+                throw new IllegalArgumentException("Debe registrar la tasa en RUAT antes de aprobar la reserva");
+            }
+        }
+
+        LocalDateTime fechaAprobacion = LocalDateTime.now(java.time.ZoneId.of("America/La_Paz"));
+        if (recalcularPlazo) {
+            // Discard the deadline from the original request, even when it already expired.
+            reserva.setFechaLimitePago(null);
+            if (Boolean.TRUE.equals(reserva.getEsReservaGratuita())) {
+                reserva.setCancelacionAutomatica(false);
+            } else {
+                aplicarPoliticaPago(reserva, fechaAprobacion);
+            }
+        }
         reserva.setEstadoReserva("PENDIENTE");
         reserva.setEstadoValidacion("APROBADA");
         reserva.setAprobadoPor(aprobadoPor);
-        reserva.setFechaAprobacion(LocalDateTime.now());
-        reserva.setFechaActualizacion(LocalDateTime.now());
+        reserva.setFechaAprobacion(fechaAprobacion);
+        reserva.setFechaActualizacion(fechaAprobacion);
 
         Reserva reservaAprobada = reservaRepository.save(reserva);
         registrarAuditoria(
@@ -681,6 +727,95 @@ public class ReservaServiceImpl implements ReservaService {
                 "La solicitud fue aprobada",
                 "SUCCESS");
         return ReservaMapper.toDto(reservaAprobada);
+    }
+
+    @Override
+    @Transactional
+    public ReservaDto completarReservaEscuela(String uuid) {
+        Reserva reserva = reservaRepository.findByUuidForRevision(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        if (!reserva.esRecurrenteGratuitaDeEscuela()) {
+            throw new IllegalArgumentException("El cierre corresponde a una reserva recurrente gratuita de escuela municipal");
+        }
+        String anterior = reserva.getEstadoReserva();
+        if ("COMPLETADA".equalsIgnoreCase(anterior)) return ReservaMapper.toDto(reserva);
+        if (!"APROBADA".equalsIgnoreCase(reserva.getEstadoValidacion())
+                || !("PENDIENTE".equalsIgnoreCase(anterior) || "EN_CURSO".equalsIgnoreCase(anterior)
+                || "PAGADA".equalsIgnoreCase(anterior))) {
+            throw new IllegalStateException("Solo se puede completar una reserva de escuela aprobada y no finalizada");
+        }
+        reserva.setEstadoReserva("COMPLETADA");
+        reserva.setFechaActualizacion(LocalDateTime.now(java.time.ZoneId.of("America/La_Paz")));
+        Reserva guardada = reservaRepository.save(reserva);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String usuario = authentication != null && authentication.getPrincipal() instanceof DeportesPrincipal
+                ? ((DeportesPrincipal) authentication.getPrincipal()).getSubject() : null;
+        registrarAuditoria(guardada, "COMPLETE_SCHOOL", anterior, "COMPLETADA", usuario,
+                "Cierre manual de reserva base: el usuario confirmó el registro de las mensualidades pendientes", null);
+        return ReservaMapper.toDto(guardada);
+    }
+
+    /** Public list columns only. Never accept arbitrary entity paths from the client. */
+    public static org.springframework.data.domain.Sort ordenListado(String columna, String direccion, String tipo) {
+        boolean child = "puntual".equals(tipo) || "recurrente".equals(tipo);
+        String prefix = child ? "reserva." : "";
+        String key = columna == null ? "" : columna;
+        if (key.startsWith("reservaDto.")) key = key.substring("reservaDto.".length());
+        Map<String, String> common = Map.ofEntries(
+                Map.entry("numeroReserva", "numeroReserva"), Map.entry("contribuyenteDto.nombreCompleto", "contribuyente.nombreCompletoOrden"),
+                Map.entry("contribuyente", "contribuyente.nombreCompletoOrden"),
+                Map.entry("campoDeportivoDto.complejoDto.nombre", "campoDeportivo.complejo.nombre"), Map.entry("complejo", "campoDeportivo.complejo.nombre"),
+                Map.entry("campoDeportivoDto.nombre", "campoDeportivo.nombre"), Map.entry("campoDeportivo", "campoDeportivo.nombre"),
+                Map.entry("tarifaDto.clasificadorRuatDto.nombre", "tarifa.clasificadorRuat.nombre"),
+                Map.entry("tarifaDto.tipoCobro", "tarifa.tipoCobro"), Map.entry("tipoCobro", "tarifa.tipoCobro"),
+                Map.entry("organizacionDto.nombre", "organizacion.nombre"), Map.entry("organizacion", "organizacion.nombre"),
+                Map.entry("organizacionDto.tipoOrganizacion", "organizacion.tipoOrganizacion"),
+                Map.entry("organizacionDto.disciplina", "organizacion.disciplina"), Map.entry("organizacionDto.entrenador", "organizacion.entrenador"),
+                Map.entry("montoTotal", "montoTotal"), Map.entry("numeroTasa", "numeroTasa"), Map.entry("fechaLimitePago", "fechaLimitePago"),
+                Map.entry("cancelacionAutomatica", "cancelacionAutomatica"), Map.entry("esReservaGratuita", "esReservaGratuita"),
+                Map.entry("motivoGratuidad", "motivoGratuidad"), Map.entry("estadoValidacion", "estadoValidacion"),
+                Map.entry("estadoReserva", "estadoReserva"), Map.entry("pagosDtoList[0].estadoPago", "estadoPagoOrden"),
+                Map.entry("fechaCreacion", "fechaCreacion"));
+        Set<String> puntual = Set.of("superficie", "categoria", "fechaUso", "horaInicio", "horaFin", "duracionHoras",
+                "cantidadPersonas", "precioBaseAplicado", "observaciones", "fechaUsoReal", "periodo");
+        Set<String> recurrente = Set.of("superficie", "categoria", "fechaInicio", "fechaFin", "diasSemana", "cantidadSesiones",
+                "duracionSesionHoras", "cantidadPersonas", "precioBaseAplicado", "observaciones", "activo");
+        String property = common.containsKey(key) ? prefix + common.get(key)
+                : "puntual".equals(tipo) && puntual.contains(key) || "recurrente".equals(tipo) && recurrente.contains(key) ? key : null;
+        if (property == null) property = "puntual".equals(tipo) ? "fechaUso" : "recurrente".equals(tipo) ? "fechaInicio" : "fechaCreacion";
+        org.springframework.data.domain.Sort.Direction direction = "desc".equalsIgnoreCase(direccion) || child && !"asc".equalsIgnoreCase(direccion)
+                ? org.springframework.data.domain.Sort.Direction.DESC : org.springframework.data.domain.Sort.Direction.ASC;
+        // Stable secondary order avoids repeated or skipped rows on equal values across pages.
+        return org.springframework.data.domain.Sort.by(direction, property).and(org.springframework.data.domain.Sort.by(
+                "puntual".equals(tipo) ? "idReservaPuntual" : "recurrente".equals(tipo) ? "idReservaRecurrente" : "idReserva"));
+    }
+
+    @Override
+    @Transactional
+    public ReservaDto actualizarEstadoUso(String uuid, String estado, String observacion) {
+        if (!"NO_SHOW".equals(estado) && !"COMPLETADA".equals(estado)) {
+            throw new IllegalArgumentException("Acción de uso no válida");
+        }
+        Reserva reserva = reservaRepository.findByUuidForRevision(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        if (!("puntual".equalsIgnoreCase(reserva.getTipoReserva()) || "recurrente".equalsIgnoreCase(reserva.getTipoReserva()))
+                || reserva.esRecurrenteGratuitaDeEscuela()) {
+            throw new IllegalArgumentException("Esta reserva no admite esta acción de uso. Las bases gratuitas de escuela tienen su propio cierre.");
+        }
+        String anterior = reserva.getEstadoReserva();
+        if (estado.equals(anterior)) return ReservaMapper.toDto(reserva);
+        if (!"APROBADA".equalsIgnoreCase(reserva.getEstadoValidacion())
+                || !("PAGADA".equals(anterior) || "EN_CURSO".equals(anterior))) {
+            throw new IllegalStateException("La reserva debe estar aprobada y PAGADA o EN_CURSO");
+        }
+        reserva.setEstadoReserva(estado);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String usuario = authentication != null && authentication.getPrincipal() instanceof DeportesPrincipal
+                ? ((DeportesPrincipal) authentication.getPrincipal()).getSubject() : null;
+        Reserva guardada = reservaRepository.save(reserva);
+        registrarAuditoria(guardada, "NO_SHOW".equals(estado) ? "NO_SHOW" : "COMPLETE_USE", anterior, estado,
+                usuario, observacion, null);
+        return ReservaMapper.toDto(guardada);
     }
 
     @Override
@@ -718,10 +853,53 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     @Transactional
     public ReservaDto cancelarReserva(String uuid, String motivo, String anuladoPor) {
+        var resultado = cancelarReserva(uuid, motivo, null, anuladoPor);
+        if (!"CANCELADA".equals(resultado.getReservaDto().getEstadoReserva())) {
+            throw new IllegalStateException(resultado.getMotivo());
+        }
+        return resultado.getReservaDto();
+    }
+
+    @Override
+    @Transactional
+    public com.gamq.deportes.dto.ReservaRevisionPage.Resultado cancelarReserva(
+            String uuid, String motivo, String observacion, String anuladoPor) {
         validarMotivo(motivo, "El motivo de cancelación es requerido");
-        Reserva reserva = reservaRepository.findByUuid(uuid)
+        Reserva reserva = reservaRepository.findByUuidForRevision(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
         String estadoAnterior = reserva.getEstadoReserva();
+
+        var resultado = new com.gamq.deportes.dto.ReservaRevisionPage.Resultado()
+                .setReservaDto(ReservaMapper.toDto(reserva)).setEstadoAnterior(estadoAnterior);
+        if ("CANCELADA".equalsIgnoreCase(estadoAnterior)) return resultado;
+        if (Set.of("SOLICITADA", "COMPLETADA", "EXPIRADA", "NO_SHOW").contains(estadoAnterior)) {
+            throw new IllegalStateException("Este estado no admite anulación manual. Las solicitudes requieren rechazo administrativo.");
+        }
+        boolean tieneTasa = reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank();
+        if (!tieneTasa && !Boolean.TRUE.equals(reserva.getEsReservaGratuita())) {
+            throw new IllegalStateException("La reserva no tiene tasa para anular en RUAT. No se modificó su estado.");
+        }
+        if (tieneTasa) {
+            if (observacion == null || observacion.trim().length() <= 10) {
+                throw new IllegalArgumentException("La observación de anulación debe tener más de 10 caracteres.");
+            }
+            var solicitud = new com.gamq.deportes.model.AnularTasa.AnularTasaRequest();
+            solicitud.setNumeroTasa(reserva.getNumeroTasa());
+            solicitud.setMotivoTasa(motivo);
+            solicitud.setObservacion(observacion);
+            var token = new com.gamq.deportes.model.AnularTasa.AnularTasaToken();
+            token.setAnular(solicitud);
+            var respuesta = apiService.anularTasa(token);
+            var cuerpo = ruatRevisionService.registrarRespuesta(resultado, respuesta);
+            if (!ruatRevisionService.confirmada(respuesta, cuerpo)) {
+                return resultado.setResultado("ERROR").setRuat("NO_CONFIRMADO");
+            }
+            resultado.setRuat("ANULACION_CONFIRMADA");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        anuladoPor = authentication != null && authentication.getPrincipal() instanceof DeportesPrincipal
+                ? ((DeportesPrincipal) authentication.getPrincipal()).getSubject() : null;
 
         reserva.setEstadoReserva("CANCELADA");
         if (reserva.getReservasPeriodoList() != null) {
@@ -742,7 +920,7 @@ public class ReservaServiceImpl implements ReservaService {
                 null
         );
         reservaNotificacionService.notificarCancelada(reservaCancelada);
-        return ReservaMapper.toDto(reservaCancelada);
+        return resultado.setReservaDto(ReservaMapper.toDto(reservaCancelada)).setResultado("ACTUALIZADA");
     }
 
     @Override
@@ -1046,6 +1224,15 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void aplicarPoliticaPago(Reserva reserva) {
+        aplicarPoliticaPago(reserva, LocalDateTime.now(java.time.ZoneId.of("America/La_Paz")));
+    }
+
+    private void aplicarPoliticaPago(Reserva reserva, LocalDateTime inicioPlazo) {
+        if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
+            reserva.setCancelacionAutomatica(false);
+            reserva.setFechaLimitePago(null);
+            return;
+        }
         if (reserva.getCancelacionAutomatica() == null) {
             reserva.setCancelacionAutomatica(true);
         }
@@ -1054,7 +1241,7 @@ public class ReservaServiceImpl implements ReservaService {
             reserva.setMotivoCancelacionAutomatica(null);
             reserva.setAutorizadoPor(null);
             if (reserva.getFechaLimitePago() == null) {
-                reserva.setFechaLimitePago(LocalDateTime.now().plusHours(obtenerHorasValidacionPago(reserva)));
+                reserva.setFechaLimitePago(inicioPlazo.plusHours(obtenerHorasValidacionPago(reserva)));
             }
             return;
         }

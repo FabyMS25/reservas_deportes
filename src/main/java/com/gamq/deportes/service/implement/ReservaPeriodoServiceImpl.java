@@ -40,6 +40,8 @@ import static com.gamq.deportes.exception.enums.EntityType.ESTUDIANTE_ESCUELA;
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     @Autowired
+    private ReservaRuatRevisionService ruatRevisionService;
+    @Autowired
     private com.gamq.deportes.security.ReservationListScope listScope;
 
 
@@ -82,9 +84,11 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 .collect(Collectors.toList());
     }
     @Override
+    @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
         Specification<ReservaPeriodo> spec = listScope.periodos();
-        LocalDate now = LocalDate.now();
+        final Specification<ReservaPeriodo> reviewScope = spec;
+        LocalDate now = LocalDate.now(java.time.ZoneId.of("America/La_Paz"));
         int currentYear = now.getYear();
         int currentMonth = now.getMonthValue();
 
@@ -195,8 +199,18 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                     Sort.by("fechaCreacion").descending());
         }
-        Page<ReservaPeriodo> reservasPage = reservaPeriodoRepository.findAll(spec, pageable);
-        return reservasPage.map(reserva -> ReservaPeriodoMapper.toDto(reserva, true));
+        final Specification<ReservaPeriodo> listSpec = spec;
+        final Pageable listPage = pageable;
+        if (Boolean.FALSE.equals(filter.getRevisarEstados())) {
+            return ruatRevisionService.leerPagina(() -> reservaPeriodoRepository.findAll(listSpec, listPage),
+                    r -> ReservaPeriodoMapper.toDto(r, true));
+        }
+        return ruatRevisionService.revisarLista(
+                () -> reservaPeriodoRepository.findAll(listSpec, listPage),
+                r -> r.getReserva(), r -> ReservaPeriodoMapper.toDto(r, true),
+                after -> reservaPeriodoRepository.findAll(
+                        ReservaRuatRevisionService.candidatas(reviewScope, "reserva", after),
+                        PageRequest.of(0, 100, Sort.by("reserva.idReserva"))));
     }
      @Override
     public ReservaPeriodoDto findByUuid(String uuid) {
@@ -307,6 +321,10 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
             if (reservaPeriodoOptional.isPresent()) {
                 ReservaPeriodo reservaPeriodoExistente = reservaPeriodoOptional.get();
+                if (reservaPeriodoExistente.getReserva().getNumeroTasa() != null
+                        && !reservaPeriodoExistente.getReserva().getNumeroTasa().isBlank()) {
+                    throw new IllegalStateException("No se pueden editar los detalles de una mensualidad con tasa registrada");
+                }
                 ReservaPeriodoMapper.updateEntityFromDto(reservaPeriodoDto, reservaPeriodoExistente);
                 if (reservaPeriodoDto.getEstudianteEscuelaDto() != null) {
                     EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);

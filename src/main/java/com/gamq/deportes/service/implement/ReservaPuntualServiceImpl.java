@@ -64,9 +64,13 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Autowired
     private NotificacionDestinatariosReservaService destinatariosService;
+    @Autowired
+    private ReservaRuatRevisionService ruatRevisionService;
 
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Page<ReservaPuntualDto> obtenerReservasConFiltros(ReservaPuntualFilter filter, Pageable pageable) {
         Specification<ReservaPuntual> spec = listScope.children();
+        final Specification<ReservaPuntual> reviewScope = spec;
         if (filter.getTab() != null && filter.getTab() > 0) {
             String tabEstado = filter.getEstadoReservaFromTab();
             if (tabEstado != null) {
@@ -94,18 +98,10 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("categoria")), "%" + filter.getCategoria().toLowerCase() + "%"));
         }
-        if (filter.getTipoBeneficiario() != null && !filter.getTipoBeneficiario().isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                Join<ReservaPuntual, Reserva> reservaJoin = root.join("reserva", JoinType.LEFT);
-                if ("ORGANIZACION".equalsIgnoreCase(filter.getTipoBeneficiario())) {
-                    return cb.isNotNull(reservaJoin.get("organizacion"));
-                }
-                if ("CONTRIBUYENTE".equalsIgnoreCase(filter.getTipoBeneficiario())) {
-                    return cb.and(cb.isNotNull(reservaJoin.get("contribuyente")),
-                            cb.isNull(reservaJoin.get("organizacion")));
-                }
-                return cb.conjunction();
-            });
+        if (filter.getConOrganizacion() != null) {
+            spec = spec.and((root, query, cb) -> filter.getConOrganizacion()
+                    ? cb.isNotNull(root.join("reserva", JoinType.LEFT).get("organizacion"))
+                    : cb.isNull(root.join("reserva", JoinType.LEFT).get("organizacion")));
         }
         if (filter.getTipoContribuyente() != null && !filter.getTipoContribuyente().isEmpty()) {
             spec = spec.and((root, query, cb) ->
@@ -151,8 +147,18 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                     Sort.by(Sort.Order.desc("fechaUso"), Sort.Order.desc("idReservaPuntual")));
         }
-        Page<ReservaPuntual> reservasPage = reservaPuntualRepository.findAll(spec, pageable);
-        return reservasPage.map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
+        final Specification<ReservaPuntual> listSpec = spec;
+        final Pageable listPage = pageable;
+        if (Boolean.FALSE.equals(filter.getRevisarEstados())) {
+            return ruatRevisionService.leerPagina(() -> reservaPuntualRepository.findAll(listSpec, listPage),
+                    r -> ReservaPuntualMapper.toDto(r, true));
+        }
+        return ruatRevisionService.revisarLista(
+                () -> reservaPuntualRepository.findAll(listSpec, listPage),
+                r -> r.getReserva(), r -> ReservaPuntualMapper.toDto(r, true),
+                after -> reservaPuntualRepository.findAll(
+                        ReservaRuatRevisionService.candidatas(reviewScope, "reserva", after),
+                        PageRequest.of(0, 100, Sort.by("reserva.idReserva"))));
     }
 
     @Override
@@ -169,50 +175,6 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     public Page<ReservaPuntualDto> obtenerReservas(Pageable pageable) {
         return reservaPuntualRepository.findAll(pageable)
                 .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
-    }
-
-    @Override
-    @Transactional
-    public List<ReservaPuntualDto> checkAndUpdateExpiredReservations() {
-        LocalDateTime now = LocalDateTime.now();
-
-        List<ReservaPuntual> expiredReservas = reservaPuntualRepository
-                .findExpiredPendingReservations(now, "PENDIENTE");
-
-        List<ReservaPuntualDto> updatedReservas = new ArrayList<>();
-
-        for (ReservaPuntual reserva : expiredReservas) {
-            try {
-
-                // Store original state for comparison
-                String originalEstado = reserva.getReserva().getEstadoReserva();
-
-                reserva.getReserva().setEstadoReserva("EXPIRADA");
-                reserva.getReserva().setAnuladoPor(null);
-                reserva.getReserva().setMotivoRechazo("NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO");
-                reserva.getReserva().setFechaRechazo(LocalDateTime.now());
-
-                Reserva updatedReserva = reservaRepository.save(reserva.getReserva());
-                reserva.setReserva(updatedReserva);
-
-                if (!originalEstado.equals("EXPIRADA")) {
-                    registrarAuditoria(
-                            updatedReserva,
-                            "EXPIRE",
-                            originalEstado,
-                            updatedReserva.getEstadoReserva(),
-                            null,
-                            "Reserva puntual expirada por falta de pago",
-                            null
-                    );
-                    reservaNotificacionService.notificarExpirada(updatedReserva);
-                    updatedReservas.add(ReservaPuntualMapper.toDto(reserva, true));
-                }
-            } catch (Exception e) {
-                applicationLog.error("Failed to expire reservation {}", reserva.getReserva().getNumeroReserva(), e);
-            }
-        }
-        return updatedReservas;
     }
 
 
@@ -474,6 +436,12 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     }
 
     @Override
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public Page<ReservaPuntualDto> checkAndUpdateExpiredReservations() {
+        return obtenerReservasConFiltros(new ReservaPuntualFilter(), PageRequest.of(0, 100));
+    }
+
+    @Override
     @Transactional
     public ReservaPuntualDto actualizarReservaPuntual(ReservaPuntualDto reservaPuntualDto) {
         if (reservaPuntualDto == null) {
@@ -488,20 +456,27 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
             LocalTime horaInicioAnterior = reservaPuntualExistente.getHoraInicio();
             LocalTime horaFinAnterior = reservaPuntualExistente.getHoraFin();
 
-            // Update fields
-            ReservaPuntualMapper.updateEntityFromDto(reservaPuntualDto, reservaPuntualExistente);
-
-            // Update parent reservation if provided
-            if (reservaPuntualDto.getReservaDto() != null) {
-                Reserva reserva = getReserva(reservaPuntualDto.getReservaDto().getUuid());
-                reservaPuntualExistente.setReserva(reserva);
+            Reserva principal = reservaRepository.findByUuidForRevision(reservaPuntualExistente.getReserva().getUuid())
+                    .orElseThrow(() -> new NotFoundException(RESERVA, reservaPuntualExistente.getReserva().getUuid()));
+            if (!"PENDIENTE".equals(principal.getEstadoReserva())) {
+                throw new IllegalStateException("Solo se puede cambiar el horario de una reserva pendiente");
             }
-
-            // Recalculate duration if times changed
-            if (reservaPuntualDto.getHoraInicio() != null && reservaPuntualDto.getHoraFin() != null) {
-                int duracion = reservaPuntualDto.getHoraFin().getHour() - reservaPuntualDto.getHoraInicio().getHour();
-                reservaPuntualExistente.setDuracionHoras(Math.max(duracion, 1));
+            LocalDate fecha = reservaPuntualDto.getFechaUso();
+            LocalTime inicio = reservaPuntualDto.getHoraInicio(), fin = reservaPuntualDto.getHoraFin();
+            if (fecha == null || inicio == null || fin == null || !fin.isAfter(inicio)
+                    || !fecha.atTime(inicio).isAfter(LocalDateTime.now(java.time.ZoneId.of("America/La_Paz")))
+                    || horaInicioAnterior == null || horaFinAnterior == null
+                    || !java.time.Duration.between(inicio, fin).equals(java.time.Duration.between(horaInicioAnterior, horaFinAnterior))) {
+                throw new IllegalArgumentException("El horario debe ser futuro y conservar exactamente la duración original");
             }
+            if (existeReservaConflictiva(principal.getCampoDeportivo().getUuid(), fecha, inicio, fin, principal.getUuid())) {
+                throw new IllegalStateException("Existe conflicto con otra reserva en ese horario");
+            }
+            // Only schedule fields are writable here; prices, payer, rate and parent status are untouched.
+            reservaPuntualExistente.setFechaUso(fecha);
+            reservaPuntualExistente.setHoraInicio(inicio);
+            reservaPuntualExistente.setHoraFin(fin);
+            reservaPuntualExistente.setObservaciones(reservaPuntualDto.getObservaciones());
 
             ReservaPuntual reservaPuntualActualizada = reservaPuntualRepository.save(reservaPuntualExistente);
             boolean horarioCambiado = !Objects.equals(fechaUsoAnterior, reservaPuntualActualizada.getFechaUso())

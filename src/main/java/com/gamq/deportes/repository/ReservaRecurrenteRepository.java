@@ -24,13 +24,6 @@ public interface ReservaRecurrenteRepository extends JpaRepository<ReservaRecurr
 
     @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.tipoRecurrencia = :tipoRecurrencia")
     Page<ReservaRecurrente> findByTipoRecurrencia(@Param("tipoRecurrencia") String tipoRecurrencia, Pageable pageable);
-    @Query("SELECT rp FROM ReservaRecurrente rp WHERE rp.reserva.estadoReserva = :estadoReserva " +
-            "AND COALESCE(rp.reserva.cancelacionAutomatica, true) = true " +
-            "AND rp.reserva.fechaLimitePago IS NOT NULL " +
-            "AND rp.reserva.fechaLimitePago < :now")
-    List<ReservaRecurrente> findExpiredPendingReservations(
-            @Param("now") LocalDateTime now,
-            @Param("estadoReserva") String estadoReserva);
         @Query("SELECT rr FROM ReservaRecurrente rr WHERE rr.reserva.campoDeportivo.uuid = :campoUuid AND rr.activo = true AND rr.fechaInicio <= :fechaUso AND (rr.fechaFin IS NULL OR rr.fechaFin >= :fechaUso)    AND rr.reserva.estadoReserva IN ('PENDIENTE', 'PAGADA', 'EN_CURSO')")
         List<ReservaRecurrente> findActivasEnFechaPorCampoEntity(
                 @Param("campoUuid") String campoUuid,

@@ -14,7 +14,8 @@ public class ReservaPeriodoMapper {
 
         dto.setUuid(reservaPeriodo.getUuid());
         dto.setEstado(reservaPeriodo.isEstado());
-        dto.setFechaCreacion(java.sql.Timestamp.valueOf(reservaPeriodo.getFechaCreacion()));
+        if (reservaPeriodo.getFechaCreacion() != null)
+            dto.setFechaCreacion(java.sql.Timestamp.valueOf(reservaPeriodo.getFechaCreacion()));
 
         // Period information
         dto.setMes(reservaPeriodo.getMes());

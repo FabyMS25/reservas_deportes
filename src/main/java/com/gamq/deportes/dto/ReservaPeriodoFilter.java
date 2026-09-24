@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 @Data
 public class ReservaPeriodoFilter {
+    private Boolean revisarEstados;
     private Integer tab; // 0=Todas, 1=Solicitadas, 2=Pendientes, 3=Pagadas, 4=Mes en Curso, 5=Completadas, 6=Canceladas/Expiradas
     private String searchTerm;
     private String estadoReserva;

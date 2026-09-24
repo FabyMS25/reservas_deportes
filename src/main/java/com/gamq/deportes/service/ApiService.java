@@ -15,4 +15,6 @@ public interface ApiService {
     ResponseEntity<byte[]> anularTasa(AnularTasaToken anularTasaToken);
     ResponseEntity<byte[]> registro(RegistroToken registroToken);
     ResponseEntity<byte[]> consultaPago(PagoToken pagoToken);
+    ResponseEntity<byte[]> consultaPagoRevision(PagoToken pagoToken);
+    ResponseEntity<byte[]> anularTasaRevision(AnularTasaToken anularTasaToken);
 }

@@ -28,6 +28,10 @@ public abstract class AbstractClient {
     }
 
     protected ResponseEntity<byte[]> gatewayPost(String path, Object payload) {
+        return gatewayPost(path, payload, restTemplate);
+    }
+
+    protected ResponseEntity<byte[]> gatewayPost(String path, Object payload, RestTemplate client) {
         ServletRequestAttributes context = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         String requestId = context == null ? null : (String) context.getRequest().getAttribute("ruat.requestId");
         if (requestId == null) requestId = UUID.randomUUID().toString();
@@ -52,7 +56,7 @@ public abstract class AbstractClient {
         String target = gatewayUrl.replaceAll("/+$", "") + path;
         ResponseEntity<byte[]> response;
         try {
-            response = restTemplate.exchange(target,
+            response = client.exchange(target,
                     HttpMethod.POST, new HttpEntity<>(payload, headers), byte[].class);
             log.info("requestId={} stage=gateway-response status={} elapsedMs={}", requestId,
                     response.getStatusCodeValue(), (System.nanoTime() - started) / 1000000);
@@ -82,9 +86,6 @@ public abstract class AbstractClient {
     }
 
     private ResponseEntity<byte[]> forwardResponse(String target, int status, HttpHeaders upstream, byte[] body) {
-        ServletRequestAttributes context = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        String id = context == null ? null : (String) context.getRequest().getAttribute("ruat.requestId");
-        com.gamq.deportes.context.RuatHttpLoggingInterceptor.logResponse("deportes-be->ruat-be", id, target, status, upstream, body);
         HttpHeaders headers = new HttpHeaders();
         if (upstream != null) {
             for (String name : new String[]{HttpHeaders.CONTENT_TYPE, HttpHeaders.CONTENT_ENCODING,

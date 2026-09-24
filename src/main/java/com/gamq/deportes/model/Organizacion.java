@@ -48,7 +48,7 @@ public class Organizacion {
 
     // Organization Type and Legal Information
     @Column(name = "tipo_organizacion", nullable = false, length = 50)
-    private String tipoOrganizacion; // asociacion_deportiva, club_deportivo, unidad_educativa, empresa_privada, institucion_publica
+    private String tipoOrganizacion; // ASOCIACION, CLUB, ESCUELA_MUNICIPAL, ORGANIZACION
 
     @Column(name = "personeria_juridica", length = 100)
     private String personeriaJuridica;

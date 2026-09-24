@@ -41,6 +41,9 @@ public class ReservaValidacionExpiracionService {
 
     @Transactional
     public void procesar() {
+        // Disabled until an explicit request-expiration policy is configured.
+        // Usage dates must not substitute a SOLICITADA expiration deadline.
+        /*
         LocalDate fecha = LocalDate.now();
         Set<String> procesadas = new LinkedHashSet<>();
         for (ReservaPuntual puntual : puntualRepository.findSolicitudesVencidas(fecha, LocalTime.now())) {
@@ -49,12 +52,16 @@ public class ReservaValidacionExpiracionService {
         for (ReservaRecurrente recurrente : recurrenteRepository.findSolicitudesVencidas(fecha)) {
             vencer(recurrente.getReserva(), procesadas);
         }
+        */
     }
 
     private void vencer(Reserva reserva, Set<String> procesadas) {
         if (reserva == null || reserva.getUuid() == null || !procesadas.add(reserva.getUuid())) return;
         if (!"SOLICITADA".equalsIgnoreCase(reserva.getEstadoReserva())
                 || !"PENDIENTE".equalsIgnoreCase(reserva.getEstadoValidacion())) return;
+        // An issued tax cannot be cancelled by this local-only administrative path.
+        // It requires the explicit RUAT-confirmed annulment flow.
+        if (reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank()) return;
 
         String anterior = reserva.getEstadoReserva();
         reserva.setEstadoReserva("CANCELADA");

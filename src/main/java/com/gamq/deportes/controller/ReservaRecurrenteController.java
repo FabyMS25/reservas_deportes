@@ -35,6 +35,7 @@ public class ReservaRecurrenteController {
     public Response obtenerReservas(
             @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página") @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "true") boolean revisarEstados,
             @Parameter(description = "Pestaña seleccionada (0=Todas,1=Solicitadas,2=Pendientes,etc)")
             @RequestParam(required = false) Integer tab,
             @Parameter(description = "Término de búsqueda") @RequestParam(required = false) String searchTerm,
@@ -45,23 +46,24 @@ public class ReservaRecurrenteController {
             @Parameter(description = "Activo (true/false)") @RequestParam(required = false) String activo,
             @Parameter(description = "Fecha desde (ISO)")   @RequestParam(required = false) String fromDate,
             @Parameter(description = "Fecha hasta (ISO)")   @RequestParam(required = false) String toDate,
-            @RequestParam(required = false) String tipoBeneficiario,
+            @RequestParam(required = false) Boolean conOrganizacion,
             @RequestParam(required = false) String tipoContribuyente,
             @RequestParam(required = false) String tipoOrganizacion,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortDirection) {
         try {
             // Create Pageable with default sorting by fechaCreacion descending
-            Pageable pageable = PageRequest.of(page, size, Sort.by(resolveDirection(sortDirection), resolveSort(sortBy)));
+            Pageable pageable = PageRequest.of(page, size, com.gamq.deportes.service.implement.ReservaServiceImpl.ordenListado(sortBy, sortDirection, "recurrente"));
 
             // Create filter object
             ReservaRecurrenteFilter filter = new ReservaRecurrenteFilter();
+            filter.setRevisarEstados(revisarEstados);
             filter.setTab(tab);
             filter.setSearchTerm(searchTerm);
             filter.setEstadoReserva(estadoReserva);
             filter.setEstadoValidacion(estadoValidacion);
             filter.setCategoria(categoria);
-            filter.setTipoBeneficiario(tipoBeneficiario);
+            filter.setConOrganizacion(conOrganizacion);
             filter.setTipoContribuyente(tipoContribuyente);
             filter.setTipoOrganizacion(tipoOrganizacion);
             filter.setTipoRecurrencia(tipoRecurrencia);
@@ -82,22 +84,11 @@ public class ReservaRecurrenteController {
         }
     }
 
-    @Operation(summary = "Obtener todas las reservas")
-    private String resolveSort(String sortBy) {
-        if ("categoria".equals(sortBy)) return "categoria";
-        if ("numeroReserva".equals(sortBy)) return "reserva.numeroReserva";
-        if ("contribuyente".equals(sortBy)) return "reserva.contribuyente.nombre";
-        if ("complejo".equals(sortBy)) return "reserva.campoDeportivo.complejo.nombre";
-        if ("campoDeportivo".equals(sortBy)) return "reserva.campoDeportivo.nombre";
-        if ("tipoCobro".equals(sortBy)) return "reserva.tarifa.tipoCobro";
-        if ("montoTotal".equals(sortBy)) return "reserva.montoTotal";
-        if ("numeroTasa".equals(sortBy)) return "reserva.numeroTasa";
-        if ("estadoReserva".equals(sortBy)) return "reserva.estadoReserva";
-        return "fechaInicio";
-    }
-
-    private Sort.Direction resolveDirection(String direction) {
-        return "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    @Operation(summary = "Verificar reservas mediante RUAT")
+    @PostMapping("/verificar-expiradas")
+    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
+    public Response verificarReservasExpiradas() {
+        return Response.ok().setPayload(reservaRecurrenteService.checkAndUpdateExpiredReservations());
     }
 
     @GetMapping("/all")
@@ -131,18 +122,6 @@ public class ReservaRecurrenteController {
             return Response.ok().setPayload(reservaRecurrenteDto);
         } catch (Exception ex) {
             return Response.notFound().setPayload("Reserva recurrente no encontrada: " + ex.getMessage());
-        }
-    }
-
-    @Operation(summary = "Verificar y actualizar reservas expiradas")
-    @PostMapping("/verificar-expiradas")
-    @PreAuthorize("@permissions.has('/reservations/recurrent','VER')")
-    public Response verificarReservasExpiradas() {
-        try {
-            List<ReservaRecurrenteDto> updatedReservas = reservaRecurrenteService.checkAndUpdateExpiredReservations();
-            return Response.ok().setPayload(updatedReservas);
-        } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al verificar reservas expiradas: " + ex.getMessage());
         }
     }
 
@@ -311,18 +290,6 @@ public class ReservaRecurrenteController {
             return Response.ok().setPayload(nuevaReservaRecurrente);
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al crear reserva recurrente: " + ex.getMessage());
-        }
-    }
-
-    @Operation(summary = "Actualizar reserva recurrente")
-    @PutMapping()
-    @PreAuthorize("@permissions.childBody('recurrente','ACTUALIZAR',#p0)")
-    public Response actualizarReservaRecurrente(@RequestBody ReservaRecurrenteDto reservaRecurrenteDto) {
-        try {
-            ReservaRecurrenteDto reservaActualizada = reservaRecurrenteService.actualizarReservaRecurrente(reservaRecurrenteDto);
-            return Response.ok().setPayload(reservaActualizada);
-        } catch (Exception ex) {
-            return Response.unprocessableEntity().setPayload("Error al actualizar reserva recurrente: " + ex.getMessage());
         }
     }
 

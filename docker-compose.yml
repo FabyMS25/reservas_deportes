@@ -2,70 +2,90 @@ services:
   be-deportes:
     image: deportes-be
     container_name: deportes-be
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "127.0.0.1:8085:8085"
     environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-deportes:5432/db_deportes
-#      - SPRING_DATASOURCE_USERNAME=deportes
-#      - SPRING_DATASOURCE_PASSWORD=deportes123
-#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       SERVER_PORT: 8085
       SERVER_ADDRESS: 0.0.0.0
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db-deportes:5432/db_deportes
-      SPRING_DATASOURCE_USERNAME: deportes
-      SPRING_DATASOURCE_PASSWORD: deportes123
+
+      # Production PostgreSQL. The local Docker database below is optional
+      # and is not used while this production URL is active.
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?SPRING_DATASOURCE_URL is required}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?SPRING_DATASOURCE_USERNAME is required}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD is required}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      RUAT_BASE_URL: https://aplicaciones.ruat.gob.bo
+
+      # Keep the public frontend as the only browser origin in production.
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: https://deportes.quillacollo.gob.bo
+
+      # External Usuarios service used for login and staff operations.
+      USUARIOS_BASE_URL: ${USUARIOS_BASE_URL:?USUARIOS_BASE_URL is required}
+
+      # External production RUAT gateway.
+      RUAT_GATEWAY_BASE_URL: ${RUAT_GATEWAY_BASE_URL:?RUAT_GATEWAY_BASE_URL is required}
+      RUAT_GATEWAY_INTERNAL_API_KEY: ${RUAT_GATEWAY_INTERNAL_API_KEY:?RUAT_GATEWAY_INTERNAL_API_KEY is required}
+
+      APPLICATION_CODE: ${APPLICATION_CODE:-SIS-013}
+      APPLICATION_NAME: ${APPLICATION_NAME:-DEPORTESAPP}
+      DEPORTES_ADMIN_MENU: ${DEPORTES_ADMIN_MENU:-Administracion}
+      DEPORTES_JWT_SECRET: ${DEPORTES_JWT_SECRET:?DEPORTES_JWT_SECRET is required}
+      DEPORTES_TOKEN_EXPIRATION_SECONDS: ${DEPORTES_TOKEN_EXPIRATION_SECONDS:-28800}
+
+      RUAT_HTTP_LOG_LEVEL: ${RUAT_HTTP_LOG_LEVEL:-INFO}
       UPLOAD_REQUISITO_PATH: /opt/uploads/licencias/requisitos/
       UPLOAD_INSPECCION_PATH: /opt/uploads/licencias/inspecciones/
       UPLOAD_PUBLICIDAD_PATH: /opt/uploads/licencias/letreros/
     volumes:
       - uploads:/opt/uploads/licencias
-    depends_on:
-      - db-deportes
-    restart: always
+    restart: unless-stopped
 
+  fe-deportes:
+    image: deportes-fe
+    container_name: deportes-fe
+    build:
+      context: ../deportes-fe
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:4205:80"
+    depends_on:
+      - be-deportes
+    restart: unless-stopped
+
+  # Optional local database for development only.
+  # It is not used by the production profile above. To use it, provide a
+  # separate local override that points SPRING_DATASOURCE_URL to db-deportes.
   db-deportes:
+    profiles: ["local-db"]
     image: postgis/postgis:14-3.2-alpine
     container_name: deportes-db
     environment:
-      POSTGRES_USER: deportes
-      POSTGRES_PASSWORD: deportes123
-      POSTGRES_DB: db_deportes
-#        - POSTGRES_USER=deportes
-#        - POSTGRES_PASSWORD=deportes123
-#        - POSTGRES_DB=db_deportes
+      POSTGRES_DB: ${LOCAL_POSTGRES_DB:-db_deportes}
+      POSTGRES_USER: ${LOCAL_POSTGRES_USER:-deportes}
+      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:?LOCAL_POSTGRES_PASSWORD is required when using local-db}
     ports:
       - "127.0.0.1:5438:5432"
     volumes:
       - db:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
 
+  # Optional local administration tool. Do not expose this publicly.
   pg-deportes:
+    profiles: ["local-db"]
     image: dpage/pgadmin4
     container_name: deportes-pg
     ports:
       - "127.0.0.1:5055:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: deportes@admin.com
-      PGADMIN_DEFAULT_PASSWORD: deportes123
-#        - PGADMIN_DEFAULT_EMAIL=deportes@admin.com
-#        - PGADMIN_DEFAULT_PASSWORD=deportes123
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-deportes@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required when using local-db}
     depends_on:
       - db-deportes
     volumes:
       - pg:/var/lib/pgadmin
-    restart: always
-
-  fe-deportes:
-    image: deportes-fe
-    container_name: deportes-fe
-    ports:
-      - "127.0.0.1:4205:80"
-    #    depends_on:
-    #      - be-deportes
-    restart: always
+    restart: unless-stopped
 
 volumes:
   db:

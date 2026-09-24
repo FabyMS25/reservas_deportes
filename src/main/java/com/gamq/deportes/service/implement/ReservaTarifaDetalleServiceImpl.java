@@ -92,6 +92,10 @@ public class ReservaTarifaDetalleServiceImpl implements ReservaTarifaDetalleServ
 
             if (detalleOptional.isPresent()) {
                 ReservaTarifaDetalle detalle = detalleOptional.get();
+                validarEdicionSinTasa(detalle.getReserva());
+                if (reservaTarifaDetalleDto.getReservaDto() != null && reservaTarifaDetalleDto.getReservaDto().getUuid() != null) {
+                    validarEdicionSinTasa(obtenerReserva(reservaTarifaDetalleDto.getReservaDto().getUuid()));
+                }
                 ReservaTarifaDetalleMapper.updateEntityFromDto(reservaTarifaDetalleDto, detalle);
 
                 if (reservaTarifaDetalleDto.getReservaDto() != null && reservaTarifaDetalleDto.getReservaDto().getUuid() != null) {
@@ -137,6 +141,12 @@ public class ReservaTarifaDetalleServiceImpl implements ReservaTarifaDetalleServ
     private Reserva obtenerReserva(String uuid) {
         return reservaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+    }
+
+    private void validarEdicionSinTasa(Reserva reserva) {
+        if (reserva != null && reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank()) {
+            throw new IllegalStateException("No se puede editar el detalle tarifario de una reserva con tasa registrada");
+        }
     }
 
     private Tarifa obtenerTarifa(String uuid) {
