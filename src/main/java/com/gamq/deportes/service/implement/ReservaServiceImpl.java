@@ -822,8 +822,14 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional
     public ReservaDto rechazarReserva(String uuid, String motivoRechazo, String aprobadoPor) {
         validarMotivo(motivoRechazo, "El motivo de rechazo es requerido");
-        Reserva reserva = reservaRepository.findByUuid(uuid)
+        Reserva reserva = reservaRepository.findByUuidForRevision(uuid)
                 .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        if (!"SOLICITADA".equals(reserva.getEstadoReserva())
+                || !"PENDIENTE".equals(reserva.getEstadoValidacion())
+                || "periodo".equalsIgnoreCase(reserva.getTipoReserva())
+                || (reserva.getNumeroTasa() != null && !reserva.getNumeroTasa().isBlank())) {
+            throw new IllegalStateException("Solo se puede rechazar una solicitud pendiente de validación y sin tasa.");
+        }
         String estadoAnterior = reserva.getEstadoReserva();
         String estadoValidacionAnterior = reserva.getEstadoValidacion();
 
@@ -880,9 +886,14 @@ public class ReservaServiceImpl implements ReservaService {
             throw new IllegalStateException("La reserva no tiene tasa para anular en RUAT. No se modificó su estado.");
         }
         if (tieneTasa) {
+            if (!"PENDIENTE".equalsIgnoreCase(estadoAnterior)) {
+                return resultado.setResultado("SIN_CAMBIOS")
+                        .setDetalleLocal("Solo se puede anular una tasa de una reserva pendiente de pago.");
+            }
             if (observacion == null || observacion.trim().length() <= 10) {
                 throw new IllegalArgumentException("La observación de anulación debe tener más de 10 caracteres.");
             }
+            if (!ruatRevisionService.verificarSinPagoParaAnular(reserva, resultado)) return resultado;
             var solicitud = new com.gamq.deportes.model.AnularTasa.AnularTasaRequest();
             solicitud.setNumeroTasa(reserva.getNumeroTasa());
             solicitud.setMotivoTasa(motivo);
@@ -917,7 +928,7 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaCancelada.getEstadoReserva(),
                 anuladoPor,
                 "Reserva cancelada: " + motivo,
-                null
+                ruatRevisionService.datosAuditoria(reservaCancelada, resultado, "ANULACION_MANUAL")
         );
         reservaNotificacionService.notificarCancelada(reservaCancelada);
         return resultado.setReservaDto(ReservaMapper.toDto(reservaCancelada)).setResultado("ACTUALIZADA");
@@ -1287,14 +1298,11 @@ public class ReservaServiceImpl implements ReservaService {
         auditoria.setEstadoNuevo(estadoNuevo);
         auditoria.setUsuarioUuid(usuarioUuid);
         auditoria.setObservaciones(observaciones);
-        auditoria.setDatosCambio(normalizeJsonText(datosCambio));
+        auditoria.setDatosCambio(datosCambio == null ? buildReservaSnapshot(reserva) : normalizeJsonText(datosCambio));
         auditoria.setFechaCreacion(LocalDateTime.now());
         auditoria.setFechaAccion(LocalDateTime.now());
-        try {
-            reservaAuditoriaRepository.save(auditoria);
-        } catch (RuntimeException ex) {
-            logger.error("No se pudo registrar auditoria de reserva {} accion {}", reserva.getUuid(), accion, ex);
-        }
+        // The local mutation and its audit must commit or roll back together.
+        reservaAuditoriaRepository.save(auditoria);
     }
 
     private String normalizeJsonText(String datosCambio) {
@@ -1307,6 +1315,7 @@ public class ReservaServiceImpl implements ReservaService {
     private String buildReservaSnapshot(Reserva reserva) {
         return "{\"uuid\":\"" + safeValue(reserva.getUuid())
                 + "\",\"numeroReserva\":\"" + safeValue(reserva.getNumeroReserva())
+                + "\",\"numeroTasa\":\"" + safeValue(reserva.getNumeroTasa())
                 + "\",\"tipoReserva\":\"" + safeValue(reserva.getTipoReserva())
                 + "\",\"estadoReserva\":\"" + safeValue(reserva.getEstadoReserva())
                 + "\",\"estadoValidacion\":\"" + safeValue(reserva.getEstadoValidacion())

@@ -19,19 +19,11 @@ import com.gamq.deportes.model.Pagos.PagoRequest;
 @Service
 public class ApiServiceImpl extends AbstractClient implements ApiService {
     private final ConfiguracionSistemaService configuracionSistemaService;
-    private final RestTemplate revisionClient;
     public ApiServiceImpl(RestTemplate restTemplate, ConfiguracionSistemaService configuracionSistemaService) {
         super(restTemplate);
         this.configuracionSistemaService = configuracionSistemaService;
-        // List requests must remain usable during a gateway outage. Do not retry
-        // an annulment after a timeout: its remote outcome is unknown.
-        org.springframework.http.client.SimpleClientHttpRequestFactory factory =
-                new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(2000);
-        factory.setReadTimeout(3000);
-        factory.setOutputStreaming(false);
-        this.revisionClient = new RestTemplate(factory);
-        this.revisionClient.setInterceptors(restTemplate.getInterceptors());
+        // Manual operations and list reviews share the configured HTTP client.
+        // A timeout never authorizes retrying an annulment with an unknown outcome.
     }
     @Override
     public JsonNode checkRuatAvailability() {
@@ -95,7 +87,7 @@ public class ApiServiceImpl extends AbstractClient implements ApiService {
         if (wrapper == null || wrapper.getPago() == null) {
             throw new IllegalArgumentException("Faltan los datos de consulta de pago");
         }
-        return gatewayPost("/taxes/payments/query", wrapper.getPago(), revisionClient);
+        return gatewayPost("/taxes/payments/query", wrapper.getPago());
     }
 
     @Override
@@ -104,6 +96,6 @@ public class ApiServiceImpl extends AbstractClient implements ApiService {
             throw new IllegalArgumentException("Faltan los datos de anulación");
         }
         wrapper.getAnular().setCodigoUsuario(requiredTextConfig("CODIGO_USUARIO_RUAT"));
-        return gatewayPost("/taxes/annulments", wrapper.getAnular(), revisionClient);
+        return gatewayPost("/taxes/annulments", wrapper.getAnular());
     }
 }

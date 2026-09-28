@@ -35,6 +35,7 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
 
     private final ConfiguracionSistemaRepository configuracionSistemaRepository;
     private final ObjectMapper objectMapper;
+    private final com.gamq.deportes.service.SistemaAuditoriaService auditoriaService;
 
     @Override
     public ConfiguracionSistemaDto findByUuid(String uuid) {
@@ -135,6 +136,7 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         configuracion.setUltimaModificacion(now);
         configuracion.setModificadoPor(currentActor());
         ConfiguracionSistema configuracionGuardada = configuracionSistemaRepository.save(configuracion);
+        auditar("CREATE", null, configuracionGuardada);
 
         log.info("Configuración creada exitosamente: {}", configuracionDto.getClave());
         return sanitizeForClient(ConfiguracionSistemaMapper.toDto(configuracionGuardada));
@@ -148,12 +150,14 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         ConfiguracionSistema configuracionExistente = configuracionSistemaRepository.findByUuid(configuracionDto.getUuid())
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con UUID: " + configuracionDto.getUuid()));
 
+        String anterior = snapshotAuditoria(configuracionExistente);
         normalizeAndValidate(configuracionDto);
         ConfiguracionSistema configuracionActualizada = ConfiguracionSistemaMapper.updateEntityFromDto(configuracionDto, configuracionExistente);
         configuracionActualizada.setUltimaModificacion(LocalDateTime.now());
         configuracionActualizada.setModificadoPor(currentActor());
 
         ConfiguracionSistema configuracionGuardada = configuracionSistemaRepository.save(configuracionActualizada);
+        auditar("UPDATE", anterior, configuracionGuardada);
 
         log.info("Configuración actualizada exitosamente: {}", configuracionDto.getClave());
         return sanitizeForClient(ConfiguracionSistemaMapper.toDto(configuracionGuardada));
@@ -172,6 +176,7 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
             throw new RuntimeException("La configuración " + clave + " no es modificable por usuarios");
         }
         validateValueUpdate(configuracionExistente, configuracionDto);
+        String anterior = snapshotAuditoria(configuracionExistente);
 
         // Actualizar solo los campos permitidos
         if (configuracionDto.getValorNumerico() != null) {
@@ -191,6 +196,7 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         configuracionExistente.setModificadoPor(currentActor());
 
         ConfiguracionSistema configuracionGuardada = configuracionSistemaRepository.save(configuracionExistente);
+        auditar("UPDATE", anterior, configuracionGuardada);
 
         log.info("Configuración actualizada por clave exitosamente: {}", clave);
         return sanitizeForClient(ConfiguracionSistemaMapper.toDto(configuracionGuardada));
@@ -204,11 +210,13 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         ConfiguracionSistema configuracion = configuracionSistemaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con UUID: " + uuid));
 
+        String anterior = snapshotAuditoria(configuracion);
         configuracion.setEstado(true);
         configuracion.setActivo(false);
         configuracion.setUltimaModificacion(LocalDateTime.now());
         configuracion.setModificadoPor(currentActor());
         configuracionSistemaRepository.save(configuracion);
+        auditar("DELETE", anterior, configuracion);
 
         log.info("Configuración archivada mediante borrado lógico: {}", uuid);
         return "Configuración archivada exitosamente";
@@ -222,10 +230,12 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         ConfiguracionSistema configuracion = configuracionSistemaRepository.findByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con UUID: " + uuid));
 
+        String anterior = snapshotAuditoria(configuracion);
         configuracion.setActivo(false);
         configuracion.setUltimaModificacion(LocalDateTime.now());
         configuracion.setModificadoPor(currentActor());
         configuracionSistemaRepository.save(configuracion);
+        auditar("DEACTIVATE", anterior, configuracion);
 
         log.info("Configuración desactivada exitosamente: {}", uuid);
         return "Configuración desactivada exitosamente";
@@ -281,6 +291,27 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
                 .map(ConfiguracionSistemaMapper::toDto)
                 .map(this::sanitizeForClient)
                 .collect(Collectors.groupingBy(ConfiguracionSistemaDto::getCategoria));
+    }
+
+    private String snapshotAuditoria(ConfiguracionSistema config) {
+        ConfiguracionSistemaDto dto = sanitizeForClient(ConfiguracionSistemaMapper.toDto(config));
+        // Never copy credentials into the audit history, even outside the RUAT category.
+        String key = config.getClave() == null ? "" : config.getClave().toUpperCase(java.util.Locale.ROOT);
+        if (key.matches(".*(PASSWORD|SECRET|TOKEN|CREDENTIAL|API_KEY|CONTRASENA|CONTRASEÑA).*")) {
+            dto.setValorTexto(null);
+            dto.setValorNumerico(null);
+            dto.setValorBoolean(null);
+            dto.setValorJson(null);
+            dto.setValoresPosibles(null);
+        }
+        return objectMapper.valueToTree(dto).toString();
+    }
+
+    private void auditar(String accion, String anterior, ConfiguracionSistema config) {
+        String cambios = "{\"anterior\":" + (anterior == null ? "null" : anterior)
+                + ",\"nuevo\":" + snapshotAuditoria(config) + "}";
+        auditoriaService.registrarAccion(null, accion, "CONFIGURACIONES", "CONFIGURACION_SISTEMA",
+                config.getUuid(), "Configuración: " + config.getClave(), cambios, null, null);
     }
 
     private ConfiguracionSistemaDto sanitizeForClient(ConfiguracionSistemaDto dto) {

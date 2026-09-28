@@ -19,6 +19,7 @@ public class ConfiguracionSistemaController {
 
     @Autowired
     private ConfiguracionSistemaService configuracionSistemaService;
+
     @Operation(summary = "Ver las Configuraciones del Sistema")
     @GetMapping()
     public Response obtenerConfiguraciones() {

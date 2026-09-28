@@ -62,7 +62,8 @@ Revisa especialmente:
 - `RUAT_GATEWAY_BASE_URL`.
 - `RUAT_GATEWAY_INTERNAL_API_KEY`.
 - `APPLICATION_NAME`.
-- `ruat.client.connect-timeout` y `ruat.client.read-timeout`.
+- `external.client.connect-timeout` (`EXTERNAL_CLIENT_CONNECT_TIMEOUT`, por defecto `10s`) y `external.client.read-timeout` (`EXTERNAL_CLIENT_READ_TIMEOUT`, por defecto `180s`): límites separados por fase, compartidos por todas las llamadas HTTP salientes a RUAT y usuarios, manuales y revisiones de listas. No son un límite total de duración de la lista. Sustituyen las propiedades `ruat.client.*-timeout` y la propiedad temporal `external.client.timeout`; revisar los overrides del despliegue al actualizar. Un timeout no confirma que RUAT haya rechazado una operación; no reenviar anulaciones sin verificar su resultado.
+- En `ruat-be`, el cliente compartido usa `ruat.client.connect-timeout=${RUAT_CLIENT_CONNECT_TIMEOUT:10s}` y `ruat.client.read-timeout=${RUAT_CLIENT_READ_TIMEOUT:150s}`. Ese margen no garantiza un plazo total: autenticación y operaciones encadenadas pueden acumular esperas. Verificar el proxy activo y las variables de entorno del servidor al desplegar; `nginx.host.conf.backup` no acredita la configuración activa.
 - Errores de base de datos.
 - Errores de permisos de Deportes.
 - Errores de mapeo o parsing JSON.

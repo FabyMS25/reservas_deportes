@@ -64,6 +64,10 @@ public class ReservaAuditoria { // Using Spanish name as requested
 
     @PrePersist
     public void prePersist() {
+        // Audit identity and request metadata always come from the server context.
+        this.usuarioUuid = com.gamq.deportes.audit.AuditorAwareimpl.currentActor();
+        this.direccionIp = com.gamq.deportes.audit.AuditorAwareimpl.remoteAddress();
+        this.datosCambio = com.gamq.deportes.audit.AuditorAwareimpl.withContext(this.datosCambio);
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID().toString();
         }

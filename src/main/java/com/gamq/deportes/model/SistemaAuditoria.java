@@ -74,6 +74,10 @@ public class SistemaAuditoria {
 
     @PrePersist
     public void prePersist() {
+        this.usuarioUuid = com.gamq.deportes.audit.AuditorAwareimpl.currentActor();
+        this.direccionIp = com.gamq.deportes.audit.AuditorAwareimpl.remoteAddress();
+        this.userAgent = com.gamq.deportes.audit.AuditorAwareimpl.userAgent();
+        this.datosCambio = com.gamq.deportes.audit.AuditorAwareimpl.withContext(this.datosCambio);
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID().toString();
         }

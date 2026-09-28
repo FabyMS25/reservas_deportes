@@ -26,6 +26,36 @@ public class SistemaAuditoriaServiceImpl implements SistemaAuditoriaService {
     @Autowired
     private SistemaAuditoriaRepository sistemaAuditoriaRepository;
 
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
+    @Override
+    public String snapshotPago(com.gamq.deportes.model.Pago pago) {
+        com.fasterxml.jackson.databind.node.ObjectNode data = objectMapper.createObjectNode();
+        data.put("uuid", pago.getUuid());
+        data.put("reservaUuid", pago.getReserva().getUuid());
+        data.put("numeroReserva", pago.getReserva().getNumeroReserva());
+        data.put("numeroTasa", pago.getNumeroTasa());
+        data.put("folio", pago.getFolio());
+        data.put("estadoPago", pago.getEstadoPago());
+        data.put("montoPagado", pago.getMontoPagado());
+        data.set("fechaPago", objectMapper.valueToTree(pago.getFechaPago()));
+        data.put("formaPago", pago.getFormaPago());
+        data.put("entidadFinanciera", pago.getEntidadFinanciera());
+        data.put("observaciones", pago.getObservaciones());
+        // Only the payment-query body; never HTTP headers or credentials.
+        data.put("respuestaRuat", pago.getRespuestaCompletaRuat());
+        return data.toString();
+    }
+
+    @Override
+    public void registrarPago(String accion, String anterior, com.gamq.deportes.model.Pago pago) {
+        String cambios = "{\"anterior\":" + (anterior == null ? "null" : anterior)
+                + ",\"nuevo\":" + ("DELETE".equals(accion) ? "null" : snapshotPago(pago)) + "}";
+        registrarAccion(null, accion, "PAGOS", "PAGO", pago.getUuid(),
+                "Pago de reserva " + pago.getReserva().getNumeroReserva(), cambios, null, null);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public SistemaAuditoriaDto findByUuid(String uuid) {

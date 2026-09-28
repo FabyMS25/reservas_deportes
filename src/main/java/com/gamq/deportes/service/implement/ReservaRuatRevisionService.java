@@ -60,6 +60,9 @@ public class ReservaRuatRevisionService {
     private final Clock clock;
 
     @Autowired
+    private com.gamq.deportes.service.SistemaAuditoriaService auditoriaService;
+
+    @Autowired
     public ReservaRuatRevisionService(ApiService ruat, ObjectMapper mapper, ReservaRepository reservas,
             PagoRepository pagos, ReservaAuditoriaRepository auditorias,
             ReservaNotificacionService notificaciones, PagoNotificacionService pagoNotificaciones,
@@ -183,8 +186,9 @@ public class ReservaRuatRevisionService {
         // mutation, no annulment, and no regression to PAGADA.
         if ("PAGADA".equals(anterior) || "EN_CURSO".equals(anterior)) {
             if (periodo) {
-                return "PAGADA".equals(anterior) && mesFinalizado(reserva, now.toLocalDate())
-                        ? cambiar(reserva, result, "COMPLETADA", "El mes de la mensualidad terminó.", now) : result;
+                // Monthly fees represent student payments, not field occupancy.
+                // Calendar changes never complete them or undo confirmed payments.
+                return result.setMotivo("La mensualidad conserva su estado; no se completa por fechas.");
             }
             if (finalizada(reserva, now)) return cambiar(reserva, result, "COMPLETADA", "El período de uso terminó.", now);
             if ("PAGADA".equals(anterior) && enCurso(reserva, now)) {
@@ -270,16 +274,35 @@ public class ReservaRuatRevisionService {
 
     private Resultado cambiar(Reserva reserva, Resultado result,
                                               String estado, String motivo, LocalDateTime now) {
+        return cambiar(reserva, result, estado, motivo, now, "REVISION_AUTOMATICA");
+    }
+
+    private Resultado cambiar(Reserva reserva, Resultado result, String estado, String motivo,
+                              LocalDateTime now, String origen) {
         reserva.setEstadoReserva(estado).setFechaActualizacion(now);
         reservas.save(reserva);
         auditorias.save(new ReservaAuditoria().setReserva(reserva)
                 .setAccion("EXPIRADA".equals(estado) ? "EXPIRE" : "UPDATE_STATUS")
                 .setEstadoAnterior(result.getEstadoAnterior()).setEstadoNuevo(estado)
-                .setObservaciones(motivo + " Origen: revisión de lista."));
+                .setDatosCambio(datosAuditoria(reserva, result, origen))
+                .setObservaciones(motivo + " Origen: " + origen));
         if ("EXPIRADA".equals(estado)) notificaciones.notificarExpirada(reserva);
         if ("CANCELADA".equals(estado)) notificaciones.notificarCancelada(reserva);
         if (result.getRespuestaRuat() == null) result.setMotivo(motivo);
         return result.setReservaDto(ReservaMapper.toDto(reserva)).setResultado("ACTUALIZADA");
+    }
+
+    String datosAuditoria(Reserva reserva, Resultado result, String origen) {
+        var data = mapper.createObjectNode();
+        data.put("origenOperacion", origen);
+        data.put("numeroReserva", reserva.getNumeroReserva());
+        data.put("numeroTasa", reserva.getNumeroTasa());
+        data.put("ruat", result.getRuat());
+        data.set("estadoHttpRuat", mapper.valueToTree(result.getEstadoHttpRuat()));
+        data.set("respuestaRuat", result.getRespuestaRuat());
+        data.set("fechaLimitePago", mapper.valueToTree(reserva.getFechaLimitePago()));
+        data.set("cancelacionAutomatica", mapper.valueToTree(reserva.getCancelacionAutomatica()));
+        return data.toString();
     }
 
     JsonNode registrarRespuesta(Resultado result, ResponseEntity<byte[]> response) {
@@ -302,6 +325,60 @@ public class ReservaRuatRevisionService {
         if (!message.isTextual()) message = body.path("datos").path("mensajeConfirmacion");
         result.setMotivo(message.isTextual() ? message.textValue() : body.isTextual() ? body.textValue() : null);
         return body;
+    }
+
+    /** Called with the reservation locked, inside the cancellation transaction.
+     * Never performs an annulment or interprets a failed query as an unpaid tax. */
+    boolean verificarSinPagoParaAnular(Reserva reserva, Resultado result) {
+        PagoRequest request = new PagoRequest();
+        request.setNumeroTasa(reserva.getNumeroTasa());
+        PagoToken token = new PagoToken();
+        token.setPago(request);
+        ResponseEntity<byte[]> response;
+        try {
+            response = ruat.consultaPago(token);
+        } catch (RuntimeException ex) {
+            sinRespuesta(result, ex);
+            return false;
+        }
+        JsonNode body = registrarRespuesta(result, response);
+        if (!consultaSinPago(response, body) && !confirmada(response, body)) {
+            respuestaNoAceptada(result, response);
+            return false;
+        }
+        JsonNode data = body.hasNonNull("datos") ? body.get("datos") : body;
+        if (!data.isObject() || !data.has("pagoTasa")) {
+            result.setResultado("ERROR").setRuat("RESPUESTA_INVALIDA")
+                    .setDetalleLocal("La respuesta no contiene el campo pagoTasa; no se solicitó anulación.");
+            return false;
+        }
+        if (data.hasNonNull("pagoTasa")) {
+            LocalDateTime now = LocalDateTime.now(clock);
+            Pago pago;
+            try {
+                pago = pagoConfirmado(reserva, data.get("pagoTasa"), body, now);
+            } catch (RuntimeException ex) {
+                result.setResultado("ERROR").setRuat("RESPUESTA_INVALIDA")
+                        .setDetalleLocal("Los datos recibidos no permiten registrar el pago; no se solicitó anulación.");
+                return false;
+            }
+            registrarPago(pago);
+            result.setRuat("PAGO_CONFIRMADO");
+            String estado = "periodo".equalsIgnoreCase(reserva.getTipoReserva()) ? "PAGADA"
+                    : finalizada(reserva, now) ? "COMPLETADA" : enCurso(reserva, now) ? "EN_CURSO" : "PAGADA";
+            cambiar(reserva, result, estado, "Pago confirmado durante la solicitud de anulación.", now,
+                    "CONSULTA_PREVIA_ANULACION_MANUAL");
+            result.setDetalleLocal("No se anuló la tasa: RUAT confirmó el pago.");
+            return false;
+        }
+        result.setRuat("SIN_PAGO");
+        if (reserva.getPagosList().stream().anyMatch(p ->
+                "PAGADO".equalsIgnoreCase(p.getEstadoPago()) || "CONFIRMADO".equalsIgnoreCase(p.getEstadoPago()))) {
+            result.setResultado("ERROR")
+                    .setDetalleLocal("Existe un pago local confirmado; no se solicitó anulación.");
+            return false;
+        }
+        return true;
     }
 
     boolean confirmada(ResponseEntity<byte[]> response, JsonNode body) {
@@ -355,6 +432,7 @@ public class ReservaRuatRevisionService {
         if (existing.isEmpty()) existing = pagos.findByFolioAndNumeroTasa(pago.getFolio(), pago.getNumeroTasa());
         if (existing.isPresent()) return;
         Pago saved = pagos.save(pago);
+        auditoriaService.registrarPago("CREATE", null, saved);
         pago.getReserva().getPagosList().add(saved);
         pagoNotificaciones.notificarDespuesDeConfirmar(saved.getUuid());
     }
@@ -391,6 +469,8 @@ public class ReservaRuatRevisionService {
                 && !now.isAfter(p.getFechaUso().atTime(p.getHoraFin()));
     }
 
+    // Legacy calculation retained for reference only. Not used by monthly-fee status updates.
+    @Deprecated
     private boolean mesFinalizado(Reserva reserva, LocalDate today) {
         // Original mensualidad screen used the first detail of the root reservation.
         if (reserva.getReservasPeriodoList() == null || reserva.getReservasPeriodoList().isEmpty()) return false;

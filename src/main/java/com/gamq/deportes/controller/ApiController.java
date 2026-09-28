@@ -5,7 +5,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.gamq.deportes.model.AnularTasa.AnularTasaToken;
 import com.gamq.deportes.model.Contribuyentes.ContribuyenteToken;
 import com.gamq.deportes.model.Pagos.PagoToken;
 import com.gamq.deportes.model.Registro.RegistroToken;
@@ -60,16 +59,6 @@ public class ApiController {
         try{
 
             return this.apiService.crearTasa(tasaToken);
-        } catch(Exception ex) {
-            return toRuatHttpError(ex);
-        }
-    }
-    @Operation(summary = "Anular Tasa")
-    @PostMapping("/anulartasa")
-    @PreAuthorize("#p0 != null and #p0.anular != null and @permissions.ruatRate('ANULAR',#p0.anular.numeroTasa)")
-    public ResponseEntity<?> anularTasa(@RequestBody AnularTasaToken anularTasaToken) {
-        try{
-            return this.apiService.anularTasa(anularTasaToken);
         } catch(Exception ex) {
             return toRuatHttpError(ex);
         }

@@ -21,6 +21,8 @@ public interface SistemaAuditoriaService {
     void registrarAccion(String usuarioUuid, String accion, String modulo, String entidadTipo, String entidadUuid,
                          String descripcion, String datosCambio, String direccionIp, String userAgent);
     String delete(String uuid);
+    String snapshotPago(com.gamq.deportes.model.Pago pago);
+    void registrarPago(String accion, String anterior, com.gamq.deportes.model.Pago pago);
     List<Object[]> getEstadisticasPorAccion();
     List<Object[]> getEstadisticasPorModulo();
     List<Object[]> getEstadisticasPorUsuario();

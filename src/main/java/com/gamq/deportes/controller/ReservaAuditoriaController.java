@@ -218,7 +218,7 @@ public class ReservaAuditoriaController {
 
     @Operation(summary = "Registrar acción de auditoría")
     @PostMapping("/registrar")
-    @PreAuthorize("@permissions.self(#p2) and @permissions.reservation('VER',#p0)")
+    @PreAuthorize("denyAll()") // Business services, not clients, produce audit events.
     public Response registrarAccionAuditoria(
             @Parameter(description = "UUID de la reserva") @RequestParam String reservaUuid,
             @Parameter(description = "Tipo de acción") @RequestParam String accion,

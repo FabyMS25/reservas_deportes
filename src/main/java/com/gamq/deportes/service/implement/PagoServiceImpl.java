@@ -34,6 +34,9 @@ public class PagoServiceImpl implements PagoService {
     @Autowired
     PagoNotificacionService pagoNotificacionService;
 
+    @Autowired
+    com.gamq.deportes.service.SistemaAuditoriaService auditoriaService;
+
     public PagoDto findByUuid(String uuid){
 
         Optional<Pago> pagoOptional = pagosRepository.findByUuid(uuid);
@@ -90,6 +93,7 @@ public class PagoServiceImpl implements PagoService {
             Reserva reservas = obtenerReserva(reservaUuid);
             newPago.setReserva(reservas);
             Pago pagoGuardado = pagosRepository.save(newPago);
+            auditoriaService.registrarPago("CREATE", null, pagoGuardado);
             pagoNotificacionService.notificarDespuesDeConfirmar(pagoGuardado.getUuid());
             return PagoMapper.toDto(pagoGuardado, true);
         } else {
@@ -103,11 +107,13 @@ public class PagoServiceImpl implements PagoService {
             Optional<Pago> pagosOptional = pagosRepository.findByUuid(pagosDto.getUuid());
 
             if (pagosOptional.isPresent()) {
+                String anterior = auditoriaService.snapshotPago(pagosOptional.get());
                 Pago pagosModificado = PagoMapper.toEntity(pagosDto);
                 Reserva reservas= obtenerReserva(pagosDto.getReservaDto().getUuid());
                 pagosModificado.setReserva(reservas);
 
                 Pago pagoGuardado = pagosRepository.save(pagosModificado);
+                auditoriaService.registrarPago("UPDATE", anterior, pagoGuardado);
                 pagoNotificacionService.notificarDespuesDeConfirmar(pagoGuardado.getUuid());
                 return PagoMapper.toDto(pagoGuardado,true);
             } else {
@@ -117,11 +123,14 @@ public class PagoServiceImpl implements PagoService {
             throw new NullReferenceException(PAGOS);
         }
     }
+    @Transactional
     public String eliminarPago(String uuid){
 
         Pago pagos = pagosRepository.findByUuid(uuid)
                 .orElseThrow(() -> new NotFoundException(PAGOS, uuid));
+        String anterior = auditoriaService.snapshotPago(pagos);
         pagosRepository.delete(pagos);
+        auditoriaService.registrarPago("DELETE", anterior, pagos);
 
         return "Eliminacion exitosa";
     }
