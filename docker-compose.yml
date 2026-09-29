@@ -16,32 +16,11 @@ services:
       dockerfile: Dockerfile
     # Build source updates on every compose up (using Docker's build cache).
     pull_policy: build
-    environment:
-      SERVER_PORT: "8085"
-      SERVER_ADDRESS: 0.0.0.0
-      TZ: America/La_Paz
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?Set SPRING_DATASOURCE_URL in .env}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?Set SPRING_DATASOURCE_USERNAME in .env}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      SPRING_JPA_SHOW_SQL: "false"
-      SPRING_JPA_FORMAT_SQL: "false"
-      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-https://deportes.quillacollo.gob.bo}
-      USUARIOS_GATEWAY_BASE_URL: ${USUARIOS_GATEWAY_BASE_URL:?Set USUARIOS_GATEWAY_BASE_URL in .env}
-      RUAT_GATEWAY_BASE_URL: ${RUAT_GATEWAY_BASE_URL:?Set RUAT_GATEWAY_BASE_URL in .env}
-      RUAT_GATEWAY_INTERNAL_API_KEY: ${RUAT_GATEWAY_INTERNAL_API_KEY:?Set RUAT_GATEWAY_INTERNAL_API_KEY in .env}
-      APPLICATION_CODE: ${APPLICATION_CODE:-SIS-013}
-      APPLICATION_NAME: ${APPLICATION_NAME:-DEPORTESAPP}
-      APLICATION_ADMIN_MENU: ${APLICATION_ADMIN_MENU:-Administracion}
-      DEPORTES_JWT_SECRET: ${DEPORTES_JWT_SECRET:?Set DEPORTES_JWT_SECRET in .env}
-      DEPORTES_TOKEN_EXPIRATION_SECONDS: ${DEPORTES_TOKEN_EXPIRATION_SECONDS:-28800}
-      EXTERNAL_CLIENT_CONNECT_TIMEOUT: ${EXTERNAL_CLIENT_CONNECT_TIMEOUT:-10s}
-      EXTERNAL_CLIENT_READ_TIMEOUT: ${EXTERNAL_CLIENT_READ_TIMEOUT:-180s}
-      EXTERNAL_HTTP_LOG_LEVEL: ${EXTERNAL_HTTP_LOG_LEVEL:-INFO}
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:8085:8085"
     restart: unless-stopped
-    stop_grace_period: 30s
     logging: *logging
 
   fe-deportes:
@@ -54,33 +33,30 @@ services:
     ports:
       - "127.0.0.1:4205:80"
     depends_on:
-      be-deportes:
-        condition: service_healthy
+      - be-deportes
     restart: unless-stopped
     logging: *logging
 
-  # Optional database UI; this does NOT create or replace PostgreSQL.
-  # Set both PGADMIN_DEFAULT_* variables before enabling the admin profile.
-  pg-deportes:
-    image: dpage/pgadmin4:9.18
-    profiles: [admin]
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-}
-      PGADMIN_DISABLE_POSTFIX: "true"
-      TZ: America/La_Paz
-    ports:
-      - "127.0.0.1:5055:80"
-    volumes:
-      - pgadmin:/var/lib/pgadmin
-    healthcheck:
-      test: [CMD, /venv/bin/python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1/misc/ping', timeout=4)"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    restart: unless-stopped
-    logging: *logging
+#  pg-deportes:
+#    image: dpage/pgadmin4:9.18
+#    profiles: [admin]
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-}
+#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-}
+#      PGADMIN_DISABLE_POSTFIX: "true"
+#      TZ: America/La_Paz
+#    ports:
+#      - "127.0.0.1:5055:80"
+#    volumes:
+#      - pgadmin:/var/lib/pgadmin
+#    healthcheck:
+#      test: [CMD, /venv/bin/python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1/misc/ping', timeout=4)"]
+#      interval: 30s
+#      timeout: 5s
+#      retries: 5
+#      start_period: 60s
+#    restart: unless-stopped
+#    logging: *logging
 
 volumes:
   pgadmin:
