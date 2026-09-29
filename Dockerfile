@@ -23,7 +23,4 @@ COPY --from=builder --chown=deportes:deportes /app/build/libs/app.jar app.jar
 USER deportes
 EXPOSE 8085
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=5 \
-    CMD curl --fail --silent --show-error --max-time 4 http://127.0.0.1:8085/ws-notificaciones/info > /dev/null || exit 1
-
 ENTRYPOINT ["java", "-jar", "app.jar"]
