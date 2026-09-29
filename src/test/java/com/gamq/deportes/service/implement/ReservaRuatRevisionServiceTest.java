@@ -7,6 +7,7 @@ import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.*;
 import com.gamq.deportes.security.ReservationListScope;
 import com.gamq.deportes.service.ApiService;
+import com.gamq.deportes.service.SistemaAuditoriaService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
@@ -55,9 +56,10 @@ class ReservaRuatRevisionServiceTest {
         when(tm.getTransaction(any())).thenAnswer(i -> new SimpleTransactionStatus());
         when(pagos.save(any(Pago.class))).thenAnswer(i -> ((Pago)i.getArgument(0)).setUuid("payment"));
         when(reservas.save(any(Reserva.class))).thenAnswer(i -> i.getArgument(0));
-        reviewer = new ReservaRuatRevisionService(ruat, new ObjectMapper(), reservas, pagos,
+        reviewer = new ReservaRuatRevisionService(ruat, new ObjectMapper().findAndRegisterModules(), reservas, pagos,
                 auditorias, avisos, pagoAvisos, em, tm,
                 Clock.fixed(now.atZone(ZoneId.of("America/La_Paz")).toInstant(), ZoneOffset.UTC));
+        ReflectionTestUtils.setField(reviewer, "auditoriaService", mock(SistemaAuditoriaService.class));
     }
 
     private Reserva booking(String type, String state) {
@@ -293,13 +295,14 @@ class ReservaRuatRevisionServiceTest {
         noWrites();
     }
 
-    @Test void mensualidadUsesOriginalTwoStepFlowAndNeverEnCurso() {
+    @Test void mensualidadStaysPaidAfterRepeatedReviewsAndNeverEnCurso() {
         paid();
         Reserva r = booking("periodo", "PENDIENTE"); // August
         assertEquals("PAGADA", reviewer.revisarEstado(r).getReservaDto().getEstadoReserva());
-        assertEquals("COMPLETADA", reviewer.revisarEstado(r).getReservaDto().getEstadoReserva());
+        assertEquals("PAGADA", reviewer.revisarEstado(r).getReservaDto().getEstadoReserva());
         verify(ruat, times(1)).consultaPagoRevision(any());
         verify(ruat, never()).anularTasaRevision(any());
+        verify(reservas, times(1)).save(r);
     }
 
     @ParameterizedTest @CsvSource({"2026,9", "2026,10", "2027,1"})
@@ -432,31 +435,29 @@ class ReservaRuatRevisionServiceTest {
     }
 
     @ParameterizedTest @CsvSource({"puntual,true", "recurrente,true", "puntual,false", "recurrente,false"})
-    void unusedAdministrativeExpiryCannotCancelAnIssuedTax(String type, boolean hasTax) {
+    void disabledAdministrativeExpiryLeavesRequestsUntouchedWithOrWithoutTax(String type, boolean hasTax) {
         ReservaPuntualRepository punctual = mock(ReservaPuntualRepository.class);
         ReservaRecurrenteRepository recurrent = mock(ReservaRecurrenteRepository.class);
         Reserva r = booking(type, "SOLICITADA").setEstadoValidacion("PENDIENTE");
         if (!hasTax) r.setNumeroTasa(null);
-        if ("puntual".equals(type)) when(punctual.findSolicitudesVencidas(any(), any()))
-                .thenReturn(List.of(r.getReservaPuntual()));
-        else when(recurrent.findSolicitudesVencidas(any())).thenReturn(List.of(r.getReservaRecurrente()));
         new ReservaValidacionExpiracionService(punctual, recurrent, reservas, auditorias, avisos).procesar();
-        assertEquals(hasTax ? "SOLICITADA" : "CANCELADA", r.getEstadoReserva());
-        assertEquals(hasTax ? "PENDIENTE" : "VENCIDA", r.getEstadoValidacion());
-        if (hasTax) noWrites();
-        else verify(reservas).save(r);
+        assertEquals("SOLICITADA", r.getEstadoReserva());
+        assertEquals("PENDIENTE", r.getEstadoValidacion());
+        verifyNoInteractions(punctual, recurrent);
+        noWrites();
     }
 
     @ParameterizedTest @ValueSource(ints = {404, 503})
-    void remoteFailureDoesNotSkipTerminalRowsOrCalendarOnlyMonthlyProgress(int status) {
+    void remoteFailureDoesNotSkipTerminalRowsOrCalendarOnlyBookingProgress(int status) {
         when(ruat.consultaPagoRevision(any())).thenReturn(ResponseEntity.status(status)
                 .body("{\"continuarFlujo\":false,\"mensaje\":\"No Existe el registro de la tasa.\"}".getBytes(StandardCharsets.UTF_8)));
         List<Reserva> rows = List.of(
                 booking("periodo", "PENDIENTE").setUuid("pending").setNumeroReserva("E-0001/26"),
                 booking("periodo", "COMPLETADA").setUuid("completed").setNumeroReserva("E-0002/26"),
                 booking("periodo", "CANCELADA").setUuid("cancelled").setNumeroReserva("E-0003/26"),
-                booking("periodo", "PAGADA").setUuid("paid").setNumeroReserva("E-0004/26"),
+                booking("puntual", "PAGADA").setUuid("paid").setNumeroReserva("E-0004/26"),
                 booking("periodo", "PENDIENTE").setUuid("another").setNumeroReserva("E-0005/26"));
+        rows.get(3).getReservaPuntual().setFechaUso(now.toLocalDate().minusDays(1));
         rows.forEach(r -> when(reservas.findByUuidForRevision(r.getUuid())).thenReturn(Optional.of(r)));
         ReservaRevisionPage<ReservaDto> page = (ReservaRevisionPage<ReservaDto>) reviewer.revisarPagina(
                 () -> new PageImpl<>(rows), r -> r, com.gamq.deportes.dto.mapper.ReservaMapper::toDto);
@@ -563,7 +564,7 @@ class ReservaRuatRevisionServiceTest {
         var order = inOrder(ruat, reservas);
         order.verify(ruat).consultaPagoRevision(any());
         order.verify(ruat).anularTasaRevision(argThat(t ->
-                "NO SE EFECTUO EL PAGO EN EL DIA DEL REGISTRO".equals(t.getAnular().getMotivoTasa())));
+                "NO SE EFECTUO EL PAGO EN EL DIA DE REGISTRO".equals(t.getAnular().getMotivoTasa())));
         order.verify(reservas).save(r);
     }
 
@@ -693,7 +694,8 @@ class ReservaRuatRevisionServiceTest {
     @Test void changedStatusesDoNotRestrictTheReviewToTheSelectedTabOrFirstPage() {
         paid();
         Reserva first = booking("periodo", "PENDIENTE").setIdReserva(1L);
-        Reserva outsidePage = booking("periodo", "PAGADA").setIdReserva(7L).setUuid("outside");
+        Reserva outsidePage = booking("puntual", "PAGADA").setIdReserva(7L).setUuid("outside");
+        outsidePage.getReservaPuntual().setFechaUso(now.toLocalDate().minusDays(1));
         when(reservas.findByUuidForRevision(first.getUuid())).thenReturn(Optional.of(first));
         when(reservas.findByUuidForRevision(outsidePage.getUuid())).thenReturn(Optional.of(outsidePage));
         // Visible tab only shows completed; candidates include pending and paid from all pages.
@@ -712,8 +714,9 @@ class ReservaRuatRevisionServiceTest {
         when(ruat.consultaPagoRevision(any())).thenThrow(new ResourceAccessException("offline"));
         List<Reserva> rows = new ArrayList<>();
         for (long id = 1; id <= 106; id++) {
-            Reserva r = booking("periodo", id == 106 ? "PAGADA" : "PENDIENTE")
+            Reserva r = booking(id == 106 ? "puntual" : "periodo", id == 106 ? "PAGADA" : "PENDIENTE")
                     .setIdReserva(id).setUuid("r-" + id);
+            if (id == 106) r.getReservaPuntual().setFechaUso(now.toLocalDate().minusDays(1));
             rows.add(r);
             when(reservas.findByUuidForRevision(r.getUuid())).thenReturn(Optional.of(r));
         }

@@ -1,93 +1,86 @@
+name: deportes
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# The production PostgreSQL/PostGIS database remains external to this stack.
 services:
   be-deportes:
-    image: deportes-be
+    image: deportes-be:local
     container_name: deportes-be
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "127.0.0.1:8085:8085"
+    # Build source updates on every compose up (using Docker's build cache).
+    pull_policy: build
     environment:
-      SERVER_PORT: 8085
+      SERVER_PORT: "8085"
       SERVER_ADDRESS: 0.0.0.0
-
-      # Production PostgreSQL. The local Docker database below is optional
-      # and is not used while this production URL is active.
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?SPRING_DATASOURCE_URL is required}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?SPRING_DATASOURCE_USERNAME is required}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD is required}
+      TZ: America/La_Paz
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?Set SPRING_DATASOURCE_URL in .env}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?Set SPRING_DATASOURCE_USERNAME in .env}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-
-      # Keep the public frontend as the only browser origin in production.
-      APP_CORS_ALLOWED_ORIGIN_PATTERNS: https://deportes.quillacollo.gob.bo
-
-      # External Usuarios service used for login and staff operations.
-      USUARIOS_BASE_URL: ${USUARIOS_BASE_URL:?USUARIOS_BASE_URL is required}
-
-      # External production RUAT gateway.
-      RUAT_GATEWAY_BASE_URL: ${RUAT_GATEWAY_BASE_URL:?RUAT_GATEWAY_BASE_URL is required}
-      RUAT_GATEWAY_INTERNAL_API_KEY: ${RUAT_GATEWAY_INTERNAL_API_KEY:?RUAT_GATEWAY_INTERNAL_API_KEY is required}
-
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_FORMAT_SQL: "false"
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-https://deportes.quillacollo.gob.bo}
+      USUARIOS_GATEWAY_BASE_URL: ${USUARIOS_GATEWAY_BASE_URL:?Set USUARIOS_GATEWAY_BASE_URL in .env}
+      RUAT_GATEWAY_BASE_URL: ${RUAT_GATEWAY_BASE_URL:?Set RUAT_GATEWAY_BASE_URL in .env}
+      RUAT_GATEWAY_INTERNAL_API_KEY: ${RUAT_GATEWAY_INTERNAL_API_KEY:?Set RUAT_GATEWAY_INTERNAL_API_KEY in .env}
       APPLICATION_CODE: ${APPLICATION_CODE:-SIS-013}
       APPLICATION_NAME: ${APPLICATION_NAME:-DEPORTESAPP}
-      DEPORTES_ADMIN_MENU: ${DEPORTES_ADMIN_MENU:-Administracion}
-      DEPORTES_JWT_SECRET: ${DEPORTES_JWT_SECRET:?DEPORTES_JWT_SECRET is required}
+      APLICATION_ADMIN_MENU: ${APLICATION_ADMIN_MENU:-Administracion}
+      DEPORTES_JWT_SECRET: ${DEPORTES_JWT_SECRET:?Set DEPORTES_JWT_SECRET in .env}
       DEPORTES_TOKEN_EXPIRATION_SECONDS: ${DEPORTES_TOKEN_EXPIRATION_SECONDS:-28800}
-
-      RUAT_HTTP_LOG_LEVEL: ${RUAT_HTTP_LOG_LEVEL:-INFO}
-      UPLOAD_REQUISITO_PATH: /opt/uploads/licencias/requisitos/
-      UPLOAD_INSPECCION_PATH: /opt/uploads/licencias/inspecciones/
-      UPLOAD_PUBLICIDAD_PATH: /opt/uploads/licencias/letreros/
-    volumes:
-      - uploads:/opt/uploads/licencias
+      EXTERNAL_CLIENT_CONNECT_TIMEOUT: ${EXTERNAL_CLIENT_CONNECT_TIMEOUT:-10s}
+      EXTERNAL_CLIENT_READ_TIMEOUT: ${EXTERNAL_CLIENT_READ_TIMEOUT:-180s}
+      EXTERNAL_HTTP_LOG_LEVEL: ${EXTERNAL_HTTP_LOG_LEVEL:-INFO}
+    ports:
+      - "127.0.0.1:8085:8085"
     restart: unless-stopped
+    stop_grace_period: 30s
+    logging: *logging
 
   fe-deportes:
-    image: deportes-fe
+    image: deportes-fe:local
     container_name: deportes-fe
     build:
       context: ../deportes-fe
       dockerfile: Dockerfile
+    pull_policy: build
     ports:
       - "127.0.0.1:4205:80"
     depends_on:
-      - be-deportes
+      be-deportes:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *logging
 
-  # Optional local database for development only.
-  # It is not used by the production profile above. To use it, provide a
-  # separate local override that points SPRING_DATASOURCE_URL to db-deportes.
-  db-deportes:
-    profiles: ["local-db"]
-    image: postgis/postgis:14-3.2-alpine
-    container_name: deportes-db
-    environment:
-      POSTGRES_DB: ${LOCAL_POSTGRES_DB:-db_deportes}
-      POSTGRES_USER: ${LOCAL_POSTGRES_USER:-deportes}
-      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:?LOCAL_POSTGRES_PASSWORD is required when using local-db}
-    ports:
-      - "127.0.0.1:5438:5432"
-    volumes:
-      - db:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  # Optional local administration tool. Do not expose this publicly.
+  # Optional database UI; this does NOT create or replace PostgreSQL.
+  # Set both PGADMIN_DEFAULT_* variables before enabling the admin profile.
   pg-deportes:
-    profiles: ["local-db"]
-    image: dpage/pgadmin4
-    container_name: deportes-pg
+    image: dpage/pgadmin4:9.18
+    profiles: [admin]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-}
+      PGADMIN_DISABLE_POSTFIX: "true"
+      TZ: America/La_Paz
     ports:
       - "127.0.0.1:5055:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-deportes@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required when using local-db}
-    depends_on:
-      - db-deportes
     volumes:
-      - pg:/var/lib/pgadmin
+      - pgadmin:/var/lib/pgadmin
+    healthcheck:
+      test: [CMD, /venv/bin/python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1/misc/ping', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
+    logging: *logging
 
 volumes:
-  db:
-  pg:
-  uploads:
+  pgadmin:

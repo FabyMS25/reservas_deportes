@@ -10,3 +10,9 @@ Dockerfile*
 docker-compose*.yml
 docker-compose*.yaml
 HELP.md
+.env
+.env.*
+.agents
+.codex
+deploy
+*.log

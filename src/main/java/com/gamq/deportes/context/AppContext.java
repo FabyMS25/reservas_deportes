@@ -20,7 +20,7 @@ public class AppContext {
             RestTemplateBuilder restTemplateBuilder,
             @Value("${external.client.connect-timeout}") Duration connectTimeout,
             @Value("${external.client.read-timeout}") Duration readTimeout,
-            @Value("${usuarios.base-url}") String usuariosUrl,
+            @Value("${usuarios.gateway.base-url}") String usuariosUrl,
             @Value("${ruat.gateway.base-url}") String ruatUrl) {
         // Separate phase limits, shared by all outgoing HTTP calls, including list reviews.
         if (connectTimeout.toMillis() <= 0 || readTimeout.toMillis() <= 0

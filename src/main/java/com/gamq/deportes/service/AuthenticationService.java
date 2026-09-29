@@ -39,7 +39,7 @@ public class AuthenticationService {
     public AuthenticationService(RestTemplate restTemplate, ObjectMapper objectMapper,
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
             DeportesTokenService tokenService, UsuariosSessionService usuariosSessions,
-            @Value("${usuarios.base-url}") String usersApiUrl,
+            @Value("${usuarios.gateway.base-url}") String usersApiUrl,
             @Value("${deportes.application.code}") String applicationCode,
             @Value("${deportes.application.name}") String applicationName,
             @Value("${deportes.application.admin-menu}") String adminMenu,

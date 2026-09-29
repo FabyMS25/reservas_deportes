@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Observes every outgoing HTTP exchange without consuming or changing its response. */
 public class ExternalHttpLoggingInterceptor implements ClientHttpRequestInterceptor {
+    private static final Logger log = LoggerFactory.getLogger("external.http");
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final int MAX_BODY = 65536;
     private final URI usuarios;
@@ -36,7 +37,6 @@ public class ExternalHttpLoggingInterceptor implements ClientHttpRequestIntercep
                                         ClientHttpRequestExecution execution) throws IOException {
         String target = matches(request.getURI(), usuarios) ? "usuarios"
                 : matches(request.getURI(), ruat) ? "ruat" : "external";
-        Logger log = LoggerFactory.getLogger(target + ".http");
         String id = correlationId(request);
         String url = safeUrl(request.getURI());
         long started = System.nanoTime();

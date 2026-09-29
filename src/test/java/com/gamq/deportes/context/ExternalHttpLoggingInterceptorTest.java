@@ -1,5 +1,6 @@
 package com.gamq.deportes.context;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -28,18 +29,18 @@ class ExternalHttpLoggingInterceptorTest {
     private final ExternalHttpLoggingInterceptor interceptor =
             new ExternalHttpLoggingInterceptor("http://users.test/api", "http://ruat.test/api/ruat");
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
-    private final List<Logger> loggers = new ArrayList<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger("external.http");
+    private Level previousLevel;
 
     @BeforeEach void capture() {
         appender.start();
-        for (String name : List.of("usuarios.http", "ruat.http", "external.http")) {
-            Logger log = (Logger) LoggerFactory.getLogger(name);
-            log.addAppender(appender);
-            loggers.add(log);
-        }
+        previousLevel = logger.getLevel();
+        logger.setLevel(Level.INFO);
+        logger.addAppender(appender);
     }
     @AfterEach void stop() {
-        loggers.forEach(log -> log.detachAppender(appender));
+        logger.detachAppender(appender);
+        logger.setLevel(previousLevel);
         appender.stop();
     }
     private String logs() {
@@ -94,6 +95,30 @@ class ExternalHttpLoggingInterceptorTest {
         assertFalse(logs().contains("private-response-token"));
         assertFalse(logs().contains("private-request-password"));
         server.verify();
+    }
+
+    @ParameterizedTest @CsvSource({
+        "INFO,200,3", "WARN,200,0", "WARN,401,1",
+        "ERROR,401,0", "ERROR,500,1", "OFF,500,0"
+    })
+    void sharedLogLevelControlsEveryDestination(String level, int status, int expectedEvents) throws Exception {
+        logger.setLevel(Level.toLevel(level));
+        for (String url : List.of("http://users.test/api/signin", "http://ruat.test/api/ruat/payments",
+                "https://other.test/service")) {
+            appender.list.clear();
+            byte[] responseBody = bytes("{\"message\":\"test response\"}");
+            try (ClientHttpResponse response = interceptor.intercept(
+                    new MockClientHttpRequest(HttpMethod.GET, URI.create(url)), new byte[0],
+                    (request, body) -> new MockClientHttpResponse(responseBody, HttpStatus.valueOf(status)))) {
+                assertEquals(status, response.getRawStatusCode());
+                assertArrayEquals(responseBody, response.getBody().readAllBytes());
+            }
+            assertEquals(expectedEvents, appender.list.size(), level + " " + status + " " + url);
+            if (expectedEvents == 1) {
+                assertTrue(logs().contains("status=" + status));
+                assertFalse(logs().contains("test response"));
+            }
+        }
     }
 
     @Test void transportFailurePropagatesWithoutLoggingItsSecretMessage() {

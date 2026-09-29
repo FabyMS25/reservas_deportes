@@ -20,7 +20,7 @@ public class UsuariosGatewayController {
     private final String usersApiUrl;
 
     public UsuariosGatewayController(RestTemplate restTemplate, UsuariosSessionService sessions,
-            @Value("${usuarios.base-url}") String usersApiUrl) {
+            @Value("${usuarios.gateway.base-url}") String usersApiUrl) {
         this.restTemplate = restTemplate;
         this.sessions = sessions;
         this.usersApiUrl = usersApiUrl;
