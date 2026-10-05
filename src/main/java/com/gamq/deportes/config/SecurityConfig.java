@@ -33,6 +33,7 @@ public class SecurityConfig {
             .antMatchers("/ws-notificaciones/**").permitAll()
             .antMatchers("/api/auth/login", "/api/passresets/**",
                     "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/reporte/public/ticket/**").permitAll()
             .antMatchers(HttpMethod.POST, "/api/contribuyente").permitAll()
             .antMatchers(HttpMethod.GET, "/api/contribuyente/public/exists").permitAll()
             .antMatchers("/api/ruat/**").permitAll()

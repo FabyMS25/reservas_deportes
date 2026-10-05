@@ -39,6 +39,27 @@ public class GeneradorReporte {
             HttpServletResponse response
     ) throws SQLException
     {
+        generarSqlReportePdf(nombreArchivo, pathReporte, parametros, response, false);
+    }
+
+    public void generarSqlReportePdfNoCache(
+            String nombreArchivo,
+            String pathReporte,
+            HashMap<String, Object> parametros,
+            HttpServletResponse response
+    ) throws SQLException
+    {
+        generarSqlReportePdf(nombreArchivo, pathReporte, parametros, response, true);
+    }
+
+    private void generarSqlReportePdf(
+            String nombreArchivo,
+            String pathReporte,
+            HashMap<String, Object> parametros,
+            HttpServletResponse response,
+            boolean noStore
+    ) throws SQLException
+    {
         Connection conn = null;
         try {
             conn = dataSource.getConnection();
@@ -55,8 +76,8 @@ public class GeneradorReporte {
 
             response.setContentType("application/pdf");
             response.setHeader("Content-Disposition", "inline; filename="+nombreArchivo+".pdf");
-            response.setHeader("Cache-Control", "cache, must-revalidate");
-            response.setHeader("Pragma", "public");
+            response.setHeader("Cache-Control", noStore ? "private, no-store, no-cache, must-revalidate" : "cache, must-revalidate");
+            response.setHeader("Pragma", noStore ? "no-cache" : "public");
             JasperExportManager.exportReportToPdfStream(jasperPrint, response.getOutputStream());
             response.getOutputStream().flush();
             response.getOutputStream().close();

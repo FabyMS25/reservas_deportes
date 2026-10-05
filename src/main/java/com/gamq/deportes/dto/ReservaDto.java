@@ -14,6 +14,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -25,6 +26,7 @@ import java.util.List;
 public class    ReservaDto {
     private Long idReserva;
     private String uuid;
+    private UUID publicId;
     private boolean estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;

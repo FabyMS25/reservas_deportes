@@ -12,6 +12,7 @@ public class ReservaMapper {
         // Basic identification
         reservaDto.setIdReserva(reserva.getIdReserva());
         reservaDto.setUuid(reserva.getUuid());
+        reservaDto.setPublicId(reserva.getPublicId());
         reservaDto.setEstado(reserva.isEstado());
         reservaDto.setFechaCreacion(reserva.getFechaCreacion());
         reservaDto.setFechaActualizacion(reserva.getFechaActualizacion());

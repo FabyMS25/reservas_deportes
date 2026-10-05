@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpecificationExecutor<Reserva> {
@@ -36,6 +37,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpec
 
     @Query("SELECT c FROM Reserva c WHERE c.uuid = ?1")
     Optional<Reserva> findByUuid(String uuid);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "tarifa")
+    Optional<Reserva> findByPublicId(UUID publicId);
 
     @Query("SELECT r FROM Reserva r WHERE r.campoDeportivo.uuid = ?1")
     List<Reserva> findReservasByCancha(String uuidCancha);

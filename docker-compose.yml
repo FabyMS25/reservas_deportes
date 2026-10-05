@@ -6,15 +6,13 @@ x-logging: &logging
     max-size: "10m"
     max-file: "3"
 
-# The production PostgreSQL/PostGIS database remains external to this stack.
 services:
   be-deportes:
-    image: deportes-be:local
+    image: deportes-be
     container_name: deportes-be
     build:
       context: .
       dockerfile: Dockerfile
-    # Build source updates on every compose up (using Docker's build cache).
     pull_policy: build
     env_file:
       - .env
@@ -24,7 +22,7 @@ services:
     logging: *logging
 
   fe-deportes:
-    image: deportes-fe:local
+    image: deportes-fe
     container_name: deportes-fe
     build:
       context: ../deportes-fe
@@ -57,6 +55,3 @@ services:
 #      start_period: 60s
 #    restart: unless-stopped
 #    logging: *logging
-
-volumes:
-  pgadmin:

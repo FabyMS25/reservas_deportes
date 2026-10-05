@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
 import com.gamq.deportes.exception.NotFoundException;
+import com.gamq.deportes.model.Reserva;
 import com.gamq.deportes.model.ReservaTarifaDetalle;
+import com.gamq.deportes.repository.ReservaRepository;
 import com.gamq.deportes.repository.ReservaTarifaDetalleRepository;
 import com.gamq.deportes.service.ReservaRecurrenteService;
 import com.gamq.deportes.service.SistemaAuditoriaService;
@@ -48,6 +50,128 @@ public class ReportesController {
 
     @Autowired
     private ReservaTarifaDetalleRepository reservaTarifaDetalleRepository;
+
+    @Autowired
+    private ReservaRepository reservaRepository;
+
+    @Operation(summary = "Ticket público de reserva")
+    @GetMapping("/public/ticket/{publicId}")
+    @ResponseBody
+    @PreAuthorize("permitAll()")
+    public void publicTicket(
+            @PathVariable String publicId,
+            HttpServletResponse response
+    ) {
+        try {
+            UUID parsedPublicId;
+            try {
+                parsedPublicId = UUID.fromString(publicId);
+            } catch (IllegalArgumentException exception) {
+                sendPublicTicketError(response, 404,
+                        "Este enlace de ticket no es válido. Verifique que haya abierto el enlace completo del correo.");
+                return;
+            }
+
+            Optional<Reserva> reservaEncontrada = reservaRepository.findByPublicId(parsedPublicId);
+            if (!reservaEncontrada.isPresent()) {
+                sendPublicTicketError(response, 404,
+                        "No encontramos un ticket asociado a este enlace. Verifique el enlace o contacte al municipio.");
+                return;
+            }
+
+            Reserva reserva = reservaEncontrada.get();
+            String estadoReserva = reserva.getEstadoReserva();
+            if ("CANCELADA".equalsIgnoreCase(estadoReserva)
+                    || "CANCELADO".equalsIgnoreCase(estadoReserva)
+                    || "ANULADA".equalsIgnoreCase(estadoReserva)
+                    || "ANULADO".equalsIgnoreCase(estadoReserva)) {
+                sendPublicTicketError(response, 410,
+                        "Este ticket no está disponible porque la reserva fue cancelada.");
+                return;
+            }
+            if ("EXPIRADA".equalsIgnoreCase(estadoReserva)
+                    || "EXPIRADO".equalsIgnoreCase(estadoReserva)) {
+                sendPublicTicketError(response, 410,
+                        "Este ticket no está disponible porque la reserva expiró.");
+                return;
+            }
+
+            String reservaUuid = reserva.getUuid();
+            String tipoReserva = reserva.getTipoReserva();
+            String tipoCobro = reserva.getTarifa() == null ? null : reserva.getTarifa().getTipoCobro();
+            HashMap<String, Object> parametros = new HashMap<>();
+            parametros.put("logoPath", getClass().getResourceAsStream("/imagenes/gamq1.jpg"));
+            parametros.put("uuid", reservaUuid);
+            parametros.put("detalle_tarifario", buildDetalleTarifario(reservaUuid));
+            parametros.put(JRParameter.REPORT_LOCALE, new Locale("es", "ES"));
+
+            String reportName;
+            String reportPath;
+            if ("periodo".equalsIgnoreCase(tipoReserva)) {
+                reportName = "ticketmensual";
+                reportPath = "classpath:reportes/ticketmensual.jrxml";
+            } else if ("puntual".equalsIgnoreCase(tipoReserva)) {
+                if ("por_evento".equalsIgnoreCase(tipoCobro)) {
+                    reportName = "ticket";
+                    reportPath = "classpath:reportes/ticketPuntualEven.jrxml";
+                } else if ("por_persona".equalsIgnoreCase(tipoCobro)) {
+                    reportName = "ticket";
+                    reportPath = "classpath:reportes/ticketPuntualperson.jrxml";
+                } else {
+                    reportName = "ticket";
+                    reportPath = "classpath:reportes/ticketPuntual.jrxml";
+                }
+            } else if ("recurrente".equalsIgnoreCase(tipoReserva)) {
+                ReservaRecurrenteDto recurrente = buscarReservaRecurrente(reservaUuid);
+                if (recurrente == null) {
+                    sendPublicTicketError(response, 404,
+                            "No encontramos los datos necesarios para generar este ticket. Contacte al municipio.");
+                    return;
+                }
+                String horario = recurrente.getTableroDto() == null
+                        || recurrente.getTableroDto().getHorario() == null
+                        ? "La reserva no tiene horarios configurados."
+                        : formatHorario3DForReport(recurrente);
+                parametros.put("horario_formateado", horario);
+                parametros.put("cantidad_meses", calcularCantidadMeses(
+                        recurrente.getFechaInicio(), recurrente.getFechaFin()));
+                reportName = "Recurrente";
+                if ("mensualidad".equalsIgnoreCase(tipoCobro)) {
+                    reportPath = "classpath:reportes/ticketRecumen.jrxml";
+                } else if ("por_persona".equalsIgnoreCase(tipoCobro)) {
+                    reportPath = "classpath:reportes/ticketRecuPer.jrxml";
+                } else {
+                    reportPath = "classpath:reportes/ticketRecu.jrxml";
+                }
+            } else {
+                sendPublicTicketError(response, 422,
+                        "No se puede generar un ticket para este tipo de reserva. Contacte al municipio.");
+                return;
+            }
+            generadorReporte.generarSqlReportePdfNoCache(reportName, reportPath, parametros, response);
+        } catch (Exception exception) {
+            applicationLog.error("Public ticket generation failed", exception);
+            sendPublicTicketError(response, 500,
+                    "No se pudo generar el ticket en este momento. Intente nuevamente más tarde o contacte al municipio.");
+        }
+    }
+
+    private void sendPublicTicketError(HttpServletResponse response, int status, String message) {
+        try {
+            if (response.isCommitted()) {
+                return;
+            }
+            response.reset();
+            response.setStatus(status);
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/plain");
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.getWriter().write(message);
+        } catch (IOException exception) {
+            applicationLog.error("Failed to send public ticket error response", exception);
+        }
+    }
 
     ///////////////reserva puntual por hora/////////////////
     @Operation(summary = "Reporte de ticket de Reserva Puntual")

@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.JoinType;
 
@@ -279,6 +280,19 @@ public class ReservaServiceImpl implements ReservaService {
         } else {
             throw new NotFoundException(RESERVA, uuid);
         }
+    }
+
+    @Override
+    @Transactional
+    public String renovarPublicIdTicket(String uuid) {
+        Reserva reserva = reservaRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(RESERVA, uuid));
+        if ("CANCELADA".equalsIgnoreCase(reserva.getEstadoReserva())
+                || "EXPIRADA".equalsIgnoreCase(reserva.getEstadoReserva())) {
+            throw new IllegalStateException("No se puede renovar el enlace de una reserva cancelada o expirada");
+        }
+        reserva.setPublicId(UUID.randomUUID());
+        return reservaRepository.save(reserva).getPublicId().toString();
     }
 
     @Override

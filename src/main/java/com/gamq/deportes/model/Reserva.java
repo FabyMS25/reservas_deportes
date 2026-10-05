@@ -36,6 +36,9 @@ public class Reserva {
     @Column(name = "uuid", updatable = false, unique = true, nullable = false, length = 50)
     private String uuid;
 
+    @Column(name = "public_id", unique = true, nullable = false)
+    private UUID publicId;
+
     @Column(name = "estado", columnDefinition = "BOOLEAN NOT NULL DEFAULT '0'")
     private boolean estado;
 
@@ -157,6 +160,9 @@ public class Reserva {
     public void initializeUuidAndDates() {
         if (this.uuid == null) {
             this.setUuid(UUID.randomUUID().toString());
+        }
+        if (this.publicId == null) {
+            this.publicId = UUID.randomUUID();
         }
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();

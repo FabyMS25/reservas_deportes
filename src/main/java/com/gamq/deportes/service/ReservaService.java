@@ -41,6 +41,7 @@ public interface ReservaService {
     List<ReservaDto> findReservasConflictivas(String uuidCampo, LocalDateTime fechaIni, LocalDateTime fechaFin, String excludeReservaUuid);
     ReservaDto crearReserva(ReservaDto reservasDto);
     ReservaDto actualizarReserva(ReservaDto reservasDto);
+    String renovarPublicIdTicket(String uuid);
     ReservaDto aprobarReserva(String uuid, String aprobadoPor);
     ReservaDto completarReservaEscuela(String uuid);
     ReservaDto actualizarEstadoUso(String uuid, String estado, String observacion);

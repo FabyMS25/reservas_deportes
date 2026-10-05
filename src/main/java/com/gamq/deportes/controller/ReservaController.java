@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.response.Response;
+import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.service.ReservaService;
 import com.gamq.deportes.service.implement.ReservationNumberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -100,6 +101,23 @@ public class ReservaController {
             return Response.ok().setPayload(reservaDto);
         } catch (Exception ex) {
             return Response.notFound().setPayload("Reserva no encontrada: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Renovar el enlace público del ticket")
+    @PutMapping("/{uuid}/public-ticket")
+    @PreAuthorize("@permissions.reservation('GENERAR TICKET',#p0)")
+    public Response renovarEnlacePublicoTicket(
+            @Parameter(description = "UUID interno de la reserva")
+            @PathVariable("uuid") String uuid) {
+        try {
+            return Response.ok().setPayload(
+                    Map.of("publicId", reservaService.renovarPublicIdTicket(uuid)));
+        } catch (NotFoundException ex) {
+            return Response.notFound().setPayload("Reserva no encontrada: " + ex.getMessage());
+        } catch (IllegalStateException ex) {
+            return Response.unprocessableEntity().setPayload(
+                    "No se pudo renovar el enlace público del ticket: " + ex.getMessage());
         }
     }
 
