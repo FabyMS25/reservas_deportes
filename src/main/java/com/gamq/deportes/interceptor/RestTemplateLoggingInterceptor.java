@@ -1,4 +1,4 @@
-package com.gamq.deportes.context;
+package com.gamq.deportes.interceptor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,14 +20,14 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Observes every outgoing HTTP exchange without consuming or changing its response. */
-public class ExternalHttpLoggingInterceptor implements ClientHttpRequestInterceptor {
+public class RestTemplateLoggingInterceptor implements ClientHttpRequestInterceptor {
     private static final Logger log = LoggerFactory.getLogger("external.http");
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final int MAX_BODY = 65536;
     private final URI usuarios;
     private final URI ruat;
 
-    public ExternalHttpLoggingInterceptor(String usuariosUrl, String ruatUrl) {
+    public RestTemplateLoggingInterceptor(String usuariosUrl, String ruatUrl) {
         usuarios = URI.create(usuariosUrl);
         ruat = URI.create(ruatUrl);
     }

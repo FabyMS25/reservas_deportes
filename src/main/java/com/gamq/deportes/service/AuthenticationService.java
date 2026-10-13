@@ -40,9 +40,9 @@ public class AuthenticationService {
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
             DeportesTokenService tokenService, UsuariosSessionService usuariosSessions,
             @Value("${usuarios.gateway.base-url}") String usersApiUrl,
-            @Value("${deportes.application.code}") String applicationCode,
-            @Value("${deportes.application.name}") String applicationName,
-            @Value("${deportes.application.admin-menu}") String adminMenu,
+            @Value("${app.code}") String applicationCode,
+            @Value("${app.name}") String applicationName,
+            @Value("${app.admin-menu}") String adminMenu,
             TaxpayerMenuService taxpayerMenus, PermissionCatalog permissionCatalog,
             ApiService ruatService) {
         this.restTemplate = restTemplate;
@@ -91,8 +91,15 @@ public class AuthenticationService {
         } catch (ExternalCredentialsRejected ignored) {
             response = loginTaxpayer(request);
         } catch (ExternalUnavailable externalUnavailable) {
-            // Taxpayer authentication remains available even if Usuarios is temporarily unavailable.
-            response = loginTaxpayer(request);
+            // Try taxpayer authentication while Usuarios is unavailable. If that
+            // also rejects the credentials, report the upstream outage rather
+            // than incorrectly telling a staff user their password is wrong.
+            try {
+                response = loginTaxpayer(request);
+            } catch (AuthenticationFailure taxpayerFailure) {
+                throw new AuthenticationFailure("USUARIOS_UNAVAILABLE",
+                        "No se pudo validar el acceso con el sistema de Usuarios. Revise la conexión e intente nuevamente.");
+            }
         }
         response.setRuatStatus(availability.path("available").asBoolean());
         response.setRuatMessage(availability.path("mensaje").asText("No se pudo confirmar la autenticación con RUAT."));
@@ -136,11 +143,11 @@ public class AuthenticationService {
         if (!admin) {
             try { assignment = staffAssignmentService.findByUserUuid(userUuid); }
             catch (com.gamq.deportes.exception.NotFoundException ex) {
-                throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene asignación como encargado o staff");
+                throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene el permiso de administrador del módulo ni una asignación como encargado o staff. Solicite que revisen sus permisos y asignación.");
             }
         }
         if (!admin && (assignment == null || assignment.getComplejoDto() == null))
-            throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene asignación como encargado o staff");
+            throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene el permiso de administrador del módulo ni una asignación como encargado o staff. Solicite que revisen sus permisos y asignación.");
 
         // Never expose the Usuarios token to the browser.
         String usuariosToken = externalUser.path("token").asText();

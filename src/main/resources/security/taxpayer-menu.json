@@ -1,7 +1,6 @@
 {
   "sections": [
     {
-      "uuid": "fccd8b9e-baa9-42c8-baac-a08d42e52aac",
       "nombreMenu": "Reservas",
       "orden": 6,
       "icono": "ri-profile-line"
@@ -15,7 +14,6 @@
       "icono": "ri-dashboard-2-line",
       "actions": [
         {
-          "uuid": "43e436ff-7bc4-416e-b0ea-21f93021a1c7",
           "accion": "VER",
           "ruta": "/inicio/employee"
         }
@@ -28,12 +26,10 @@
       "icono": "ri-road-map-line",
       "actions": [
         {
-          "uuid": "d2092175-c678-4f62-8eda-0bcd6395a630",
           "accion": "VER",
           "ruta": "/inicio/taxpayer"
         },
         {
-          "uuid": "1295af1c-3661-408e-a879-311cf53f9678",
           "accion": "RESERVAR",
           "ruta": "/inicio/taxpayer"
         }
@@ -46,7 +42,6 @@
       "icono": "ri-parent-line",
       "actions": [
         {
-          "uuid": "7c232c5e-3833-49bd-ae7a-54525aa880d1",
           "accion": "VER",
           "ruta": "/organizations"
         }
@@ -59,28 +54,23 @@
       "icono": "ri-parent-line",
       "actions": [
         {
-          "uuid": "1008ba31-a7ed-4429-81a7-69f7604e4665",
           "accion": "VER",
           "ruta": "/students"
         },
         {
-          "uuid": "9dcd3b8b-5623-4451-9158-55b713bf610f",
           "accion": "CREAR",
           "ruta": "/students",
           "representativeOnly": true
         },
         {
-          "uuid": "801ad8a5-1c2c-4daf-9e63-865909be79f0",
           "accion": "HABILITAR",
           "ruta": "/students"
         },
         {
-          "uuid": "ecc1d994-371b-4fa8-9e01-20042225ff6a",
           "accion": "DAR DE BAJA",
           "ruta": "/students"
         },
         {
-          "uuid": "17671ca1-3f13-41be-8f31-850c66d9b904",
           "accion": "ACTUALIZAR",
           "ruta": "/students"
         }
@@ -93,42 +83,35 @@
       "icono": "ri-profile-line",
       "actions": [
         {
-          "uuid": "cdff6f71-b264-470f-b4a4-80518f47f10e",
           "accion": "CREAR",
           "ruta": "/reservations/details"
         },
         {
-          "uuid": "412bd268-3266-4814-8fb0-96be5e401b0a",
           "accion": "CAMBIAR-HORARIO",
           "ruta": "/reservations/one-time"
         },
         {
-          "uuid": "3a43b7da-8aca-4699-885b-0ffb8bdba158",
           "accion": "GENERAR TICKET",
           "ruta": "/reservations/ticket"
         },
         {
-          "uuid": "37ee150e-3970-4895-a488-9127673250be",
           "accion": "ANULAR",
           "ruta": "/reservations/one-time"
         },
         {
-          "uuid": "f23d40e1-e995-47ea-b35a-3ede2a9901ea",
           "accion": "VALIDAR",
           "ruta": "/reservations/one-time"
         },
         {
-          "uuid": "2c5d6d42-4393-4cff-be30-5e51713265f6",
           "accion": "ACTUALIZAR",
           "ruta": "/reservations/one-time"
         },
         {
-          "uuid": "1e767a1a-e158-4373-8b03-0d7bd55221ee",
           "accion": "VER",
           "ruta": "/reservations/one-time"
         }
       ],
-      "section": "fccd8b9e-baa9-42c8-baac-a08d42e52aac"
+      "section": "Reservas"
     },
     {
       "nombreMenu": "Reservas Recurrentes",
@@ -137,37 +120,31 @@
       "icono": "ri-profile-line",
       "actions": [
         {
-          "uuid": "d8bac92f-22b1-4acf-9b7b-80885a079df6",
           "accion": "VALIDAR",
           "ruta": "/reservations/recurrent"
         },
         {
-          "uuid": "aed6ff34-2015-408a-856d-71b5fec1a91a",
           "accion": "ANULAR",
           "ruta": "/reservations/recurrent"
         },
         {
-          "uuid": "2442d951-ac63-4da9-aaba-c168a483ae69",
           "accion": "ACTUALIZAR",
           "ruta": "/reservations/recurrent"
         },
         {
-          "uuid": "e24db4e8-b038-4b57-b0c3-0a51a963d603",
           "accion": "VER",
           "ruta": "/reservations/recurrent"
         },
         {
-          "uuid": "e6280259-8ee3-438e-9e79-ff5ebb72151c",
           "accion": "GENERAR TICKET",
           "ruta": "/reservations/ticket"
         },
         {
-          "uuid": "b5c58992-ff58-440b-9063-cd4213565b6d",
           "accion": "CREAR",
           "ruta": "/reservations/details"
         }
       ],
-      "section": "fccd8b9e-baa9-42c8-baac-a08d42e52aac"
+      "section": "Reservas"
     },
     {
       "nombreMenu": "Escuelas Municipales",
@@ -176,32 +153,27 @@
       "icono": "ri-government-line",
       "actions": [
         {
-          "uuid": "a89b4238-1304-43ff-b89b-3d22d08f3cd1",
           "accion": "ANULAR",
           "ruta": "/reservations/schools"
         },
         {
-          "uuid": "e2957248-77b6-4aad-9fd7-17ad23bde135",
           "accion": "VER",
           "ruta": "/reservations/schools"
         },
         {
-          "uuid": "6ba7f3f5-cc94-4df6-b73c-9afc26056dd3",
           "accion": "CREAR",
           "ruta": "/reservations/schools"
         },
         {
-          "uuid": "7234a26e-8116-46e1-be5f-39d78e7e69ed",
           "accion": "ACTUALIZAR",
           "ruta": "/reservations/schools"
         },
         {
-          "uuid": "6ba7f3f5-cc94-4df6-b73c-9afc26056dd3",
           "accion": "GENERAR TICKET",
           "ruta": "/reservations/schools"
         }
       ],
-      "section": "fccd8b9e-baa9-42c8-baac-a08d42e52aac"
+      "section": "Reservas"
     }
   ]
 }

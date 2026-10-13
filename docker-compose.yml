@@ -14,14 +14,14 @@ services:
       context: .
       dockerfile: Dockerfile
     pull_policy: build
-    env_file:
-      - .env
+    env_file: .env
     ports:
       - "127.0.0.1:8085:8085"
     restart: unless-stopped
     logging: *logging
 
   fe-deportes:
+    depends_on: be-deportes
     image: deportes-fe
     container_name: deportes-fe
     build:
@@ -30,8 +30,6 @@ services:
     pull_policy: build
     ports:
       - "127.0.0.1:4205:80"
-    depends_on:
-      - be-deportes
     restart: unless-stopped
     logging: *logging
 
@@ -47,11 +45,5 @@ services:
 #      - "127.0.0.1:5055:80"
 #    volumes:
 #      - pgadmin:/var/lib/pgadmin
-#    healthcheck:
-#      test: [CMD, /venv/bin/python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1/misc/ping', timeout=4)"]
-#      interval: 30s
-#      timeout: 5s
-#      retries: 5
-#      start_period: 60s
 #    restart: unless-stopped
 #    logging: *logging

@@ -1,5 +1,7 @@
 package com.gamq.deportes.context;
 
+import com.gamq.deportes.interceptor.RestTemplateLoggingInterceptor;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,14 +23,13 @@ public class AppContext {
             @Value("${external.client.connect-timeout}") Duration connectTimeout,
             @Value("${external.client.read-timeout}") Duration readTimeout,
             @Value("${usuarios.gateway.base-url}") String usuariosUrl,
-            @Value("${ruat.gateway.base-url}") String ruatUrl) {
-        // Separate phase limits, shared by all outgoing HTTP calls, including list reviews.
+            @Value("${ruat-be.gateway.base-url}") String ruatUrl) {
         if (connectTimeout.toMillis() <= 0 || readTimeout.toMillis() <= 0
                 || connectTimeout.toMillis() > Integer.MAX_VALUE || readTimeout.toMillis() > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("external.client.connect-timeout y external.client.read-timeout deben ser positivos y expresables en milisegundos de 32 bits");
         }
         RestTemplate restTemplate = restTemplateBuilder
-                .additionalInterceptors(new ExternalHttpLoggingInterceptor(usuariosUrl, ruatUrl))
+                .additionalInterceptors(new RestTemplateLoggingInterceptor(usuariosUrl, ruatUrl))
                 .requestFactory(() -> {
                     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
                     // Preserve authentication-error bodies on POST requests with the JDK client.

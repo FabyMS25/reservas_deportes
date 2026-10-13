@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 public class WebMvcConfig implements WebMvcConfigurer {
-    @Value("${app.cors.allowed-origin-patterns}")
+    @Value("${app.cors.allowed-origins}")
     private String[] allowedOriginPatterns;
 
     @Bean

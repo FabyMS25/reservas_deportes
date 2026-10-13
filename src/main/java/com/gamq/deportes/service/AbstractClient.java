@@ -15,11 +15,11 @@ import org.springframework.web.client.RestClientException;
 
 public abstract class AbstractClient {
     private static final Logger log = LoggerFactory.getLogger(AbstractClient.class);
-    @Value("${ruat.gateway.base-url}")
+    @Value("${ruat-be.gateway.base-url}")
     private String gatewayUrl;
-    @Value("${ruat.gateway.internal-api-key}")
+    @Value("${ruat-be.gateway.api-key}")
     private String internalApiKey;
-    @Value("${deportes.application.name}")
+    @Value("${app.name}")
     private String systemCode;
     private final RestTemplate restTemplate;
 
@@ -40,7 +40,7 @@ public abstract class AbstractClient {
             if (context.getResponse() != null) context.getResponse().setHeader("X-Request-ID", requestId);
         }
         if (internalApiKey == null || internalApiKey.trim().isEmpty()) {
-            throw new IllegalStateException("Deportes no tiene configurada la clave de acceso a ruat-be (ruat.gateway.internal-api-key). No se realizó la solicitud a RUAT.");
+            throw new IllegalStateException("Deportes no tiene configurada la clave de acceso a ruat-be (ruat-be.gateway.api-key). No se realizó la solicitud a RUAT.");
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

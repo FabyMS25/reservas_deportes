@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.tokenService = tokenService;
     }
 
-    @Value("${app.cors.allowed-origin-patterns}")
+    @Value("${app.cors.allowed-origins}")
     private String[] allowedOriginPatterns;
 
     @Override

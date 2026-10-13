@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, DeportesTokenFilter tokenFilter) throws Exception {
-        // Browser login is handled by Angular and /api/auth/login, never an HTTP challenge.
         http.httpBasic().disable();
         http.formLogin().disable();
         http.requestCache().disable();
@@ -28,8 +27,6 @@ public class SecurityConfig {
             }).and()
             .authorizeRequests()
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            // SockJS cannot add an Authorization header to its HTTP /info request.
-            // Authentication is performed on the subsequent STOMP CONNECT frame.
             .antMatchers("/ws-notificaciones/**").permitAll()
             .antMatchers("/api/auth/login", "/api/passresets/**",
                     "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
