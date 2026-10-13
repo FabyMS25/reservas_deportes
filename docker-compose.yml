@@ -21,7 +21,8 @@ services:
     logging: *logging
 
   fe-deportes:
-    depends_on: be-deportes
+    depends_on:
+      - be-deportes
     image: deportes-fe
     container_name: deportes-fe
     build:
