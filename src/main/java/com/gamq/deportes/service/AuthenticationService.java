@@ -65,7 +65,6 @@ public class AuthenticationService {
             throw new AuthenticationFailure("BAD_CREDENTIALS", "Usuario o contraseña incorrectos");
         JsonNode availability;
         try {
-            // The gateway guard runs before RUAT authentication in this same request.
             availability = ruatService.checkRuatAvailability();
             if (!availability.path("available").isBoolean()) {
                 throw new AuthenticationFailure("CONFIG_ERROR", "No se pudo confirmar la conexión de Deportes con ruat-be.");
@@ -91,9 +90,6 @@ public class AuthenticationService {
         } catch (ExternalCredentialsRejected ignored) {
             response = loginTaxpayer(request);
         } catch (ExternalUnavailable externalUnavailable) {
-            // Try taxpayer authentication while Usuarios is unavailable. If that
-            // also rejects the credentials, report the upstream outage rather
-            // than incorrectly telling a staff user their password is wrong.
             try {
                 response = loginTaxpayer(request);
             } catch (AuthenticationFailure taxpayerFailure) {
@@ -148,8 +144,6 @@ public class AuthenticationService {
         }
         if (!admin && (assignment == null || assignment.getComplejoDto() == null))
             throw new AuthenticationFailure("NO_ASSIGNATION", "No tiene el permiso de administrador del módulo ni una asignación como encargado o staff. Solicite que revisen sus permisos y asignación.");
-
-        // Never expose the Usuarios token to the browser.
         String usuariosToken = externalUser.path("token").asText();
         usuariosSessions.put(userUuid, usuariosToken);
         usuariosSessions.putPerson(userUuid, externalUser.path("designacion").path("personaDto").path("uuid").asText(""));

@@ -18,6 +18,7 @@ import java.util.List;
 
 @Service
 public class DeportesTokenService {
+    private static final int PERMISSION_VERSION = 3;
     private final ObjectMapper objectMapper;
     private final byte[] secret;
     private final long expirationSeconds;
@@ -44,7 +45,7 @@ public class DeportesTokenService {
         payload.put("iat", now);
         payload.put("exp", now + expirationSeconds);
         payload.put("permissions", permissions);
-        payload.put("permissionVersion", 2);
+        payload.put("permissionVersion", PERMISSION_VERSION);
         try {
             String header = encode(objectMapper.writeValueAsBytes(Map.of("alg", "HS256", "typ", "JWT")));
             String body = encode(objectMapper.writeValueAsBytes(payload));
@@ -64,7 +65,7 @@ public class DeportesTokenService {
                 throw new IllegalArgumentException("Invalid signature");
             Map<String, Object> claims = objectMapper.readValue(Base64.getUrlDecoder().decode(parts[1]),
                     new TypeReference<Map<String, Object>>() {});
-            if (!Integer.valueOf(2).equals(claims.get("permissionVersion")))
+            if (!Integer.valueOf(PERMISSION_VERSION).equals(claims.get("permissionVersion")))
                 throw new IllegalArgumentException("Inicie sesión nuevamente para actualizar sus permisos");
             if (!(claims.get("sub") instanceof String) || ((String) claims.get("sub")).isBlank()
                     || !("STAFF".equals(claims.get("userType")) || "TAXPAYER".equals(claims.get("userType"))))
