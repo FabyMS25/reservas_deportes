@@ -145,9 +145,6 @@ public class ContribuyenteMapper {
         // Update only non-null fields from DTO
 
         // Authentication
-        if (dto.getUserName() != null) {
-            existing.setUserName(dto.getUserName());
-        }
         if (dto.getPassword() != null) {
             existing.setPassword(dto.getPassword());
         }

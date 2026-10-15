@@ -58,6 +58,12 @@ public class UsuariosGatewayController {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(sessions.require(principal.getSubject()));
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(usersApiUrl + path, method, new HttpEntity<>(body, headers), JsonNode.class).getBody();
+        try {
+            return restTemplate.exchange(usersApiUrl + path, method,
+                    new HttpEntity<>(body, headers), JsonNode.class).getBody();
+        } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized ex) {
+            sessions.remove(principal.getSubject());
+            throw new UsuariosSessionService.SessionExpiredException();
+        }
     }
 }

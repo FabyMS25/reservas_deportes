@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Lock;
+import javax.persistence.LockModeType;
 
 import java.util.Optional;
 
@@ -16,6 +18,12 @@ public interface ContribuyenteRepository extends JpaRepository<Contribuyente, Lo
 
     @Query("SELECT c FROM Contribuyente c WHERE c.email = ?1")
     Optional<Contribuyente> findByEmail(String correo);
+
+    Optional<Contribuyente> findByEmailIgnoreCase(String email);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM Contribuyente c WHERE LOWER(c.email) = LOWER(?1)")
+    Optional<Contribuyente> findByEmailIgnoreCaseForUpdate(String email);
 
     @Query("SELECT c FROM Contribuyente c WHERE c.userName = ?1")
     Optional<Contribuyente> findByUserName(String userName);

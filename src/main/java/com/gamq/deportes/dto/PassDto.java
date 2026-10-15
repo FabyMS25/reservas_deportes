@@ -26,4 +26,9 @@ public class PassDto {
     private String email;
     private String token;
     private LocalDateTime expiresAt;
+    private String message;
+
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+    private String password;
 }

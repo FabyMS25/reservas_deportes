@@ -37,13 +37,24 @@ public class DeportesTokenService {
     }
 
     public String create(String subject, String userType, boolean admin, Set<String> permissions) {
+        return create(subject, userType, admin, permissions, expirationEpoch());
+    }
+
+    public long expirationEpoch() {
+        return Instant.now().getEpochSecond() + expirationSeconds;
+    }
+
+    public String create(String subject, String userType, boolean admin, Set<String> permissions,
+            long maximumExpirationEpoch) {
         long now = Instant.now().getEpochSecond();
+        long expiresAt = Math.min(now + expirationSeconds, maximumExpirationEpoch);
+        if (expiresAt <= now) throw new IllegalArgumentException("The requested token expiration has already passed");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("sub", subject);
         payload.put("userType", userType);
         payload.put("admin", admin);
         payload.put("iat", now);
-        payload.put("exp", now + expirationSeconds);
+        payload.put("exp", expiresAt);
         payload.put("permissions", permissions);
         payload.put("permissionVersion", PERMISSION_VERSION);
         try {

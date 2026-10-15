@@ -14,6 +14,8 @@ public interface ContribuyenteService {
     List<ContribuyenteDto> obtenerContribuyentes();
     ContribuyenteDto crearContribuyente(ContribuyenteDto contribuyenteDto);
     ContribuyenteDto actualizarContribuyente(ContribuyenteDto contribuyenteDto);
+    void changePassword(String uuid, String currentPassword, String newPassword);
+    void resetPasswordForRecovery(String email, String newPassword);
     String eliminarContribuyente(String uuid);
     ContribuyenteDto loginContribuyente(login login);
     boolean existsByNumeroDocumento(String numeroDocumento);

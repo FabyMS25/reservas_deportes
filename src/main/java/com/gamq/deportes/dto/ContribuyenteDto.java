@@ -38,6 +38,9 @@ public class ContribuyenteDto {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ToString.Exclude
     private String password;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+    private String currentPassword;
     private String estadoUsuario;
 
     // RUAT Integration

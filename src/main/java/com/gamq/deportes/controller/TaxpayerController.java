@@ -104,6 +104,21 @@ public class TaxpayerController {
         }
     }
 
+    @Operation(summary = "Cambiar contraseña del contribuyente autenticado")
+    @PostMapping("/change-password")
+    @PreAuthorize("#p0 != null and @permissions.self(#p0.uuid)")
+    public Response<String> cambiarContrasena(@RequestBody ContribuyenteDto request) {
+        try {
+            if (request == null) throw new IllegalArgumentException("Solicitud inválida");
+            contribuyenteService.changePassword(request.getUuid(), request.getCurrentPassword(), request.getPassword());
+            return Response.<String>ok().setPayload("La contraseña fue actualizada correctamente.");
+        } catch (IllegalArgumentException ex) {
+            return Response.<String>badRequest().setPayload(ex.getMessage());
+        } catch (Exception ex) {
+            return Response.<String>unprocessableEntity().setPayload("No se pudo actualizar la contraseña.");
+        }
+    }
+
     @Operation(summary = "Borrar contribuyente por uuid")
     @DeleteMapping("/{uuid}")
     @PreAuthorize("@permissions.has('/taxpayers','ANULAR')")

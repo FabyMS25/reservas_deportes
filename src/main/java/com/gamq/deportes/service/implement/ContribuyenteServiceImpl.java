@@ -20,12 +20,14 @@ import org.springframework.stereotype.Component;
 import javax.transaction.Transactional;
 import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class ContribuyenteServiceImpl implements ContribuyenteService {
+    private static final Pattern PASSWORD_POLICY = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     @Autowired
     private com.gamq.deportes.security.PermissionAuthorizationService permissions;
@@ -83,6 +85,10 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
     public ContribuyenteDto crearContribuyente(ContribuyenteDto contribuyenteDto){
         if (contribuyenteDto != null) {
             validateRequiredRegistrationFields(contribuyenteDto);
+            if (contribuyenteDto.getSegundoApellido() != null
+                    && contribuyenteDto.getSegundoApellido().trim().isEmpty()) {
+                contribuyenteDto.setSegundoApellido(null);
+            }
             if (!permissions.has("/taxpayers", "CREAR")) {
                 contribuyenteDto.setUuid(null);
                 contribuyenteDto.setOrganizacionesRepresentadas(null);
@@ -128,7 +134,25 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
                         && !(permissions.self(contribuyenteDto.getUuid()) && "Anulado".equals(requestedState))) {
                     throw new org.springframework.security.access.AccessDeniedException("No tiene permiso para cambiar el estado del usuario");
                 }
-                if (!permissions.self(contribuyenteDto.getUuid()) && !permissions.has("/taxpayers", "ACTUALIZAR")) {
+                boolean selfUpdate = permissions.self(contribuyenteDto.getUuid());
+                if (selfUpdate) {
+                    ContribuyenteDto safe = new ContribuyenteDto()
+                            .setUuid(contribuyenteExistente.getUuid())
+                            .setEstadoUsuario("Anulado".equals(contribuyenteDto.getEstadoUsuario()) ? "Anulado" : null)
+                            .setVerificadoRuat(null)
+                            .setEsDeportistaElite(null)
+                            .setEstaSancionado(null)
+                            .setNombre(contribuyenteDto.getNombre())
+                            .setPrimerApellido(contribuyenteDto.getPrimerApellido())
+                            .setSegundoApellido(contribuyenteDto.getSegundoApellido())
+                            .setGenero(contribuyenteDto.getGenero())
+                            .setExpedido(contribuyenteDto.getExpedido())
+                            .setTelefono(contribuyenteDto.getTelefono())
+                            .setEmail(contribuyenteExistente.getEmail())
+                            .setDireccion(contribuyenteDto.getDireccion());
+                    safe.setUserName(null);
+                    contribuyenteDto = safe;
+                } else if (!permissions.has("/taxpayers", "ACTUALIZAR")) {
                     // BLOQUEAR alone permits only the account-state operation.
                     contribuyenteDto = new ContribuyenteDto().setUuid(contribuyenteExistente.getUuid())
                             .setEstadoUsuario(requestedState).setVerificadoRuat(null)
@@ -160,6 +184,52 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
         } else {
             throw new NullReferenceException(CONTRIBUYENTE);
         }
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String uuid, String currentPassword, String newPassword) {
+        if (!permissions.self(uuid)) {
+            throw new org.springframework.security.access.AccessDeniedException("No tiene permiso para cambiar esta contraseña");
+        }
+        Contribuyente taxpayer = contribuyentesRepository.findByUuid(uuid)
+                .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, uuid));
+        if (!passwordMatches(currentPassword, taxpayer.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+        updatePassword(taxpayer, newPassword);
+    }
+
+    @Override
+    @Transactional
+    public void resetPasswordForRecovery(String email, String newPassword) {
+        Contribuyente taxpayer = contribuyentesRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, email));
+        updatePassword(taxpayer, newPassword);
+    }
+
+    private void updatePassword(Contribuyente taxpayer, String newPassword) {
+        validatePassword(newPassword);
+        if (passwordMatches(newPassword, taxpayer.getPassword())) {
+            throw new IllegalArgumentException("La nueva contraseña debe ser diferente de la anterior");
+        }
+        taxpayer.setPassword(passwordEncoder.encode(newPassword));
+        contribuyentesRepository.save(taxpayer);
+    }
+
+    private void validatePassword(String password) {
+        if (password == null || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72
+                || !PASSWORD_POLICY.matcher(password).matches()) {
+            throw new IllegalArgumentException(
+                    "La contraseña debe tener entre 8 y 72 bytes, una mayúscula, una minúscula y un número");
+        }
+    }
+
+    private boolean passwordMatches(String rawPassword, String storedPassword) {
+        if (rawPassword == null || storedPassword == null) return false;
+        return isBcryptHash(storedPassword)
+                ? passwordEncoder.matches(rawPassword, storedPassword)
+                : rawPassword.equals(storedPassword);
     }
 
     @Override

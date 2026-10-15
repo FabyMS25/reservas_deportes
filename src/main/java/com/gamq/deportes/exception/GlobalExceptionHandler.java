@@ -1,6 +1,7 @@
 package com.gamq.deportes.exception;
 
 import com.gamq.deportes.dto.response.ApiError;
+import com.gamq.deportes.service.UsuariosSessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,6 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(UsuariosSessionService.SessionExpiredException.class)
+    public final ResponseEntity<ApiError> handleUsuariosSessionExpired(
+            UsuariosSessionService.SessionExpiredException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiError.of(
+                "SESSION_EXPIRED", ex.getMessage(), request.getRequestURI()));
+    }
+
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public final ResponseEntity<ApiError> handleAccessDenied(
             org.springframework.security.access.AccessDeniedException ex, HttpServletRequest request) {
