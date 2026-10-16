@@ -3,7 +3,6 @@ package com.gamq.deportes.service.implement;
 import com.gamq.deportes.dto.mapper.HorarioFijoMapper;
 import com.gamq.deportes.dto.HorarioFijoDto;
 import com.gamq.deportes.model.CampoDeportivo;
-import com.gamq.deportes.model.ComplejoDeportivo;
 import com.gamq.deportes.model.HorarioFijo;
 import com.gamq.deportes.repository.CampoDeportivoRepository;
 import com.gamq.deportes.repository.HorarioFijoRepository;
@@ -17,8 +16,6 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class ScheduleOperationalServiceImpl implements ScheduleOperationalService {

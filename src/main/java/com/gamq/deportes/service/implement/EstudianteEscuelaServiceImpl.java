@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.ESTUDIANTE_ESCUELA;
-import static com.gamq.deportes.exception.enums.EntityType.CONTRIBUYENTE;
-import static com.gamq.deportes.exception.enums.EntityType.ORGANIZACION;
+import static com.gamq.deportes.enums.EntityType.ESTUDIANTE_ESCUELA;
+import static com.gamq.deportes.enums.EntityType.CONTRIBUYENTE;
+import static com.gamq.deportes.enums.EntityType.ORGANIZACION;
 
 @Component
 public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {

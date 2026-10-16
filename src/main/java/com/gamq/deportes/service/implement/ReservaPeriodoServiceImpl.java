@@ -2,7 +2,6 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaPeriodoDto;
 import com.gamq.deportes.dto.ReservaPeriodoFilter;
-import com.gamq.deportes.dto.mapper.CampoDeportivoMapper;
 import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaAuditoriaRepository;
@@ -33,9 +32,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.RESERVA_PERIODO;
-import static com.gamq.deportes.exception.enums.EntityType.RESERVA;
-import static com.gamq.deportes.exception.enums.EntityType.ESTUDIANTE_ESCUELA;
+import static com.gamq.deportes.enums.EntityType.RESERVA_PERIODO;
+import static com.gamq.deportes.enums.EntityType.RESERVA;
+import static com.gamq.deportes.enums.EntityType.ESTUDIANTE_ESCUELA;
 
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {

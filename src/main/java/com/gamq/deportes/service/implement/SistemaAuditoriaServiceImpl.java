@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.SISTEMA_AUDITORIA;
+import static com.gamq.deportes.enums.EntityType.SISTEMA_AUDITORIA;
 
 @Service
 @Transactional

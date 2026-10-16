@@ -1,12 +1,8 @@
 package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.NotificacionDto;
-import com.gamq.deportes.dto.ReservaDto;
-import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaRecurrenteDto;
 import com.gamq.deportes.dto.ReservaRecurrenteFilter;
-import com.gamq.deportes.dto.mapper.ReservaMapper;
-import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaAuditoriaRepository;
@@ -30,16 +26,11 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Service
 @Transactional

@@ -1,4 +1,4 @@
-package com.gamq.deportes.exception.enums;
+package com.gamq.deportes.enums;
 
 public enum EntityType {
     CANCHAS,

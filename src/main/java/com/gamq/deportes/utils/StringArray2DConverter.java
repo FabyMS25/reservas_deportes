@@ -1,4 +1,4 @@
-package com.gamq.deportes.Converter;
+package com.gamq.deportes.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -16,8 +16,6 @@ import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.*;
-
 @Component
 public class CampoServiceImpl implements CampoService {
 

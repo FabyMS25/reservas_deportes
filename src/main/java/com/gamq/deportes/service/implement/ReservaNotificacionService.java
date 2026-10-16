@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import static com.gamq.deportes.exception.enums.EntityType.RESERVA;
+import static com.gamq.deportes.enums.EntityType.RESERVA;
 
 @Service
 public class ReservaNotificacionService {

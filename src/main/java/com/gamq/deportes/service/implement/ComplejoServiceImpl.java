@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.*;
-
 @Service
 @Transactional
 public class ComplejoServiceImpl implements ComplejoService {

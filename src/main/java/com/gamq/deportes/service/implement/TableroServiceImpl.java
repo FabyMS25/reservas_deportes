@@ -5,7 +5,6 @@ import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.TableroMapper;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
-import com.gamq.deportes.model.*;
 import com.gamq.deportes.model.Tablero;
 import com.gamq.deportes.model.Reserva;
 import com.gamq.deportes.model.ReservaRecurrente;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.*;
 @Service
 @Transactional
 public class TableroServiceImpl implements TableroService {

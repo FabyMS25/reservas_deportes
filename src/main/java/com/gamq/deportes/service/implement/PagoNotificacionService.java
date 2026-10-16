@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import static com.gamq.deportes.exception.enums.EntityType.PAGOS;
+import static com.gamq.deportes.enums.EntityType.PAGOS;
 
 @Service
 public class PagoNotificacionService {

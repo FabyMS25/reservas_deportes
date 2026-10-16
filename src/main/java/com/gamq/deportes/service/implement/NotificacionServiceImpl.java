@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.NOTIFICACION;
+import static com.gamq.deportes.enums.EntityType.NOTIFICACION;
 
 @Service
 @Transactional

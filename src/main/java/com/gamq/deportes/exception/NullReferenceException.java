@@ -1,6 +1,6 @@
 package com.gamq.deportes.exception;
 
-import com.gamq.deportes.exception.enums.EntityType;
+import com.gamq.deportes.enums.EntityType;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 

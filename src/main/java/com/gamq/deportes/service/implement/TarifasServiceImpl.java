@@ -18,12 +18,9 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class TarifasServiceImpl implements TarifasService {

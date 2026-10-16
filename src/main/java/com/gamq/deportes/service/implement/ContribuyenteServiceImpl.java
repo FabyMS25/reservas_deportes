@@ -10,7 +10,6 @@ import com.gamq.deportes.service.ContribuyenteService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.gamq.deportes.exception.DuplicateTaxpayerException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,8 +21,6 @@ import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.gamq.deportes.exception.enums.EntityType.*;
 
 @Component
 public class ContribuyenteServiceImpl implements ContribuyenteService {

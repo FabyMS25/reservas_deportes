@@ -7,6 +7,20 @@ x-logging: &logging
     max-file: "3"
 
 services:
+  fe-deportes:
+    depends_on:
+      - be-deportes
+    image: deportes-fe
+    container_name: deportes-fe
+    build:
+      context: ../deportes-fe
+      dockerfile: Dockerfile
+    pull_policy: build
+    ports:
+      - "127.0.0.1:4205:80"
+    restart: unless-stopped
+    logging: *logging
+
   be-deportes:
     image: deportes-be
     container_name: deportes-be
@@ -20,19 +34,6 @@ services:
     restart: unless-stopped
     logging: *logging
 
-  fe-deportes:
-    depends_on:
-      - be-deportes
-    image: deportes-fe
-    container_name: deportes-fe
-    build:
-      context: ../deportes-fe
-      dockerfile: Dockerfile
-    pull_policy: build
-    ports:
-      - "127.0.0.1:4200:80"
-    restart: unless-stopped
-    logging: *logging
 
 #  pg-deportes:
 #    image: dpage/pgadmin4:9.18

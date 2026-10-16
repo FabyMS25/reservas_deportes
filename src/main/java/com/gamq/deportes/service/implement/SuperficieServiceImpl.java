@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gamq.deportes.exception.enums.EntityType.SUPERFICIE;
+import static com.gamq.deportes.enums.EntityType.SUPERFICIE;
 
 @Component
 public class SuperficieServiceImpl implements SuperficieService {
