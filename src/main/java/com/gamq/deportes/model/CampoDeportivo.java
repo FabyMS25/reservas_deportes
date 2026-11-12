@@ -5,10 +5,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 //import com.vividsolutions.jts.geom.Point;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "campos_deportivos", indexes = @Index(name = "idx_campo_uuid", columnList = "uuid", unique = true))
 @SQLDelete(sql = "UPDATE campos_deportivos SET estado = true WHERE id_campo = ?")
-@Where(clause = "estado = false")
+@SQLRestriction("estado = false")
 public class CampoDeportivo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

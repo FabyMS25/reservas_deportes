@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -43,7 +45,7 @@ public class TarifaConceptoServiceImpl implements TarifaConceptoService {
 
     @Override
     public List<TarifaConceptoDto> obtenerConceptos() {
-        List<TarifaConcepto> conceptos = tarifaConceptoRepository.findAll();
+        List<TarifaConcepto> conceptos = tarifaConceptoRepository.findAll(OrdenListados.masRecientes("idTarifaConcepto"));
 
         return conceptos.stream()
                 .map(TarifaConceptoMapper::toDto)

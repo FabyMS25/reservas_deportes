@@ -13,12 +13,13 @@ import com.gamq.deportes.service.SuperficieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.enums.EntityType.SUPERFICIE;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class SuperficieServiceImpl implements SuperficieService {
@@ -39,7 +40,7 @@ public class SuperficieServiceImpl implements SuperficieService {
 
     }
     public List<SuperficieDto> obtenerSuperficies(){
-        List<Superficie> Superficies = superficieRepository.findAll();
+        List<Superficie> Superficies = superficieRepository.findAll(OrdenListados.masRecientesPorId("idSuperficie"));
 
         return Superficies.stream().map(Superfi -> {
             return SuperficieMapper.toDto(Superfi);

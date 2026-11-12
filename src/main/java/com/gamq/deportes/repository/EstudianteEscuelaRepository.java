@@ -21,43 +21,43 @@ public interface EstudianteEscuelaRepository extends JpaRepository<EstudianteEsc
     @Query("SELECT e FROM EstudianteEscuela e WHERE e.estudiante.numeroDocumento = ?1")
     Optional<EstudianteEscuela> findByNumeroDocumento(String numeroDocumento);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.contribuyenteDto.uuid = ?1")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.contribuyenteDto.uuid = ?1 ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findByContribuyenteUuid(String uuidContribuyente);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.organizacionDto.uuid = ?1")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.organizacionDto.uuid = ?1 ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findByOrganizacionUuid(String uuidOrganizacion);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.activo = true")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.activo = true ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findByActivoTrue();
 
     @Query("SELECT DISTINCT e FROM EstudianteEscuela e LEFT JOIN e.contribuyenteDto tutor " +
             "WHERE tutor.uuid = :contribuyenteUuid " +
-            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid)")
+            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid) ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findVisibleToContribuyente(
             @Param("contribuyenteUuid") String contribuyenteUuid);
 
     @Query("SELECT DISTINCT e FROM EstudianteEscuela e LEFT JOIN e.contribuyenteDto tutor " +
             "WHERE e.activo = true AND (tutor.uuid = :contribuyenteUuid " +
-            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid))")
+            "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = e.organizacionDto AND p.contribuyente.uuid = :contribuyenteUuid)) ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findActiveVisibleToContribuyente(
             @Param("contribuyenteUuid") String contribuyenteUuid);
 
     @Query("SELECT e FROM EstudianteEscuela e WHERE " +
             "LOWER(e.estudiante.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
             "LOWER(e.estudiante.numeroDocumento) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(e.matricula) LIKE LOWER(CONCAT('%', :term, '%'))")
+            "LOWER(e.matricula) LIKE LOWER(CONCAT('%', :term, '%')) ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> searchExistingStudents(@Param("term") String term);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.activo = true AND e.organizacionDto.uuid = ?1")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.activo = true AND e.organizacionDto.uuid = ?1 ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findByActivoTrueAndOrganizacionUuid(String uuidOrganizacion);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.contribuyenteDto.uuid = ?1 AND e.activo = true")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.contribuyenteDto.uuid = ?1 AND e.activo = true ORDER BY e.fechaCreacion DESC")
     List<EstudianteEscuela> findByContribuyenteUuidAndActivoTrue(String uuidContribuyente);
 
     @Query("SELECT COUNT(e) FROM EstudianteEscuela e WHERE e.organizacionDto.uuid = ?1 AND e.activo = true")
     Long countByOrganizacionUuidAndActivoTrue(String uuidOrganizacion);
 
-    @Query("SELECT e FROM EstudianteEscuela e WHERE e.estudiante.email = ?1")
+    @Query("SELECT e FROM EstudianteEscuela e WHERE e.estudiante.email = ?1 ORDER BY e.fechaCreacion DESC")
     Optional<EstudianteEscuela> findByEmail(String email);
 
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +

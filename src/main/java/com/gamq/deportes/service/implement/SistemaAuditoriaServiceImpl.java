@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.gamq.deportes.enums.EntityType.SISTEMA_AUDITORIA;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -67,7 +68,7 @@ public class SistemaAuditoriaServiceImpl implements SistemaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public List<SistemaAuditoriaDto> obtenerSistemaAuditorias() {
-        List<SistemaAuditoria> auditorias = sistemaAuditoriaRepository.findAll();
+        List<SistemaAuditoria> auditorias = sistemaAuditoriaRepository.findAll(OrdenListados.masRecientesPor("fechaAccion", "idSistemaAuditoria"));
         return auditorias.stream()
                 .map(SistemaAuditoriaMapper::toDto)
                 .collect(Collectors.toList());
@@ -76,7 +77,7 @@ public class SistemaAuditoriaServiceImpl implements SistemaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public Page<SistemaAuditoriaDto> obtenerSistemaAuditorias(Pageable pageable) {
-        return sistemaAuditoriaRepository.findAll(pageable)
+        return sistemaAuditoriaRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientesPor("fechaAccion", "idSistemaAuditoria")))
                 .map(SistemaAuditoriaMapper::toDto);
     }
 
@@ -123,7 +124,7 @@ public class SistemaAuditoriaServiceImpl implements SistemaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public Page<SistemaAuditoriaDto> findByFechaAccionBetween(LocalDateTime fechaInicio, LocalDateTime fechaFin, Pageable pageable) {
-        return sistemaAuditoriaRepository.findByFechaAccionBetween(fechaInicio, fechaFin, pageable)
+        return sistemaAuditoriaRepository.findByFechaAccionBetween(fechaInicio, fechaFin, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientesPor("fechaAccion", "idSistemaAuditoria")))
                 .map(SistemaAuditoriaMapper::toDto);
     }
 

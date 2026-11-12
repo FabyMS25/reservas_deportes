@@ -20,63 +20,63 @@ public interface ReservaAuditoriaRepository extends JpaRepository<ReservaAuditor
     Optional<ReservaAuditoria> findByUuid(String uuid);
 
     // Reservation-based queries
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.uuid = :reservaUuid")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.uuid = :reservaUuid ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByReservaUuid(@Param("reservaUuid") String reservaUuid);
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.idReserva = :idReserva")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.idReserva = :idReserva ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByReservaId(@Param("idReserva") Long idReserva);
 
     // Action and status-based queries
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion = :accion")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion = :accion ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByAccion(@Param("accion") String accion);
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion IN :acciones")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion IN :acciones ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByAccionIn(@Param("acciones") List<String> acciones);
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoAnterior = :estadoAnterior")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoAnterior = :estadoAnterior ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByEstadoAnterior(@Param("estadoAnterior") String estadoAnterior);
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoNuevo = :estadoNuevo")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoNuevo = :estadoNuevo ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByEstadoNuevo(@Param("estadoNuevo") String estadoNuevo);
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoAnterior = :estadoAnterior AND ra.estadoNuevo = :estadoNuevo")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.estadoAnterior = :estadoAnterior AND ra.estadoNuevo = :estadoNuevo ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByEstadoAnteriorAndEstadoNuevo(
             @Param("estadoAnterior") String estadoAnterior,
             @Param("estadoNuevo") String estadoNuevo
     );
 
     // User-based queries
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.usuarioUuid = :usuarioUuid")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.usuarioUuid = :usuarioUuid ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByUsuarioUuid(@Param("usuarioUuid") String usuarioUuid);
 
     // Date range queries
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByFechaAccionBetween(
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.fechaCreacion BETWEEN :fechaInicio AND :fechaFin")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.fechaCreacion BETWEEN :fechaInicio AND :fechaFin ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByFechaCreacionBetween(
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
 
     // Combined filters
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.uuid = :reservaUuid AND ra.accion = :accion")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.reserva.uuid = :reservaUuid AND ra.accion = :accion ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByReservaUuidAndAccion(
             @Param("reservaUuid") String reservaUuid,
             @Param("accion") String accion
     );
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.usuarioUuid = :usuarioUuid AND ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.usuarioUuid = :usuarioUuid AND ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByUsuarioUuidAndFechaAccionBetween(
             @Param("usuarioUuid") String usuarioUuid,
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin
     );
 
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion = :accion AND ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.accion = :accion AND ra.fechaAccion BETWEEN :fechaInicio AND :fechaFin ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByAccionAndFechaAccionBetween(
             @Param("accion") String accion,
             @Param("fechaInicio") LocalDateTime fechaInicio,
@@ -136,7 +136,7 @@ public interface ReservaAuditoriaRepository extends JpaRepository<ReservaAuditor
     List<ReservaAuditoria> findLatestByReservaUuid(@Param("reservaUuid") String reservaUuid, Pageable pageable);
 
     // Find by IP address
-    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.direccionIp = :direccionIp")
+    @Query("SELECT ra FROM ReservaAuditoria ra WHERE ra.direccionIp = :direccionIp ORDER BY ra.fechaAccion DESC")
     List<ReservaAuditoria> findByDireccionIp(@Param("direccionIp") String direccionIp);
 
     // Additional useful queries

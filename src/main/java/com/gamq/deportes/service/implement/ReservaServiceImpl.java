@@ -1,8 +1,14 @@
 package com.gamq.deportes.service.implement;
 
+import com.gamq.deportes.dto.ClasificadorRuatDto;
 import com.gamq.deportes.dto.ReservaDto;
+import com.gamq.deportes.dto.ReservaBorderouxActividadDto;
+import com.gamq.deportes.dto.ReservaBorderouxTalonarioDto;
 import com.gamq.deportes.dto.NotificacionDto;
 import com.gamq.deportes.dto.mapper.ReservaMapper;
+import com.gamq.deportes.dto.mapper.ClasificadorRuatMapper;
+import com.gamq.deportes.dto.mapper.ReservaBorderouxActividadMapper;
+import com.gamq.deportes.dto.mapper.ReservaBorderouxTalonarioMapper;
 import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.dto.mapper.ReservaPuntualMapper;
 import com.gamq.deportes.dto.mapper.ReservaRecurrenteMapper;
@@ -12,6 +18,7 @@ import com.gamq.deportes.repository.*;
 import com.gamq.deportes.service.ReservaService;
 import com.gamq.deportes.exception.NotFoundException;
 import com.gamq.deportes.exception.NullReferenceException;
+import com.gamq.deportes.utils.OrdenListados;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.gamq.deportes.security.DeportesPrincipal;
 import java.time.Duration;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,7 +47,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.JoinType;
+import static com.gamq.deportes.enums.EntityType.*;
 
 @Service
 @Transactional
@@ -58,6 +68,8 @@ public class ReservaServiceImpl implements ReservaService {
     private static final String HABILITAR_RESERVAS_EVENTOS = "HABILITAR_RESERVAS_EVENTOS";
     private static final String HABILITAR_RESERVAS_ORGANIZACIONES = "HABILITAR_RESERVAS_ORGANIZACIONES";
     private static final String HABILITAR_RESERVAS_RECURRENTES = "HABILITAR_RESERVAS_RECURRENTES";
+    private static final String HABILITAR_RESERVAS_PERIODO_ESCUELAS = "HABILITAR_RESERVAS_PERIODO_ESCUELAS";
+    private static final String HABILITAR_RESERVAS_BORDEROUX = "HABILITAR_RESERVAS_BORDEROUX";
     private static final String HABILITAR_SOLICITUD_RESERVAS_EVENTOS = "HABILITAR_SOLICITUD_RESERVAS_EVENTOS";
     private static final String HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES = "HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES";
     private static final String HABILITAR_SOLICITUD_RESERVAS_RECURRENTES = "HABILITAR_SOLICITUD_RESERVAS_RECURRENTES";
@@ -68,6 +80,11 @@ public class ReservaServiceImpl implements ReservaService {
     private static final String DURACION_MAXIMA_PUNTUALES = "DURACION_MAXIMA_PUNTUALES";
     private static final String DURACION_MAXIMA_EVENTOS = "DURACION_MAXIMA_EVENTOS";
     private static final String DURACION_MAXIMA_RECURRENTES = "DURACION_MAXIMA_RECURRENTES";
+    /**
+     * Clasificador RUAT por defecto para liquidaciones Borderoux:
+     * 30678 - RESERVA CAMPOS DEPORTIVOS POR EVENTO (tipo arancel DI).
+     */
+    private static final String CLASIFICADOR_RUAT_BORDEROUX = "30678";
 
     @Autowired
     private ReservaRepository reservaRepository;
@@ -80,6 +97,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Autowired
     private CampoDeportivoRepository campoDeportivoRepository;
+
+    @Autowired
+    private CategoriaRepository categoriaRepository;
 
     @Autowired
     private ContribuyenteRepository contribuyenteRepository;
@@ -112,13 +132,16 @@ public class ReservaServiceImpl implements ReservaService {
     private ReservaPeriodoRepository reservaPeriodoRepository;
 
     @Autowired
+    private ReservaBorderouxActividadRepository reservaBorderouxActividadRepository;
+
+    @Autowired
     private TableroRepository tableroRepository;
 
     @Autowired
-    private ConfiguracionSistemaRepository configuracionSistemaRepository;
+    private ReservationNumberService reservationNumberService;
 
     @Autowired
-    private ReservationNumberService reservationNumberService;
+    private com.gamq.deportes.security.ConfiguracionResolver configuracionResolver;
 
     @Autowired
     private ReservaPeriodoMapper reservaPeriodoMapper;
@@ -131,6 +154,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Autowired
     private NotificacionDestinatariosReservaService destinatariosService;
+
+    @Autowired
+    private ClasificadorRuatRepository clasificadorRuatRepository;
 
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
@@ -207,9 +233,9 @@ public class ReservaServiceImpl implements ReservaService {
         }
         if (resolvedMesFiltro != null || resolvedAnioFiltro != null) {
             spec = spec.and((root, query, cb) -> {
-                javax.persistence.criteria.Subquery<Long> matchingPeriod = query.subquery(Long.class);
-                javax.persistence.criteria.Root<ReservaPeriodo> period = matchingPeriod.from(ReservaPeriodo.class);
-                javax.persistence.criteria.Predicate result = cb.and(cb.equal(period.get("reserva"), root),
+                jakarta.persistence.criteria.Subquery<Long> matchingPeriod = query.subquery(Long.class);
+                jakarta.persistence.criteria.Root<ReservaPeriodo> period = matchingPeriod.from(ReservaPeriodo.class);
+                jakarta.persistence.criteria.Predicate result = cb.and(cb.equal(period.get("reserva"), root),
                         cb.isFalse(period.get("estado")));
                 if (resolvedMesFiltro != null) result = cb.and(result, cb.equal(period.get("mes"), resolvedMesFiltro));
                 if (resolvedAnioFiltro != null) result = cb.and(result, cb.equal(period.get("año"), resolvedAnioFiltro));
@@ -220,11 +246,11 @@ public class ReservaServiceImpl implements ReservaService {
         if (searchTerm != null && !searchTerm.isBlank()) {
             String term = "%" + searchTerm.trim().toLowerCase() + "%";
             spec = spec.and((root, query, cb) -> {
-                javax.persistence.criteria.Join<Reserva, Contribuyente> contributor =
+                jakarta.persistence.criteria.Join<Reserva, Contribuyente> contributor =
                         root.join("contribuyente", JoinType.LEFT);
-                javax.persistence.criteria.Join<Reserva, Organizacion> organizationJoin =
+                jakarta.persistence.criteria.Join<Reserva, Organizacion> organizationJoin =
                         root.join("organizacion", JoinType.LEFT);
-                javax.persistence.criteria.Join<Reserva, CampoDeportivo> field =
+                jakarta.persistence.criteria.Join<Reserva, CampoDeportivo> field =
                         root.join("campoDeportivo", JoinType.LEFT);
                 return cb.or(
                         cb.like(cb.lower(cb.concat(cb.concat(cb.coalesce(contributor.get("nombre"), ""), " "),
@@ -264,7 +290,7 @@ public class ReservaServiceImpl implements ReservaService {
 //    }
 
     public Page<ReservaDto> obtenerReservas(Pageable pageable) {
-        return reservaRepository.findAll(pageable)
+        return reservaRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReserva")))
                 .map(ReservaMapper::toDto);
     }
 
@@ -318,7 +344,7 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional(readOnly = true)
     public Page<ReservaDto> buscarPorFechaReserva(LocalDateTime fechaIni, LocalDateTime fechaFin, Pageable pageable) {
-        return reservaRepository.findByFechaReservaBetween(fechaIni, fechaFin, pageable)
+        return reservaRepository.findByFechaReservaBetween(fechaIni, fechaFin, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReserva")))
                 .map(ReservaMapper::toDto);
     }
     @Override
@@ -411,7 +437,10 @@ public class ReservaServiceImpl implements ReservaService {
         }
 
         // Validate required fields
-        if (reservaDto.getCampoDeportivoDto() == null || reservaDto.getCampoDeportivoDto().getUuid() == null) {
+        boolean esBorderoux = "borderoux".equalsIgnoreCase(reservaDto.getTipoReserva());
+        if (!esBorderoux
+                && (reservaDto.getCampoDeportivoDto() == null
+                || reservaDto.getCampoDeportivoDto().getUuid() == null)) {
             throw new IllegalArgumentException("El campo deportivo es requerido");
         }
 
@@ -428,8 +457,15 @@ public class ReservaServiceImpl implements ReservaService {
         if (esPeriodo) {
             validarCabeceraPeriodo(reservaDto);
         }
+        if (esBorderoux) {
+            validarCabeceraBorderoux(reservaDto);
+        }
 
-        CampoDeportivo campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
+        CampoDeportivo campoDeportivo = null;
+        if (reservaDto.getCampoDeportivoDto() != null
+                && reservaDto.getCampoDeportivoDto().getUuid() != null) {
+            campoDeportivo = getCampoDeportivo(reservaDto.getCampoDeportivoDto().getUuid());
+        }
         Contribuyente contribuyente = getContribuyente(reservaDto.getContribuyenteDto().getUuid());
         validarContribuyentePropio(contribuyente);
         validateTaxpayerEligibleForReservation(contribuyente);
@@ -460,6 +496,12 @@ public class ReservaServiceImpl implements ReservaService {
             isUserProvided = false;
         }
 
+        if (isUserProvided) {
+            // El formulario envía el número previsualizado; sincronizamos el
+            // contador con la secuencia realmente usada.
+            reservationNumberService.registrarNumeroUtilizado(reservaDto.getTipoReserva(), numeroReserva);
+        }
+
         Reserva nuevaReserva = ReservaMapper.toEntity(reservaDto);
         nuevaReserva.setCampoDeportivo(campoDeportivo);
         nuevaReserva.setContribuyente(contribuyente);
@@ -475,11 +517,6 @@ public class ReservaServiceImpl implements ReservaService {
         nuevaReserva.setFechaCreacion(LocalDateTime.now());
         nuevaReserva.setFechaActualizacion(LocalDateTime.now());
         aplicarPoliticaPago(nuevaReserva);
-
-        // Don't generate again if we already have a number
-        // Removed: if (nuevaReserva.getNumeroReserva() == null) {
-        //    nuevaReserva.setNumeroReserva(generarNumeroReserva());
-        // }
 
         if ("puntual".equalsIgnoreCase(reservaDto.getTipoReserva()) && reservaDto.getReservaPuntualDto() != null) {
             ReservaPuntual puntual = ReservaPuntualMapper.toEntity(reservaDto.getReservaPuntualDto(), false);
@@ -502,6 +539,27 @@ public class ReservaServiceImpl implements ReservaService {
         if (esPeriodo) {
             validarContribuyentePuedeGenerarMensualidad(nuevaReserva);
             agregarDetallesPeriodo(nuevaReserva, reservaDto.getReservasPeriodoDtoList());
+        }
+
+        if (esBorderoux) {
+            validarContribuyentePuedeGenerarBorderoux(nuevaReserva);
+            agregarActividadesBorderoux(nuevaReserva, reservaDto.getBorderouxActividadesDtoList());
+            // La tasa se registra en RUAT antes de crear la liquidación; el
+            // backend sólo persiste el número de tasa junto al clasificador.
+            if (nuevaReserva.getNumeroTasa() == null
+                    || nuevaReserva.getNumeroTasa().isBlank()) {
+                throw new IllegalArgumentException(
+                        "La liquidación Borderoux requiere el número de tasa generado en RUAT");
+            }
+        }
+
+        // El clasificador RUAT es obligatorio para toda reserva. El NOT NULL de
+        // la tabla sólo impide NULL, no la cadena vacía que envía el frontend
+        // cuando la tarifa no tiene clasificador; por eso se valida aquí.
+        if (nuevaReserva.getClasificadorRuatId() == null
+                || nuevaReserva.getClasificadorRuatId().isBlank()) {
+            throw new IllegalArgumentException(
+                    "La reserva requiere el clasificador RUAT obtenido al registrar la tasa");
         }
 
         if (reservaDto.getTarifaDetallesDtoList() != null && !reservaDto.getTarifaDetallesDtoList().isEmpty()) {
@@ -540,6 +598,17 @@ public class ReservaServiceImpl implements ReservaService {
                         : "La reserva fue creada correctamente",
                 "SUCCESS");
         return ReservaMapper.toDto(reservaGuardada);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ClasificadorRuatDto obtenerClasificadorBorderoux() {
+        ClasificadorRuat clasificador = clasificadorRuatRepository
+                .findByCodigo(CLASIFICADOR_RUAT_BORDEROUX)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No está configurado el clasificador RUAT " + CLASIFICADOR_RUAT_BORDEROUX
+                                + " requerido para liquidaciones Borderoux"));
+        return ClasificadorRuatMapper.toDto(clasificador);
     }
 
     private void validateTaxpayerEligibleForReservation(Contribuyente contribuyente) {
@@ -1030,6 +1099,116 @@ public class ReservaServiceImpl implements ReservaService {
         }
     }
 
+    private void validarCabeceraBorderoux(ReservaDto dto) {
+        if (dto.getOrganizacionDto() == null || dto.getOrganizacionDto().getUuid() == null) {
+            throw new IllegalArgumentException("La organización es requerida para una liquidación Borderoux");
+        }
+        if (dto.getBorderouxActividadesDtoList() == null || dto.getBorderouxActividadesDtoList().isEmpty()) {
+            throw new IllegalArgumentException("La liquidación Borderoux requiere al menos una actividad");
+        }
+    }
+
+    private void agregarActividadesBorderoux(Reserva reserva, List<ReservaBorderouxActividadDto> actividadesDto) {
+        BigDecimal totalLiquidacion = BigDecimal.ZERO;
+        int indiceActividad = 0;
+
+        for (ReservaBorderouxActividadDto actividadDto : actividadesDto) {
+            indiceActividad++;
+            if (actividadDto == null) {
+                throw new IllegalArgumentException("La actividad " + indiceActividad + " es inválida");
+            }
+            if (actividadDto.getFechaActividad() == null) {
+                throw new IllegalArgumentException(
+                        "La actividad " + indiceActividad + " requiere fecha de actividad");
+            }
+            if (actividadDto.getCampoDeportivoDto() == null
+                    || actividadDto.getCampoDeportivoDto().getUuid() == null) {
+                throw new IllegalArgumentException(
+                        "La actividad " + indiceActividad + " requiere un campo deportivo");
+            }
+            if (actividadDto.getPorcentajeAplicado() == null
+                    || actividadDto.getPorcentajeAplicado().signum() <= 0
+                    || actividadDto.getPorcentajeAplicado().compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new IllegalArgumentException(
+                        "La actividad " + indiceActividad
+                                + " requiere un porcentaje mayor a 0 y menor o igual a 100");
+            }
+            if (actividadDto.getTalonariosDtoList() == null || actividadDto.getTalonariosDtoList().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "La actividad " + indiceActividad + " requiere al menos un talonario");
+            }
+
+            BigDecimal porcentaje = actividadDto.getPorcentajeAplicado().setScale(2, RoundingMode.HALF_UP);
+
+            ReservaBorderouxActividad actividad = ReservaBorderouxActividadMapper.toEntity(actividadDto);
+            actividad.setReserva(reserva);
+            actividad.setCampoDeportivo(getCampoDeportivo(actividadDto.getCampoDeportivoDto().getUuid()));
+            actividad.setPorcentajeAplicado(porcentaje);
+            actividad.setCategoriaDeportiva(resolverCategoriaDeportiva(actividadDto));
+
+            BigDecimal subtotalActividad = BigDecimal.ZERO;
+            int indiceTalonario = 0;
+            for (ReservaBorderouxTalonarioDto talonarioDto : actividadDto.getTalonariosDtoList()) {
+                indiceTalonario++;
+                if (talonarioDto == null) {
+                    throw new IllegalArgumentException(
+                            "El talonario " + indiceTalonario + " de la actividad " + indiceActividad + " es inválido");
+                }
+                if (talonarioDto.getPrecioBoleta() == null || talonarioDto.getPrecioBoleta().signum() < 0) {
+                    throw new IllegalArgumentException(
+                            "El precio de boleta del talonario " + indiceTalonario
+                                    + " de la actividad " + indiceActividad + " es requerido y no puede ser negativo");
+                }
+                if (talonarioDto.getNumeroInicial() == null || talonarioDto.getNumeroInicial() < 0
+                        || talonarioDto.getNumeroFinal() == null || talonarioDto.getNumeroFinal() < 0) {
+                    throw new IllegalArgumentException(
+                            "El rango del talonario " + indiceTalonario
+                                    + " de la actividad " + indiceActividad + " es requerido");
+                }
+                if (talonarioDto.getNumeroFinal() < talonarioDto.getNumeroInicial()) {
+                    throw new IllegalArgumentException(
+                            "El número final del talonario " + indiceTalonario
+                                    + " no puede ser menor al número inicial");
+                }
+
+                int cantidad = talonarioDto.getNumeroFinal() - talonarioDto.getNumeroInicial() + 1;
+                BigDecimal precio = talonarioDto.getPrecioBoleta().setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalBoletas = precio.multiply(BigDecimal.valueOf(cantidad))
+                        .setScale(2, RoundingMode.HALF_UP);
+                BigDecimal montoBorderoux = totalBoletas.multiply(porcentaje)
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+                ReservaBorderouxTalonario talonario = ReservaBorderouxTalonarioMapper.toEntity(talonarioDto);
+                talonario.setPrecioBoleta(precio);
+                talonario.setNumeroInicial(talonarioDto.getNumeroInicial());
+                talonario.setNumeroFinal(talonarioDto.getNumeroFinal());
+                talonario.setCantidad(cantidad);
+                talonario.setTotalBoletas(totalBoletas);
+                talonario.setMontoBorderoux(montoBorderoux);
+                talonario.setActividad(actividad);
+                actividad.getTalonariosList().add(talonario);
+
+                subtotalActividad = subtotalActividad.add(montoBorderoux);
+            }
+
+            actividad.setSubtotal(subtotalActividad.setScale(2, RoundingMode.HALF_UP));
+            reserva.getBorderouxActividadesList().add(actividad);
+            totalLiquidacion = totalLiquidacion.add(actividad.getSubtotal());
+        }
+
+        reserva.setMontoTotal(totalLiquidacion.setScale(2, RoundingMode.HALF_UP));
+    }
+
+    private CategoriaDeportiva resolverCategoriaDeportiva(ReservaBorderouxActividadDto actividadDto) {
+        if (actividadDto.getCategoriaDeportivaDto() == null
+                || actividadDto.getCategoriaDeportivaDto().getUuid() == null) {
+            return null;
+        }
+        return categoriaRepository.findByUuid(actividadDto.getCategoriaDeportivaDto().getUuid())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "La categoría deportiva seleccionada no existe"));
+    }
+
     private void agregarDetallesPeriodo(Reserva reserva, List<com.gamq.deportes.dto.ReservaPeriodoDto> detallesDto) {
         for (com.gamq.deportes.dto.ReservaPeriodoDto detalleDto : detallesDto) {
             if (detalleDto.getMes() == null || detalleDto.getMes() < 1 || detalleDto.getMes() > 12
@@ -1091,6 +1270,8 @@ public class ReservaServiceImpl implements ReservaService {
         boolean solicitud = "PENDIENTE".equalsIgnoreCase(dto.getEstadoValidacion())
                 || "SOLICITADA".equalsIgnoreCase(dto.getEstadoReserva());
         boolean recurrente = "recurrente".equalsIgnoreCase(dto.getTipoReserva());
+        boolean periodo = "periodo".equalsIgnoreCase(dto.getTipoReserva());
+        boolean borderoux = "borderoux".equalsIgnoreCase(dto.getTipoReserva());
         boolean organizacion = dto.getOrganizacionDto() != null
                 && dto.getOrganizacionDto().getUuid() != null;
         boolean evento = dto.getTarifaDto() != null
@@ -1106,10 +1287,23 @@ public class ReservaServiceImpl implements ReservaService {
                     ? HABILITAR_SOLICITUD_RESERVAS_EVENTOS
                     : HABILITAR_RESERVAS_EVENTOS);
         }
+        // Organization flags are scoped to contributors that represent an
+        // organization. Borderoux requires this generic switch plus its own
+        // HABILITAR_RESERVAS_BORDEROUX permission.
         if (organizacion) {
             requireEnabled(solicitud
                     ? HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES
                     : HABILITAR_RESERVAS_ORGANIZACIONES);
+        }
+        if (periodo) {
+            requireEnabled(HABILITAR_RESERVAS_PERIODO_ESCUELAS);
+        }
+        if (borderoux) {
+            if (!organizacion) {
+                throw new IllegalArgumentException(
+                        "La organización es requerida para una reserva Borderoux");
+            }
+            requireEnabled(HABILITAR_RESERVAS_BORDEROUX);
         }
 
         if (recurrente && dto.getReservaRecurrenteDto() != null) {
@@ -1173,25 +1367,14 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void requireEnabled(String key) {
-        boolean enabled = configuracionSistemaRepository
-                .findEffectiveCandidates(key, "contribuyente", null)
-                .stream()
-                .findFirst()
-                .map(ConfiguracionSistema::getValorBoolean)
-                .orElse(false);
-        if (!enabled) {
+        if (!configuracionResolver.permisoHabilitado(key)) {
             throw new IllegalArgumentException("La funcionalidad " + key + " está deshabilitada");
         }
     }
 
     private double numericPolicy(String key, double fallback) {
-        return configuracionSistemaRepository
-                .findEffectiveCandidates(key, "contribuyente", null)
-                .stream()
-                .findFirst()
-                .map(ConfiguracionSistema::getValorNumerico)
-                .filter(Objects::nonNull)
-                .orElse(fallback);
+        Double value = configuracionResolver.valorNumerico(key, fallback);
+        return value == null ? fallback : value;
     }
 
     private boolean isContributorRequest() {
@@ -1224,9 +1407,22 @@ public class ReservaServiceImpl implements ReservaService {
                 && contribuyenteUuid.equals(reserva.getContribuyente().getUuid());
         boolean representaEscuela = reserva.getOrganizacion() != null
                 && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
-        if (!esPagador) {
+        if (!esPagador && !representaEscuela) {
             throw new IllegalArgumentException(
-                    "Un contribuyente solo puede generar la mensualidad a su propio nombre");
+                    "Un contribuyente solo puede generar la mensualidad a su propio nombre o de una escuela que representa");
+        }
+    }
+
+    private void validarContribuyentePuedeGenerarBorderoux(Reserva reserva) {
+        String contribuyenteUuid = contribuyenteActualUuid();
+        if (contribuyenteUuid == null) {
+            return;
+        }
+        boolean representaOrganizacion = reserva.getOrganizacion() != null
+                && reserva.getOrganizacion().tieneRepresentante(contribuyenteUuid);
+        if (!representaOrganizacion) {
+            throw new IllegalArgumentException(
+                    "Un contribuyente solo puede registrar liquidaciones Borderoux de una organización que representa");
         }
     }
 
@@ -1250,11 +1446,13 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void aplicarPoliticaPago(Reserva reserva, LocalDateTime inicioPlazo) {
-        if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
+        String tipo = reserva.getTipoReserva();
+        if ("periodo".equalsIgnoreCase(tipo) || "borderoux".equalsIgnoreCase(tipo)) {
             reserva.setCancelacionAutomatica(false);
             reserva.setFechaLimitePago(null);
             return;
         }
+
         if (reserva.getCancelacionAutomatica() == null) {
             reserva.setCancelacionAutomatica(true);
         }
@@ -1293,11 +1491,10 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private java.util.Optional<Integer> obtenerValorNumericoActivo(String clave) {
-        return configuracionSistemaRepository.findByClaveAndEstadoFalse(clave)
-                .filter(config -> Boolean.TRUE.equals(config.getActivo()))
-                .map(ConfiguracionSistema::getValorNumerico)
-                .filter(value -> value != null && value > 0)
-                .map(Double::intValue);
+        Double value = configuracionResolver.valorNumerico(clave, null);
+        return value != null && value > 0
+                ? java.util.Optional.of(value.intValue())
+                : java.util.Optional.empty();
     }
 
     private void registrarAuditoria(Reserva reserva, String accion, String estadoAnterior, String estadoNuevo,
@@ -1357,6 +1554,9 @@ public class ReservaServiceImpl implements ReservaService {
         }
         if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
             return "/reservations/schools";
+        }
+        if ("borderoux".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return "/reservations/borderoux";
         }
         return "/reservations/one-time";
     }

@@ -12,9 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class CampoServiceImpl implements CampoService {
@@ -65,7 +67,7 @@ public class CampoServiceImpl implements CampoService {
     }
 
     public List<CampoDeportivoDto> obtenerCampos(){
-        List<CampoDeportivo> campos = campoRepository.findAll();
+        List<CampoDeportivo> campos = campoRepository.findAll(OrdenListados.masRecientes("idCampo"));
 
         return campos.stream()
                 .map(campo -> CampoDeportivoMapper.toDto(campo, true))

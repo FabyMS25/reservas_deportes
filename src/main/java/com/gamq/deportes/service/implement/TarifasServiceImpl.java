@@ -16,11 +16,13 @@ import com.gamq.deportes.service.TarifasService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class TarifasServiceImpl implements TarifasService {
@@ -59,7 +61,7 @@ public class TarifasServiceImpl implements TarifasService {
     }
 
     public List<TarifaDto> obtenerTarifas(){
-        List<Tarifa> Tarifass = tarifaRepository.findAll();
+        List<Tarifa> Tarifass = tarifaRepository.findAll(OrdenListados.masRecientes("idTarifa"));
         return Tarifass.stream().map(tarifa -> {
             return TarifaMapper.toDto(tarifa, true);
         }).collect(Collectors.toList());

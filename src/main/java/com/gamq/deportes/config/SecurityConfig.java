@@ -5,50 +5,57 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true) // Changed from @EnableGlobalMethodSecurity (deprecated)
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, DeportesTokenFilter tokenFilter) throws Exception {
-        http.httpBasic().disable();
-        http.formLogin().disable();
-        http.requestCache().disable();
-        http.cors().and().csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-            .exceptionHandling().authenticationEntryPoint((request, response, exception) -> {
-                response.setStatus(401);
-                response.setContentType("application/json");
-                response.getWriter().write("{\"message\":\"La sesión ha expirado o no es válida\"}");
-            }).and()
-            .authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .antMatchers("/ws-notificaciones/**").permitAll()
-            .antMatchers("/api/auth/login", "/api/passresets/**",
-                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .antMatchers(HttpMethod.GET, "/api/reporte/public/ticket/**").permitAll()
-            .antMatchers(HttpMethod.HEAD, "/api/reporte/public/ticket/**").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/contribuyente").permitAll()
-            .antMatchers(HttpMethod.GET, "/api/contribuyente/public/exists").permitAll()
-            .antMatchers("/api/ruat/**").permitAll()
-            .antMatchers(HttpMethod.POST,
-                    "/api/configuracionSistema/**", "/api/system-configurations/**")
+        http.httpBasic(it -> it.disable());
+        http.formLogin(it -> it.disable());
+        http.requestCache(it -> it.disable());
+        http.cors(it -> it.disable());
+        http.csrf(it -> it.disable());
+
+        http.sessionManagement(it -> it.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.exceptionHandling(it -> it.authenticationEntryPoint((request, response, exception) -> {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\":\"La sesión ha expirado o no es válida\"}");
+        }));
+
+        http.authorizeHttpRequests(it -> it
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/ws-notificaciones/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/passresets/**",
+                        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reporte/public/ticket/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/reporte/public/ticket/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/contribuyente").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/contribuyente/public/exists").permitAll()
+                .requestMatchers("/api/ruat/**").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/api/configuracionSistema/**", "/api/system-configurations/**")
                 .hasAuthority("DEPORTES_ADMIN")
-            .antMatchers(HttpMethod.PUT,
-                    "/api/configuracionSistema/**", "/api/system-configurations/**")
+                .requestMatchers(HttpMethod.PUT,
+                        "/api/configuracionSistema/**", "/api/system-configurations/**")
                 .hasAuthority("DEPORTES_ADMIN")
-            .antMatchers(HttpMethod.PATCH,
-                    "/api/configuracionSistema/**", "/api/system-configurations/**")
+                .requestMatchers(HttpMethod.PATCH,
+                        "/api/configuracionSistema/**", "/api/system-configurations/**")
                 .hasAuthority("DEPORTES_ADMIN")
-            .antMatchers(HttpMethod.DELETE,
-                    "/api/configuracionSistema/**", "/api/system-configurations/**")
+                .requestMatchers(HttpMethod.DELETE,
+                        "/api/configuracionSistema/**", "/api/system-configurations/**")
                 .hasAuthority("DEPORTES_ADMIN")
-            .anyRequest().authenticated().and()
-            .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().authenticated()
+        );
+
+        http.addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

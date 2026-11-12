@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import java.util.UUID;
         @Index(name = "idx_res_numero", columnList = "numero_reserva", unique = true)
 })
 @SQLDelete(sql = "UPDATE reservas SET estado = true WHERE id_reserva = ?")
-@Where(clause = "estado = false")
+@SQLRestriction("estado = false")
 public class Reserva {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -109,7 +109,7 @@ public class Reserva {
     private String motivoGratuidad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_campo", nullable = false)
+    @JoinColumn(name = "id_campo")
     private CampoDeportivo campoDeportivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -132,6 +132,9 @@ public class Reserva {
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReservaPeriodo> reservasPeriodoList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReservaBorderouxActividad> borderouxActividadesList = new ArrayList<>();
 
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("idPago ASC")

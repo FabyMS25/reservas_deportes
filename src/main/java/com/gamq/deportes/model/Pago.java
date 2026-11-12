@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "pagos", indexes = @Index(name = "idx_pag_uuid", columnList = "uuid", unique = true))
 @SQLDelete(sql = "UPDATE pagos SET estado = true WHERE id_pago = ?")
-@Where(clause = "estado = false")
+@SQLRestriction("estado = false")
 public class Pago {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

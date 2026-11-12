@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -45,7 +47,7 @@ public class TableroServiceImpl implements TableroService {
     
     @Transactional(readOnly = true)
     public List<TableroDto> obtenerTablero(){
-        List<Tablero> Tableros = tableroRepository.findAll();
+        List<Tablero> Tableros = tableroRepository.findAll(OrdenListados.masRecientesPorId("idTablero"));
 
         return Tableros.stream().map(Tablero -> {
             return TableroMapper.toDto(Tablero);

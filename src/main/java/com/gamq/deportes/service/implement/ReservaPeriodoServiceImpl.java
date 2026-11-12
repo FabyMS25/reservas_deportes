@@ -22,9 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.transaction.Transactional;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -35,9 +35,12 @@ import java.util.stream.Collectors;
 import static com.gamq.deportes.enums.EntityType.RESERVA_PERIODO;
 import static com.gamq.deportes.enums.EntityType.RESERVA;
 import static com.gamq.deportes.enums.EntityType.ESTUDIANTE_ESCUELA;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
+    private static final String HABILITAR_RESERVAS_PERIODO_ESCUELAS = "HABILITAR_RESERVAS_PERIODO_ESCUELAS";
+
     @Autowired
     private ReservaRuatRevisionService ruatRevisionService;
     @Autowired
@@ -57,6 +60,9 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
 
     @Autowired
+    private com.gamq.deportes.security.ConfiguracionResolver configuracionResolver;
+
+    @Autowired
     private com.gamq.deportes.service.EstudianteEscuelaService estudianteService;
 
     @Override
@@ -70,7 +76,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
     @Override
     public List<ReservaPeriodoDto> obtenerTodos() {
-        List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findAll();
+        List<ReservaPeriodo> reservasPeriodo = reservaPeriodoRepository.findAll(OrdenListados.masRecientes("idReservaPeriodo"));
         return reservasPeriodo.stream()
                 .map(reserva -> ReservaPeriodoMapper.toDto(reserva, true))
                 .collect(Collectors.toList());
@@ -196,7 +202,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
         }
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("fechaCreacion").descending());
+                    OrdenListados.masRecientes("idReservaPeriodo"));
         }
         final Specification<ReservaPeriodo> listSpec = spec;
         final Pageable listPage = pageable;
@@ -287,6 +293,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 if (!"periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
                     throw new IllegalArgumentException("Los detalles de periodo solo pueden pertenecer a reservas tipo periodo");
                 }
+                requireEnabledForContributor(HABILITAR_RESERVAS_PERIODO_ESCUELAS);
                 EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);
                 validarInscripcionParaReserva(inscripcion, reserva);
                 validarAccesoMensualidadParaContribuyente(inscripcion, reserva);
@@ -441,6 +448,17 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
         if (!esPagador && !esTutor && !representaEscuela) {
             throw new IllegalArgumentException(
                     "No tiene autorización para administrar esta mensualidad");
+        }
+    }
+
+    /**
+     * Resolves the functionality flag for the current audience. The resolver
+     * returns true for staff/admin (they are governed by menu permissions and
+     * complex assignments) and the most specific contributor scope otherwise.
+     */
+    private void requireEnabledForContributor(String key) {
+        if (!configuracionResolver.permisoHabilitado(key)) {
+            throw new IllegalArgumentException("La funcionalidad " + key + " está deshabilitada");
         }
     }
 

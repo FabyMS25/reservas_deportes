@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface OrganizacionRepository extends JpaRepository<Organizacion, Long> {
 
-    @org.springframework.data.jpa.repository.Lock(javax.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM Organizacion o WHERE o.uuid = ?1")
     Optional<Organizacion> findByUuidForUpdate(String uuid);
 
@@ -23,7 +23,7 @@ public interface OrganizacionRepository extends JpaRepository<Organizacion, Long
     Optional<Organizacion> findByUuid(String uuid);
 
     // Field-specific searches
-    @Query("SELECT o FROM Organizacion o WHERE o.nombre LIKE %:nombre%")
+    @Query("SELECT o FROM Organizacion o WHERE o.nombre LIKE %:nombre% ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByNombreContaining(@Param("nombre") String nombre);
 
     @Query("SELECT o FROM Organizacion o WHERE o.nroNit = :nroNit")
@@ -36,33 +36,33 @@ public interface OrganizacionRepository extends JpaRepository<Organizacion, Long
     Optional<Organizacion> findByTelefono(@Param("telefono") String telefono);
 
     // Status-based queries
-    @Query("SELECT o FROM Organizacion o WHERE o.activo = :activo")
+    @Query("SELECT o FROM Organizacion o WHERE o.activo = :activo ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByActivo(@Param("activo") Boolean activo);
 
-    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion")
+    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByTipoOrganizacion(@Param("tipoOrganizacion") String tipoOrganizacion);
 
-    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion AND o.activo = :activo")
+    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion AND o.activo = :activo ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByTipoOrganizacionAndActivo(
             @Param("tipoOrganizacion") String tipoOrganizacion,
             @Param("activo") Boolean activo
     );
 
     // Relationship-based queries
-    @Query("SELECT DISTINCT o FROM Organizacion o WHERE EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.uuid = :representanteUuid)")
+    @Query("SELECT DISTINCT o FROM Organizacion o WHERE EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.uuid = :representanteUuid) ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByRepresentanteUuid(@Param("representanteUuid") String representanteUuid);
 
-    @Query("SELECT DISTINCT o FROM Organizacion o WHERE EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.idContribuyente = :idRepresentante)")
+    @Query("SELECT DISTINCT o FROM Organizacion o WHERE EXISTS (SELECT p.id FROM OrganizacionRepresentante p WHERE p.organizacion = o AND p.contribuyente.idContribuyente = :idRepresentante) ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByRepresentanteId(@Param("idRepresentante") Long idRepresentante);
 
     // Combined filters
-    @Query("SELECT o FROM Organizacion o WHERE o.nombre LIKE %:nombre% AND o.activo = :activo")
+    @Query("SELECT o FROM Organizacion o WHERE o.nombre LIKE %:nombre% AND o.activo = :activo ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByNombreContainingAndActivo(
             @Param("nombre") String nombre,
             @Param("activo") Boolean activo
     );
 
-    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion AND o.nombre LIKE %:nombre%")
+    @Query("SELECT o FROM Organizacion o WHERE o.tipoOrganizacion = :tipoOrganizacion AND o.nombre LIKE %:nombre% ORDER BY o.fechaCreacion DESC")
     List<Organizacion> findByTipoOrganizacionAndNombreContaining(
             @Param("tipoOrganizacion") String tipoOrganizacion,
             @Param("nombre") String nombre

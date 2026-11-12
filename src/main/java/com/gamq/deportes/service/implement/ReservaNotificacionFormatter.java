@@ -38,6 +38,9 @@ public final class ReservaNotificacionFormatter {
         if (reserva != null && "periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
             return "/reservations/schools";
         }
+        if (reserva != null && "borderoux".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return "/reservations/borderoux";
+        }
         return "/reservations/one-time";
     }
 

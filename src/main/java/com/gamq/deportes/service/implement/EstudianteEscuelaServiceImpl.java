@@ -19,8 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-import javax.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import static com.gamq.deportes.enums.EntityType.ESTUDIANTE_ESCUELA;
 import static com.gamq.deportes.enums.EntityType.CONTRIBUYENTE;
 import static com.gamq.deportes.enums.EntityType.ORGANIZACION;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
@@ -85,10 +86,11 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     @Override
     @Transactional
     public List<EstudianteEscuelaDto> obtenerEstudiantes() {
-        String contribuyenteUuid = contribuyenteActualUuid();
-        List<EstudianteEscuela> estudiantes = contribuyenteUuid == null
-                ? estudianteEscuelaRepository.findAll()
-                : estudianteEscuelaRepository.findVisibleToContribuyente(contribuyenteUuid);
+        // The catalogue is visible to every user with VER. Mutating actions
+        // remain protected by the management feature and organization/tutor
+        // ownership checks below.
+        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository
+                .findAll(OrdenListados.masRecientes("idEstudiante"));
         return estudiantes.stream()
                 .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
                 .collect(Collectors.toList());
@@ -151,6 +153,10 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
                 .orElseThrow(() -> new NotFoundException(ORGANIZACION,
                         estudianteDto.getOrganizacionDto().getUuid()));
         Contribuyente responsable = resolverResponsable(estudianteDto);
+        if (responsable == null && contribuyenteActualUuid() != null) {
+            responsable = contribuyenteRepository.findByUuid(contribuyenteActualUuid())
+                    .orElseThrow(() -> new NotFoundException(CONTRIBUYENTE, contribuyenteActualUuid()));
+        }
         validarPuedeCrearInscripcion(organizacion, responsable);
         // An existing student keeps one identity across schools. Apply any edited
         // personal data to that identity before creating the new enrollment.

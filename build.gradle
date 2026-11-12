@@ -1,14 +1,15 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.7.15'
+	id 'org.springframework.boot' version '3.3.13'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 }
 
 group = 'com.gamq'
 version = '0.0.1-SNAPSHOT'
-
 java {
-	sourceCompatibility = '11'
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
 }
 
 configurations {
@@ -29,7 +30,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// Swagger / OpenAPI
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-	implementation group: 'org.hibernate', name: 'hibernate-spatial', version: '5.6.15.Final'
+	// Hibernate 6 (Boot 3) spatial. The 5.6.15 artifact pulled a second,
+	// javax-based hibernate-core into the runtime classpath.
+	implementation 'org.hibernate.orm:hibernate-spatial'
 	implementation group: 'commons-io', name: 'commons-io', version: '2.16.1'
 	//jasperreport
 	implementation 'net.sf.jasperreports:jasperreports:6.20.1'
@@ -40,14 +43,14 @@ dependencies {
 	implementation 'net.sf.jasperreports:jasperreports-chart-themes:6.20.1'
 	implementation 'net.sf.jasperreports:jasperreports-chart-customizers:6.20.1'
 	implementation 'net.sf.jasperreports:jasperreports-annotation-processors:6.20.1'
-	implementation 'com.vladmihalcea:hibernate-types-52:2.21.1'
 
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 // Executable artifact consumed by Dockerfile and local deployments.

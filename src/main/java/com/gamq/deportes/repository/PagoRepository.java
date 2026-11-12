@@ -16,7 +16,7 @@ public interface PagoRepository extends JpaRepository<Pago,Long> {
     @Query("SELECT c FROM Pago c WHERE c.uuid = ?1")
     Optional<Pago> findByUuid(String uuid);
 
-    @Query("SELECT pa FROM Pago pa WHERE pa.fechaPago BETWEEN :fechaIni AND :fechaFin")
+    @Query("SELECT pa FROM Pago pa WHERE pa.fechaPago BETWEEN :fechaIni AND :fechaFin ORDER BY pa.fechaPago DESC, pa.idPago DESC")
     List<Pago> findByFechaPago(@Param("fechaIni") Date fechaIni, @Param("fechaFin") Date fechaFin);
 
     @Query("SELECT p FROM Pago p WHERE p.folio = :folio AND p.reserva.uuid = :reservaUuid")

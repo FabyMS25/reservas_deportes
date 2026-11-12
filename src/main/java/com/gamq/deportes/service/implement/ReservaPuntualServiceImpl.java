@@ -22,8 +22,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -156,7 +158,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Override
     public List<ReservaPuntualDto> obtenerReservas() {
-        List<ReservaPuntual> reservas = reservaPuntualRepository.findAll();
+        List<ReservaPuntual> reservas = reservaPuntualRepository.findAll(OrdenListados.masRecientes("idReservaPuntual"));
         if (reservas.isEmpty()) {
             return List.of();
         }
@@ -166,7 +168,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
     }
 
     public Page<ReservaPuntualDto> obtenerReservas(Pageable pageable) {
-        return reservaPuntualRepository.findAll(pageable)
+        return reservaPuntualRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReservaPuntual")))
                 .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, true));
     }
 
@@ -389,7 +391,7 @@ public class ReservaPuntualServiceImpl implements ReservaPuntualService {
 
     @Transactional(readOnly = true)
     public Page<ReservaPuntualDto> findByCampoDeportivoUuid(String campoUuid, Pageable pageable) {
-        return reservaPuntualRepository.findByCampoDeportivoUuid(campoUuid, pageable)
+        return reservaPuntualRepository.findByCampoDeportivoUuid(campoUuid, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReservaPuntual")))
                 .map(reservaPuntual -> ReservaPuntualMapper.toDto(reservaPuntual, false));
     }
 

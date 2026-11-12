@@ -1,6 +1,7 @@
 package com.gamq.deportes.service;
 
 
+import com.gamq.deportes.dto.ClasificadorRuatDto;
 import com.gamq.deportes.dto.ReservaDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ public interface ReservaService {
     boolean existeReservaConflictiva(String uuidCampo, LocalDateTime fechaIni, LocalDateTime fechaFin, String excludeReservaUuid) ;
     List<ReservaDto> findReservasConflictivas(String uuidCampo, LocalDateTime fechaIni, LocalDateTime fechaFin, String excludeReservaUuid);
     ReservaDto crearReserva(ReservaDto reservasDto);
+    ClasificadorRuatDto obtenerClasificadorBorderoux();
     ReservaDto actualizarReserva(ReservaDto reservasDto);
     String renovarPublicIdTicket(String uuid);
     ReservaDto aprobarReserva(String uuid, String aprobadoPor);

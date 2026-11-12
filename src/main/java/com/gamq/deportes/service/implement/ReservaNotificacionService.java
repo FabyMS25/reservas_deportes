@@ -139,6 +139,7 @@ public class ReservaNotificacionService {
     private String ruta(Reserva reserva) {
         if ("recurrente".equalsIgnoreCase(reserva.getTipoReserva())) return "/reservations/recurrent";
         if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) return "/reservations/schools";
+        if ("borderoux".equalsIgnoreCase(reserva.getTipoReserva())) return "/reservations/borderoux";
         return "/reservations/one-time";
     }
 

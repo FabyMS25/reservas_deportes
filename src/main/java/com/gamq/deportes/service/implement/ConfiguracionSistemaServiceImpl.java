@@ -28,14 +28,15 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
 
     private static final String CATEGORIA_RUAT = "RUAT";
     private static final String GLOBAL = "global";
+    private static final Set<String> CATEGORIAS_CLIENTE = Set.of(
+            "DATOS_REFERENCIA", "REGLAS_RESERVA", "POLITICAS_PAGO", "LIMITES", "TIMEOUTS");
     private static final Set<String> AMBITOS_PERMITIDOS = Set.of(
-            GLOBAL, "contribuyente", "organizacion", "complejo", "campo_deportivo");
-    private static final Set<String> AMBITOS_CON_REFERENCIA = Set.of(
-            "organizacion", "complejo", "campo_deportivo");
+            GLOBAL, "contribuyente", "representante");
 
     private final ConfiguracionSistemaRepository configuracionSistemaRepository;
     private final ObjectMapper objectMapper;
     private final com.gamq.deportes.service.SistemaAuditoriaService auditoriaService;
+    private final com.gamq.deportes.security.ConfiguracionResolver configuracionResolver;
 
     @Override
     public ConfiguracionSistemaDto findByUuid(String uuid) {
@@ -88,8 +89,34 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     @Override
     public List<ConfiguracionSistemaDto> obtenerConfiguraciones() {
         log.debug("Obteniendo todas las configuraciones activas");
-        return configuracionSistemaRepository.findAllActivas()
-                .stream()
+        List<ConfiguracionSistema> configuraciones = configuracionSistemaRepository.findAllActivas();
+        if (!configuracionResolver.esAdmin()) {
+            // Only deliver settings that apply to the caller's audience. Admins
+            // keep the full catalogue because they manage every scope.
+            List<String> audiencias = configuracionResolver.audienciasAplicables();
+            configuraciones = configuraciones.stream()
+                    .filter(config -> config.getReferenciaUuid() == null
+                            && audiencias.contains(config.getAplicaA()))
+                    .collect(Collectors.toList());
+        }
+        return configuraciones.stream()
+                .map(ConfiguracionSistemaMapper::toDto)
+                .map(this::sanitizeForClient)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Snapshot embedded in the authentication response. Permission flags are
+     * resolved into the menu before this point; RUAT and notification values
+     * are server-only. The UI receives just global, non-sensitive values it
+     * uses to present reservation rules and reference data.
+     */
+    @Override
+    public List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente() {
+        return configuracionSistemaRepository.findAllActivas().stream()
+                .filter(config -> CATEGORIAS_CLIENTE.contains(config.getCategoria()))
+                .filter(config -> GLOBAL.equalsIgnoreCase(config.getAplicaA()))
+                .filter(config -> config.getReferenciaUuid() == null)
                 .map(ConfiguracionSistemaMapper::toDto)
                 .map(this::sanitizeForClient)
                 .collect(Collectors.toList());
@@ -150,8 +177,10 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         ConfiguracionSistema configuracionExistente = configuracionSistemaRepository.findByUuid(configuracionDto.getUuid())
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con UUID: " + configuracionDto.getUuid()));
 
+        requireEditable(configuracionExistente);
         String anterior = snapshotAuditoria(configuracionExistente);
         normalizeAndValidate(configuracionDto);
+        requireNoScopeCollision(configuracionDto, configuracionExistente.getUuid());
         ConfiguracionSistema configuracionActualizada = ConfiguracionSistemaMapper.updateEntityFromDto(configuracionDto, configuracionExistente);
         configuracionActualizada.setUltimaModificacion(LocalDateTime.now());
         configuracionActualizada.setModificadoPor(currentActor());
@@ -168,13 +197,13 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     public ConfiguracionSistemaDto actualizarConfiguracionPorClave(String clave, ConfiguracionSistemaDto configuracionDto) {
         log.debug("Actualizando configuración por clave: {}", clave);
 
-        ConfiguracionSistema configuracionExistente = configuracionSistemaRepository.findByClaveAndEstadoFalse(clave)
+        ConfiguracionSistema configuracionExistente = configuracionSistemaRepository.findByClaveAndEstadoFalseAnyScope(clave)
+                .stream()
+                .findFirst()
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada con clave: " + clave));
 
         // Validar que el usuario pueda modificar esta configuración
-        if (!Boolean.TRUE.equals(configuracionExistente.getModificablePorUsuario())) {
-            throw new RuntimeException("La configuración " + clave + " no es modificable por usuarios");
-        }
+        requireEditable(configuracionExistente);
         validateValueUpdate(configuracionExistente, configuracionDto);
         String anterior = snapshotAuditoria(configuracionExistente);
 
@@ -336,15 +365,33 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         if (!AMBITOS_PERMITIDOS.contains(dto.getAplicaA())) {
             throw new IllegalArgumentException("Ámbito de configuración no permitido: " + dto.getAplicaA());
         }
-        if (!AMBITOS_CON_REFERENCIA.contains(dto.getAplicaA()) && dto.getReferenciaUuid() != null) {
+        if (dto.getReferenciaUuid() != null) {
             throw new IllegalArgumentException(
-                    "El ámbito " + dto.getAplicaA() + " no puede tener referenciaUuid");
-        }
-        if (AMBITOS_CON_REFERENCIA.contains(dto.getAplicaA()) && dto.getReferenciaUuid() == null) {
-            throw new IllegalArgumentException(
-                    "El ámbito " + dto.getAplicaA() + " requiere referenciaUuid");
+                    "Las referencias por entidad no están habilitadas. Use un ámbito de audiencia (global, contribuyente o representante)");
         }
         validateValueShape(dto);
+    }
+
+    private void requireEditable(ConfiguracionSistema existing) {
+        if (configuracionResolver.esAdmin()) {
+            return;
+        }
+        if (!Boolean.TRUE.equals(existing.getModificablePorUsuario())) {
+            throw new IllegalStateException(
+                    "La configuración " + existing.getClave() + " no es modificable por usuarios");
+        }
+    }
+
+    private void requireNoScopeCollision(ConfiguracionSistemaDto dto, String currentUuid) {
+        Long collisions = currentUuid == null
+                ? configuracionSistemaRepository.countByClaveAndScope(
+                        dto.getClave(), dto.getAplicaA(), dto.getReferenciaUuid())
+                : configuracionSistemaRepository.countByClaveAndScopeExcludingUuid(
+                        dto.getClave(), dto.getAplicaA(), dto.getReferenciaUuid(), currentUuid);
+        if (collisions != null && collisions > 0) {
+            throw new IllegalArgumentException(
+                    "Ya existe una configuración con la misma clave y alcance");
+        }
     }
 
     private void validateValueUpdate(ConfiguracionSistema existing, ConfiguracionSistemaDto dto) {

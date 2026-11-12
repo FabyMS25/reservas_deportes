@@ -12,10 +12,12 @@ import com.gamq.deportes.service.CategoriaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class CategoriaServiceImpl implements CategoriaService {
@@ -37,7 +39,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
     }
     public List<CategoriaDeportivaDto> obtenerCategorias(){
-        List<CategoriaDeportiva> Categorias = categoriaRepository.findAll();
+        List<CategoriaDeportiva> Categorias = categoriaRepository.findAll(OrdenListados.masRecientes("idCategoria"));
 
         return Categorias.stream().map(Categoria -> {
             return CategoriaMapper.toDto(Categoria);

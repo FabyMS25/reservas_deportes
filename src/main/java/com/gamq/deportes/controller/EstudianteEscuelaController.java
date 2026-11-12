@@ -100,7 +100,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Crear Estudiante")
     @PostMapping()
-    @PreAuthorize("@permissions.has('/students','CREAR')")
+    @PreAuthorize("@permissions.student('CREAR')")
     public Response crearEstudiante(@RequestBody EstudianteEscuelaDto estudianteDto) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.crearEstudiante(estudianteDto));
@@ -110,7 +110,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Actualizar Estudiante")
     @PutMapping()
-    @PreAuthorize("@permissions.has('/students','ACTUALIZAR')")
+    @PreAuthorize("@permissions.student('ACTUALIZAR')")
     public Response actualizarEstudiante(@RequestBody EstudianteEscuelaDto estudianteDto) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.actualizarEstudiante(estudianteDto));
@@ -120,7 +120,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Borrar Estudiante o dar de baja")
     @PutMapping("/{uuid}/baja")
-    @PreAuthorize("@permissions.has('/students','DAR DE BAJA')")
+    @PreAuthorize("@permissions.student('DAR DE BAJA')")
     public Response darDeBajaEstudiante(
             @PathVariable("uuid") String uuid,
             @RequestBody(required = false) EstudianteEscuelaDto solicitud) {
@@ -133,7 +133,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Reactivar Estudiante")
     @PutMapping("/{uuid}/reactivar")
-    @PreAuthorize("@permissions.has('/students','HABILITAR')")
+    @PreAuthorize("@permissions.student('HABILITAR')")
     public Response reactivarEstudiante(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.reactivarEstudiante(uuid));
@@ -143,7 +143,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Quitar responsable de una inscripción sin dar de baja al estudiante")
     @PutMapping("/{uuid}/quitar-responsable")
-    @PreAuthorize("@permissions.has('/students','ACTUALIZAR')")
+    @PreAuthorize("@permissions.student('ACTUALIZAR')")
     public Response quitarResponsable(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.quitarResponsable(uuid));
@@ -164,7 +164,7 @@ public class EstudianteEscuelaController {
     }
     @Operation(summary = "Eliminar Estudiante")
     @DeleteMapping("/{uuid}")
-    @PreAuthorize("@permissions.has('/students','ANULAR')")
+    @PreAuthorize("@permissions.student('ANULAR')")
     public Response eliminarEstudiante(@PathVariable("uuid") String uuid) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.eliminarEstudiante(uuid));

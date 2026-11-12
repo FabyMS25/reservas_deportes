@@ -68,6 +68,7 @@ public class    ReservaDto {
     private ReservaPuntualDto reservaPuntualDto;
     private ReservaRecurrenteDto reservaRecurrenteDto;
     private List<ReservaPeriodoDto> reservasPeriodoDtoList = new ArrayList<>();
+    private List<ReservaBorderouxActividadDto> borderouxActividadesDtoList = new ArrayList<>();
 
     public List<PagoDto> pagosDtoList = new ArrayList<>();
     public List<ReservaAuditoriaDto> auditoriasDtoList = new ArrayList<>();

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 
 import java.util.Optional;
 import java.util.List;
-import javax.persistence.LockModeType;
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface PassRepository extends JpaRepository<Pass,Long> {

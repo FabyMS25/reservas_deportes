@@ -72,6 +72,12 @@ public class ReservaMapper {
                     .collect(Collectors.toList()));
         }
 
+        if (reserva.getBorderouxActividadesList() != null && !reserva.getBorderouxActividadesList().isEmpty()) {
+            reservaDto.setBorderouxActividadesDtoList(reserva.getBorderouxActividadesList().stream()
+                    .map(actividad -> ReservaBorderouxActividadMapper.toDto(actividad, false))
+                    .collect(Collectors.toList()));
+        }
+
         // Payments and audits
         if (reserva.getPagosList() != null && !reserva.getPagosList().isEmpty()) {
             reservaDto.setPagosDtoList(

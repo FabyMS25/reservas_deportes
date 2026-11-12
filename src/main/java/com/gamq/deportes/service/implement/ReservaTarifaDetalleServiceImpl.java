@@ -16,10 +16,12 @@ import com.gamq.deportes.service.ReservaTarifaDetalleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ReservaTarifaDetalleServiceImpl implements ReservaTarifaDetalleService {
@@ -47,7 +49,7 @@ public class ReservaTarifaDetalleServiceImpl implements ReservaTarifaDetalleServ
 
     @Override
     public List<ReservaTarifaDetalleDto> obtenerReservaTarifaDetalles() {
-        List<ReservaTarifaDetalle> detalles = reservaTarifaDetalleRepository.findAll();
+        List<ReservaTarifaDetalle> detalles = reservaTarifaDetalleRepository.findAll(OrdenListados.masRecientes("idReservaTarifaDetalle"));
         return detalles.stream()
                 .map(detalle -> ReservaTarifaDetalleMapper.toDto(detalle, true))
                 .collect(Collectors.toList());

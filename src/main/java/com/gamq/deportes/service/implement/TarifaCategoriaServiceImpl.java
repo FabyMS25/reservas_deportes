@@ -14,10 +14,12 @@ import com.gamq.deportes.repository.TarifaCategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
@@ -41,7 +43,7 @@ public class TarifaCategoriaServiceImpl implements TarifaCategoriaService {
     }
 
     public List<TarifaCategoriaDto> obtenerTarifaCategorias(){
-        List<TarifaCategoria> TarifaCategoriass =tarifaCategoriaRepository.findAll();
+        List<TarifaCategoria> TarifaCategoriass =tarifaCategoriaRepository.findAll(OrdenListados.masRecientesPorId("idTarifaCategoria"));
         return TarifaCategoriass.stream().map(TarifaCatego -> {
             return TarifaCategoriaMapper.toDto(TarifaCatego,true);
         }).collect(Collectors.toList());

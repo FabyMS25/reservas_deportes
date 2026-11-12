@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -45,7 +47,7 @@ public class ClasificadorRuatServiceImpl implements ClasificadorRuatService {
 
     @Override
     public List<ClasificadorRuatDto> obtenerClasificadores() {
-        List<ClasificadorRuat> clasificadores = clasificadorRuatRepository.findAll();
+        List<ClasificadorRuat> clasificadores = clasificadorRuatRepository.findAll(OrdenListados.masRecientes("idClasificadorRuat"));
 
         return clasificadores.stream()
                 .map(ClasificadorRuatMapper::toDto)

@@ -309,6 +309,9 @@ public class NotificacionRecordatorioScheduler {
         if ("periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
             return "/reservations/schools";
         }
+        if ("borderoux".equalsIgnoreCase(reserva.getTipoReserva())) {
+            return "/reservations/borderoux";
+        }
         return "/reservations/one-time";
     }
 

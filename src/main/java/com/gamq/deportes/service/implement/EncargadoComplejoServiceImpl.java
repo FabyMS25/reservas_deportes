@@ -12,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class EncargadoComplejoServiceImpl implements EncargadoComplejoService {
@@ -48,7 +50,7 @@ public class EncargadoComplejoServiceImpl implements EncargadoComplejoService {
     }
     public List<EncargadoComplejoDto> obtenerEncargadosComplejos(){
 
-        List<EncargadoComplejo> encargadoComplejos = encargadoComplejoRepository.findAll();
+        List<EncargadoComplejo> encargadoComplejos = encargadoComplejoRepository.findAll(OrdenListados.masRecientes("idEncargadoComplejo"));
 
         return encargadoComplejos.stream().map(ENCARGADOCOMPLEJO -> {
             return EncargadoComplejoMapper.toDto(ENCARGADOCOMPLEJO,true);

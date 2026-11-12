@@ -15,12 +15,12 @@ public interface CampoDeportivoRepository extends JpaRepository<CampoDeportivo, 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.uuid = ?1")
     Optional<CampoDeportivo> findByUuid(String uuid);
 
-    @Query("SELECT c FROM CampoDeportivo c WHERE c.complejo.uuid = ?1")
+    @Query("SELECT c FROM CampoDeportivo c WHERE c.complejo.uuid = ?1 ORDER BY c.fechaCreacion DESC")
 //    @Query("SELECT c FROM CampoDeportivo c WHERE c.complejo.uuid = :complejoUuid AND c.estado = false")
     List<CampoDeportivo> findByComplejoUuid(String complejoUuid);
 
 //    @Query("SELECT c FROM campoDeportivo c WHERE c.superficie.uuid = ?1")
-    @Query("SELECT c FROM CampoDeportivo c WHERE c.superficie.uuid = :superficieUuid AND c.estado = false")
+    @Query("SELECT c FROM CampoDeportivo c WHERE c.superficie.uuid = :superficieUuid AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<CampoDeportivo> findBySuperficieUuid( String superficieUuid);
 
     // In CampoDeportivoRepository
@@ -31,7 +31,7 @@ public interface CampoDeportivoRepository extends JpaRepository<CampoDeportivo, 
 //    @Query("SELECT c FROM CampoDeportivo c WHERE c.estado = false")
 //    List<CampoDeportivo> findAllActivos();
 
-    @Query("SELECT c FROM CampoDeportivo c WHERE c.estadoActual = :estadoActual AND c.estado = false")
+    @Query("SELECT c FROM CampoDeportivo c WHERE c.estadoActual = :estadoActual AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<CampoDeportivo> findByEstadoActual(@Param("estadoActual") String estadoActual);
 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.codigo = :codigo AND c.estado = false")

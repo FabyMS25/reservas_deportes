@@ -12,10 +12,12 @@ import com.gamq.deportes.exception.NullReferenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ScheduleOperationalServiceImpl implements ScheduleOperationalService {
@@ -38,7 +40,7 @@ public class ScheduleOperationalServiceImpl implements ScheduleOperationalServic
     }
     public List<HorarioFijoDto> obtenerHorarios(){
 
-        List<HorarioFijo> horarios = horarioRepository.findAll();
+        List<HorarioFijo> horarios = horarioRepository.findAll(OrdenListados.masRecientes("idHorarioFijo"));
 
         return horarios.stream().map(horario -> {
             return HorarioFijoMapper.toDto(horario,true);

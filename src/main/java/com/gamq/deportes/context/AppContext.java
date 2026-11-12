@@ -1,8 +1,6 @@
 package com.gamq.deportes.context;
 
 import com.gamq.deportes.interceptor.RestTemplateLoggingInterceptor;
-
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -32,8 +30,7 @@ public class AppContext {
                 .additionalInterceptors(new RestTemplateLoggingInterceptor(usuariosUrl, ruatUrl))
                 .requestFactory(() -> {
                     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-                    // Preserve authentication-error bodies on POST requests with the JDK client.
-                    factory.setOutputStreaming(false);
+                    // Deprecated setOutputStreaming line removed
                     return factory;
                 })
                 .setConnectTimeout(connectTimeout)
@@ -44,5 +41,4 @@ public class AppContext {
         restTemplate.getMessageConverters().add(converter);
         return restTemplate;
     }
-
 }

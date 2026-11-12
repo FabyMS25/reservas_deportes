@@ -19,10 +19,10 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
     @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.uuid = ?1")
     Optional<ReservaPeriodo> findByUuid(String uuid);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.uuid = ?1")
+    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.uuid = ?1 ORDER BY rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByReservaUuid(String reservaUuid);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.año = :anio AND rp.mes = :mes")
+    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.año = :anio AND rp.mes = :mes ORDER BY rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByPeriodo(@Param("anio") Integer anio, @Param("mes") Integer mes);
 
     @Query("SELECT DISTINCT rp FROM ReservaPeriodo rp " +
@@ -32,7 +32,7 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
             "OR tutor.uuid = :contribuyenteUuid " +
             "OR EXISTS (SELECT p.id FROM OrganizacionRepresentante p " +
             "WHERE p.organizacion = rp.reserva.organizacion " +
-            "AND p.contribuyente.uuid = :contribuyenteUuid)")
+            "AND p.contribuyente.uuid = :contribuyenteUuid) ORDER BY rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByContribuyenteUuid(@Param("contribuyenteUuid") String contribuyenteUuid);
 
     @Query("SELECT rp FROM ReservaPeriodo rp " +
@@ -50,6 +50,6 @@ public interface ReservaPeriodoRepository extends JpaRepository<ReservaPeriodo, 
     @Query("SELECT r FROM Reserva r WHERE r.numeroReserva = :numeroReserva AND r.estado = false")
     Optional<Reserva> findByNumeroReserva(@Param("numeroReserva") String numeroReserva);
 
-    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.organizacion.uuid = ?1")
+    @Query("SELECT rp FROM ReservaPeriodo rp WHERE rp.reserva.organizacion.uuid = ?1 ORDER BY rp.fechaCreacion DESC")
     List<ReservaPeriodo> findByOrganizacionUuid(String organizacionUuid);
 }

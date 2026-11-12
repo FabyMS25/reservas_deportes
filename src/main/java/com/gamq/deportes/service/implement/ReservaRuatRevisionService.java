@@ -19,14 +19,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import javax.persistence.criteria.Path;
+import jakarta.persistence.criteria.Path;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.*;
@@ -88,14 +88,11 @@ public class ReservaRuatRevisionService {
         this.transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
-    /** Bounded caller (the disabled scheduler). List endpoints use revisarLista. */
     public <T, D> Page<D> revisarPagina(Supplier<Page<T>> query, Function<T, Reserva> root,
                                        Function<T, D> toDto) {
         return revisarLista(query, root, toDto, after -> after == 0 ? query.get() : Page.empty());
     }
 
-    /** Ownership/type scope only, independent of UI filters and page.
-     * Keyset traversal avoids skipping rows when their states change during review. */
     public static <T> Specification<T> candidatas(Specification<T> scope, String relation, long after) {
         return scope.and((root, query, cb) -> {
             Path<?> reserva = relation.isEmpty() ? root : root.get(relation);
@@ -122,14 +119,12 @@ public class ReservaRuatRevisionService {
                 String id = snapshot.getUuid();
                 if (id == null || !seen.add(id)) continue;
                 String deferred = !remoteAvailable ? "Consulta pendiente por indisponibilidad del servicio externo." : null;
-                // Terminal states and calendar-only transitions do not depend on RUAT.
                 Resultado result = revisarUuid(snapshot, deferred);
                 if ("NO_DISPONIBLE".equals(result.getRuat())) remoteAvailable = false;
                 summary.getResultados().add(result);
             }
             if (after <= cursor) throw new IllegalStateException("El cursor de revisión no avanzó.");
         }
-        // Map lazy relationships inside a transaction, also without OpenEntityManagerInView.
         return transaction.execute(status -> {
             entityManager.clear();
             return new ReservaRevisionPage<>(query.get().map(toDto), summary);
@@ -148,19 +143,16 @@ public class ReservaRuatRevisionService {
                 Reserva reserva = reservas.findByUuidForRevision(uuid).orElse(null);
                 if (reserva == null) return attempt.setReservaDto(snapshot).setEstadoAnterior(snapshot.getEstadoReserva())
                         .setResultado("OMITIDA").setDetalleLocal("La reserva ya no está disponible.");
-                // Another list request may already have committed this row.
                 entityManager.refresh(reserva);
                 return revisarEstado(reserva, deferred, attempt);
             });
         } catch (RuntimeException ex) {
             log.warn("No se confirmó la revisión de la reserva {}: {}", uuid, ex.getClass().getSimpleName());
-            // Keep any received RUAT response even if the local transaction rolls back.
             return attempt.setReservaDto(snapshot).setEstadoAnterior(snapshot.getEstadoReserva()).setResultado("ERROR")
                     .setDetalleLocal("No se confirmó el cambio local; revise RUAT antes de reintentar.");
         }
     }
 
-    // Package-visible for regression tests; production uses revisarUuid's transaction.
     Resultado revisarEstado(Reserva reserva) {
         return revisarEstado(reserva, null, new Resultado());
     }
@@ -182,12 +174,8 @@ public class ReservaRuatRevisionService {
             return result;
         }
 
-        // Preserve calendar-only progress of already paid bookings: no RUAT
-        // mutation, no annulment, and no regression to PAGADA.
         if ("PAGADA".equals(anterior) || "EN_CURSO".equals(anterior)) {
             if (periodo) {
-                // Monthly fees represent student payments, not field occupancy.
-                // Calendar changes never complete them or undo confirmed payments.
                 return result.setMotivo("La mensualidad conserva su estado; no se completa por fechas.");
             }
             if (finalizada(reserva, now)) return cambiar(reserva, result, "COMPLETADA", "El período de uso terminó.", now);
@@ -207,8 +195,6 @@ public class ReservaRuatRevisionService {
         if (!hasText(reserva.getNumeroTasa())) return result.setMotivo("Sin número de tasa; no se consulta ni expira.");
         if (deferred != null) return result.setResultado("OMITIDA").setRuat("NO_CONSULTADO")
                 .setMotivo(null).setDetalleLocal(deferred);
-
-        // Query payment regardless of deadline and automatic-cancellation flag.
         PagoRequest request = new PagoRequest();
         request.setNumeroTasa(reserva.getNumeroTasa());
         PagoToken token = new PagoToken();
@@ -234,7 +220,6 @@ public class ReservaRuatRevisionService {
                 return result.setResultado("ERROR").setRuat("NO_CONFIRMADO")
                         .setDetalleLocal("Los datos recibidos no permiten registrar un pago válido para esta tasa.");
             }
-            // The payment save and state change share the same transaction.
             result.setRuat("PAGO_CONFIRMADO");
             registrarPago(nuevoPago);
             String nuevo = periodo ? "PAGADA"
@@ -243,7 +228,6 @@ public class ReservaRuatRevisionService {
                     : "Pago confirmado por RUAT; estado calculado según las fechas de uso.", now);
         }
         result.setRuat("SIN_PAGO");
-        // Even incorrect legacy flags/deadlines must never expire a monthly fee.
         if (periodo) return result;
         if (reserva.getPagosList().stream().anyMatch(p ->
                 "PAGADO".equalsIgnoreCase(p.getEstadoPago()) || "CONFIRMADO".equalsIgnoreCase(p.getEstadoPago()))) {
@@ -265,7 +249,6 @@ public class ReservaRuatRevisionService {
             return sinRespuesta(result, ex);
         }
         body = registrarRespuesta(result, response);
-        // The no-payment business response never authorizes an annulment.
         if (!confirmada(response, body)) return respuestaNoAceptada(result, response);
         result.setRuat("ANULACION_CONFIRMADA");
         reserva.setMotivoRechazo(MOTIVO_EXPIRACION).setFechaRechazo(now).setAnuladoPor(null);
@@ -327,8 +310,6 @@ public class ReservaRuatRevisionService {
         return body;
     }
 
-    /** Called with the reservation locked, inside the cancellation transaction.
-     * Never performs an annulment or interprets a failed query as an unpaid tax. */
     boolean verificarSinPagoParaAnular(Reserva reserva, Resultado result) {
         PagoRequest request = new PagoRequest();
         request.setNumeroTasa(reserva.getNumeroTasa());
@@ -394,7 +375,6 @@ public class ReservaRuatRevisionService {
                 || "ruat-be".equalsIgnoreCase(bodyOrigin) || "deportes-be".equalsIgnoreCase(bodyOrigin)) return false;
         JsonNode data = body.hasNonNull("datos") ? body.get("datos") : body;
         JsonNode message = body.hasNonNull("mensaje") ? body.get("mensaje") : data.path("mensaje");
-        // Only known payment-query outcomes. Never reinterpret arbitrary 404s or annulment responses.
         return "false".equalsIgnoreCase(body.path("continuarFlujo").asText())
                 && MENSAJES_SIN_PAGO.contains(message.asText().trim())
                 && data.has("pagoTasa") && data.get("pagoTasa").isNull();
@@ -438,8 +418,6 @@ public class ReservaRuatRevisionService {
     }
 
     private boolean finalizada(Reserva reserva, LocalDateTime now) {
-        // School bases stay open for monthly registrations until an authorized user closes them.
-        // Their date range still limits field usage and the available monthly periods.
         if (reserva.esRecurrenteGratuitaDeEscuela()) return false;
         if ("recurrente".equalsIgnoreCase(reserva.getTipoReserva())) {
             ReservaRecurrente rec = reserva.getReservaRecurrente();
@@ -469,10 +447,8 @@ public class ReservaRuatRevisionService {
                 && !now.isAfter(p.getFechaUso().atTime(p.getHoraFin()));
     }
 
-    // Legacy calculation retained for reference only. Not used by monthly-fee status updates.
     @Deprecated
     private boolean mesFinalizado(Reserva reserva, LocalDate today) {
-        // Original mensualidad screen used the first detail of the root reservation.
         if (reserva.getReservasPeriodoList() == null || reserva.getReservasPeriodoList().isEmpty()) return false;
         ReservaPeriodo p = reserva.getReservasPeriodoList().get(0);
         return p.getAño() != null && p.getMes() != null && p.getMes() >= 1 && p.getMes() <= 12

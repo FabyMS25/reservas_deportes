@@ -24,7 +24,7 @@ public class ConfiguracionSistemaDto {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
 
-    private String clave;              // Unique key identifier
+    private String clave;              // Identifier; it may repeat in different scopes
     private String categoria;          // Group related configs
 
     private Double valorNumerico;      // For numeric values

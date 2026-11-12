@@ -4,13 +4,13 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.export.*;
-import org.apache.tomcat.util.codec.binary.Base64;
+//import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,7 @@ public class GeneradorReporte {
             String logo64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
             Resource logoResource = resourceLoader.getResource("classpath:imagenes/gamq1.jpg");
             if(logoResource.exists()) {
-                logo64 = new String(Base64.encodeBase64(logoResource.getInputStream().readAllBytes()), "UTF-8");
+                logo64 = java.util.Base64.getEncoder().encodeToString(logoResource.getInputStream().readAllBytes());
             }
             parametros.put("logo64", logo64);
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros,conn);
@@ -120,7 +120,7 @@ public class GeneradorReporte {
             String logo64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
             Resource logoResource = resourceLoader.getResource("classpath:imagenes/gamq1.jpg");
             if(logoResource.exists()) {
-                logo64 = new String(Base64.encodeBase64(logoResource.getInputStream().readAllBytes()), "UTF-8");
+                logo64 = java.util.Base64.getEncoder().encodeToString(logoResource.getInputStream().readAllBytes());
             }
             parametros.put("logo64", logo64);
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros,conn);
@@ -179,7 +179,7 @@ public class GeneradorReporte {
             String logo64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
             Resource logoResource = resourceLoader.getResource("classpath:imagenes/gamq1.jpg");
             if(logoResource.exists()) {
-                logo64 = new String(Base64.encodeBase64(logoResource.getInputStream().readAllBytes()), "UTF-8");
+                logo64 = java.util.Base64.getEncoder().encodeToString(logoResource.getInputStream().readAllBytes());
             }
             parametros.put("logo64", logo64);
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros,conn);

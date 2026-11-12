@@ -18,8 +18,8 @@ import java.util.UUID;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpecificationExecutor<Reserva> {
-    @org.springframework.data.jpa.repository.Lock(javax.persistence.LockModeType.PESSIMISTIC_WRITE)
-    @org.springframework.data.jpa.repository.QueryHints(@javax.persistence.QueryHint(name = "javax.persistence.lock.timeout", value = "0"))
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.QueryHints(@jakarta.persistence.QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query("SELECT r FROM Reserva r WHERE r.uuid = :uuid")
     Optional<Reserva> findByUuidForRevision(@Param("uuid") String uuid);
     @Query("SELECT DISTINCT r FROM Reserva r LEFT JOIN r.contribuyente c LEFT JOIN r.organizacion o LEFT JOIN r.campoDeportivo cd LEFT JOIN r.reservasPeriodoList rp  WHERE (:typeReserva IS NULL OR r.tipoReserva = :typeReserva) AND (:estadoReserva IS NULL OR r.estadoReserva = :estadoReserva) AND (:estadoValidacion IS NULL OR r.estadoValidacion = :estadoValidacion) AND (:esReservaGratuita IS NULL OR r.esReservaGratuita = :esReservaGratuita) AND (:organization IS NULL OR o.uuid = :organization) AND (:mesFiltro IS NULL OR (r.tipoReserva = 'periodo' AND rp.mes = :mesFiltro)) AND (:anioFiltro IS NULL OR (r.tipoReserva = 'periodo' AND rp.año = :anioFiltro )) AND (:searchTerm IS NULL OR LOWER(CONCAT( COALESCE(c.nombre,''),' ', COALESCE(c.primerApellido,''),' ', COALESCE(c.segundoApellido,''))) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(o.nombre) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(cd.nombre) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.numeroReserva) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.numeroTasa) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.motivoRechazo) LIKE LOWER(CONCAT('%',:searchTerm,'%')) OR LOWER(r.motivoGratuidad) LIKE LOWER(CONCAT('%',:searchTerm,'%')))")
@@ -253,30 +253,4 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>, JpaSpec
 
     @Query("SELECT r FROM Reserva r WHERE r.tarifa.idTarifa = :idTarifa AND r.estado = false AND r.estadoValidacion != 'RECHAZADA'")
     List<Reserva> findActiveReservasByTarifa(@Param("idTarifa") Long idTarifa);
-
-
-    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 1, 4) AS long)) " +
-            "FROM Reserva r " +
-            "WHERE r.numeroReserva LIKE :yearPattern")
-    Optional<Long> findMaxReservationNumberByYear(@Param("yearPattern") String yearPattern);
-
-    @Query("SELECT r FROM Reserva r " +
-            "WHERE r.numeroReserva LIKE CONCAT(:prefix, '-%') " +
-            "AND SUBSTRING(r.numeroReserva, LENGTH(r.numeroReserva) - 1, 2) = :year " +
-            "ORDER BY CAST(SUBSTRING(r.numeroReserva, 3, 4) AS long) DESC")
-    List<Reserva> findByPrefixAndYear(@Param("prefix") String prefix, @Param("year") String year);
-
-    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, 3, 4) AS long)) " +
-            "FROM Reserva r " +
-            "WHERE r.numeroReserva LIKE :prefixYearPattern")
-    Optional<Long> findMaxReservationNumberByPrefixAndYear(@Param("prefixYearPattern") String prefixYearPattern);
-
-    // Alternative query that might be more reliable
-    @Query("SELECT MAX(CAST(SUBSTRING(r.numeroReserva, LOCATE('-', r.numeroReserva) + 1, 4) AS long)) " +
-            "FROM Reserva r " +
-            "WHERE r.numeroReserva LIKE CONCAT(:prefix, '-%') " +
-            "AND SUBSTRING(r.numeroReserva, LENGTH(r.numeroReserva) - 1, 2) = :year")
-    Optional<Long> findMaxNumberByPrefixAndYearAlternative(
-            @Param("prefix") String prefix,
-            @Param("year") String year);
 }

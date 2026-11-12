@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** One editable definition per taxpayer menu. The frontend never rebuilds this policy. */
 @Service
@@ -20,20 +23,23 @@ public class TaxpayerMenuService {
     private final ObjectMapper mapper;
     private final String application;
     private final String code;
+    private final MenuResponseNormalizer menuNormalizer;
 
     public TaxpayerMenuService(ObjectMapper mapper,
             @Value("${app.name}") String application,
-            @Value("${app.code}") String code) throws IOException {
+            @Value("${app.code}") String code,
+            MenuResponseNormalizer menuNormalizer) throws IOException {
         this.mapper = mapper;
         this.application = application;
         this.code = code;
+        this.menuNormalizer = menuNormalizer;
         try (InputStream input = new ClassPathResource("security/taxpayer-menu.json").getInputStream()) {
             definition = mapper.readTree(input);
         }
     }
 
-    public ArrayNode forRepresentative(boolean representative) {
-        ArrayNode menu = mapper.createArrayNode();
+    public ArrayNode forTaxpayer(Set<String> enabledFeatures) {
+        ArrayNode rawMenu = mapper.createArrayNode();
         Map<String, ObjectNode> sections = new LinkedHashMap<>();
 
         for (JsonNode section : definition.path("sections")) {
@@ -43,27 +49,95 @@ public class TaxpayerMenuService {
         }
 
         for (JsonNode module : definition.path("modules")) {
-            for (JsonNode action : module.path("actions")) {
-                if (action.path("representativeOnly").asBoolean() && !representative) {
+            List<JsonNode> enabledActions = enabledActions(module, enabledFeatures);
+            JsonNode viewAction = enabledActions.stream()
+                    .filter(action -> "VER".equals(action.path("accion").asText()))
+                    .findFirst()
+                    .orElse(null);
+            if (viewAction == null) {
+                continue;
+            }
+
+            ObjectNode moduleItem = actionItem(module, viewAction, enabledFeatures);
+            ObjectNode parent = sections.get(module.path("section").asText());
+            if (parent != null) {
+                ObjectNode metadata = parent.deepCopy();
+                metadata.putArray("permisoHijoListDto");
+                moduleItem.set("permisoPadreDto", metadata);
+            }
+            rawMenu.add(moduleItem);
+
+            for (JsonNode action : enabledActions) {
+                if (action == viewAction) {
                     continue;
                 }
-
-                ObjectNode item = base(module);
-                item.put("accion", action.path("accion").asText());
-                item.put("ruta", action.path("ruta").asText(module.path("ruta").asText()));
-                ObjectNode parent = sections.get(module.path("section").asText());
+                ObjectNode permission = actionItem(module, action, enabledFeatures);
                 if (parent != null) {
                     ObjectNode metadata = parent.deepCopy();
                     metadata.putArray("permisoHijoListDto");
-                    item.set("permisoPadreDto", metadata);
-                    ((ArrayNode) parent.get("permisoHijoListDto")).add(item.deepCopy());
+                    permission.set("permisoPadreDto", metadata);
                 }
-                menu.add(item);
+                rawMenu.add(permission);
             }
         }
+        return menuNormalizer.normalize(rawMenu);
+    }
 
-        sections.values().forEach(menu::add);
-        return menu;
+    private List<JsonNode> enabledActions(JsonNode module, Set<String> enabledFeatures) {
+        List<JsonNode> actions = new ArrayList<>();
+        for (JsonNode action : module.path("actions")) {
+            if (action.path("staffOnly").asBoolean()) {
+                continue;
+            }
+            String requiredFeature = action.path("requiredFeature").asText("");
+            if (requiredFeature.isBlank() || enabledFeatures.contains(requiredFeature)) {
+                actions.add(action);
+            }
+        }
+        return actions;
+    }
+
+    private ObjectNode actionItem(JsonNode module, JsonNode action, Set<String> enabledFeatures) {
+        ObjectNode item = base(module);
+        item.put("accion", action.path("accion").asText());
+        item.put("ruta", action.path("ruta").asText(module.path("ruta").asText()));
+        applyOrganizationReservationMode(item, module, enabledFeatures);
+        return item;
+    }
+
+    /**
+     * The organization flag controls a context within Reservas Puntuales and
+     * Recurrentes. It must not replace the ordinary taxpayer CREAR action.
+     * The response carries only the resolved capability, never a system
+     * configuration row or its key/value.
+     */
+    private void applyOrganizationReservationMode(ObjectNode item, JsonNode module, Set<String> enabledFeatures) {
+        JsonNode definition = module.path("organizationReservation");
+        if (!definition.isObject()) {
+            return;
+        }
+        if (enabledFeatures.contains(definition.path("directFeature").asText())) {
+            item.put("organizationReservation", "DIRECT");
+        } else if (enabledFeatures.contains(definition.path("requestFeature").asText())) {
+            item.put("organizationReservation", "REQUEST");
+        }
+    }
+
+    /**
+     * Compatibility helper for callers that need the complete static taxpayer
+     * catalogue (not the runtime login menu). Production authentication uses
+     * {@link #forTaxpayer(Set)} with resolved features.
+     */
+    public ArrayNode forRepresentative(boolean representative) {
+        java.util.Set<String> features = new java.util.HashSet<>(Set.of(
+                "RECURRENT_CREATE", "RECURRENT_REQUEST", "RECURRENT_MANAGEMENT",
+                "PUNTUAL_REQUEST", "PUNTUAL_MANAGEMENT",
+                "EVENT_CREATE", "EVENT_REQUEST",
+                "GESTION_MENSUALIDADES", "GESTION_BORDEROUX", "GESTION_ESTUDIANTES"));
+        if (representative) {
+            features.add("ORGANIZATION_DIRECT");
+        }
+        return forTaxpayer(features);
     }
 
     private ObjectNode base(JsonNode source) {

@@ -14,7 +14,7 @@ public interface SuperficieRepository extends JpaRepository<Superficie, Long> {
     @Query("SELECT s FROM Superficie s WHERE s.uuid = ?1")
     Optional<Superficie> findByUuid(@Param("uuid") String uuid);
 
-    @Query("SELECT s FROM Superficie s WHERE s.estado = false")
+    @Query("SELECT s FROM Superficie s WHERE s.estado = false ORDER BY s.idSuperficie DESC")
     List<Superficie> findAllActivos();
 
     @Query("SELECT s FROM Superficie s WHERE s.descripcion = :descripcion AND s.estado = false")

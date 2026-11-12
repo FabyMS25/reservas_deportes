@@ -22,8 +22,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -58,7 +60,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
     @Override
     public List<ReservaRecurrenteDto> obtenerReservas() {
-        List<ReservaRecurrente> reservas = reservaRecurrenteRepository.findAll();
+        List<ReservaRecurrente> reservas = reservaRecurrenteRepository.findAll(OrdenListados.masRecientes("idReservaRecurrente"));
         if (reservas.isEmpty()) {
             return List.of();
         }
@@ -67,7 +69,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
                 .collect(Collectors.toList());
     }
     public Page<ReservaRecurrenteDto> obtenerReservas(Pageable pageable) {
-        return reservaRecurrenteRepository.findAll(pageable)
+        return reservaRecurrenteRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReservaRecurrente")))
                 .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, true));
     }
 
@@ -290,7 +292,7 @@ public class ReservaRecurrenteServiceImpl implements ReservaRecurrenteService {
 
     @Transactional(readOnly = true)
     public Page<ReservaRecurrenteDto> findByCampoDeportivoUuid(String campoUuid, Pageable pageable) {
-        return reservaRecurrenteRepository.findByCampoDeportivoUuid(campoUuid, pageable)
+        return reservaRecurrenteRepository.findByCampoDeportivoUuid(campoUuid, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idReservaRecurrente")))
                 .map(reservaRecurrente -> ReservaRecurrenteMapper.toDto(reservaRecurrente, false));
     }
     @Transactional(readOnly = true)

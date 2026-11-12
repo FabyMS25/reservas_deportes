@@ -16,11 +16,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-import javax.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ContribuyenteServiceImpl implements ContribuyenteService {
@@ -71,7 +73,7 @@ public class ContribuyenteServiceImpl implements ContribuyenteService {
 
     @Override
     public List<ContribuyenteDto> obtenerContribuyentes(){
-        List<Contribuyente> contribuyentes = contribuyentesRepository.findAll();
+        List<Contribuyente> contribuyentes = contribuyentesRepository.findAll(OrdenListados.masRecientes("idContribuyente"));
         return contribuyentes.stream().map(contri -> {
             return ContribuyenteMapper.toDto(contri,true);
         }).collect(Collectors.toList());

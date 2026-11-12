@@ -4,8 +4,8 @@ import com.gamq.deportes.model.EncargadoComplejo;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Subquery;
 
 /** Apply ownership before both LIMIT/OFFSET and the count query. */
 @Component
@@ -83,9 +83,23 @@ public class ReservationListScope {
                 assignments.select(assignment.get("complejo").get("uuid"))
                         .where(cb.equal(assignment.get("userUuid"), principal.getSubject()),
                                 cb.isTrue(assignment.get("activo")));
-                return root.get("campoDeportivo").get("complejo").get("uuid").in(assignments);
+                // Borderoux liquidations have no field: every staff member with the
+                // module permission can see them, independently of their complexes.
+                return cb.or(
+                        cb.and(cb.equal(root.get("tipoReserva"), "borderoux"),
+                                cb.isNull(root.get("campoDeportivo"))),
+                        root.get("campoDeportivo").get("complejo").get("uuid").in(assignments)
+                );
             }
-                return cb.equal(root.join("contribuyente", JoinType.LEFT).get("uuid"), principal.getSubject());
+            Subquery<Long> representative = query.subquery(Long.class);
+            var link = representative.from(com.gamq.deportes.model.OrganizacionRepresentante.class);
+            representative.select(link.get("id").get("idOrganizacion"))
+                    .where(cb.equal(link.get("contribuyente").get("uuid"), principal.getSubject()),
+                            cb.equal(link.get("organizacion"), root.get("organizacion")));
+            return cb.or(
+                    cb.equal(root.join("contribuyente", JoinType.LEFT).get("uuid"), principal.getSubject()),
+                    cb.exists(representative)
+            );
         };
     }
 }

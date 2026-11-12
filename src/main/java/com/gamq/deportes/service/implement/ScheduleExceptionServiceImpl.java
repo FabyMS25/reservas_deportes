@@ -12,10 +12,12 @@ import com.gamq.deportes.service.ScheduleExceptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ScheduleExceptionServiceImpl implements ScheduleExceptionService {
@@ -38,7 +40,7 @@ public class ScheduleExceptionServiceImpl implements ScheduleExceptionService {
     }
     public List<HorarioExcepcionDto> obtenerHorarios(){
 
-        List<HorarioExcepcion> horarios = horarioRepository.findAll();
+        List<HorarioExcepcion> horarios = horarioRepository.findAll(OrdenListados.masRecientes("idHorarioExcepcion"));
 
         return horarios.stream().map(horario -> {
             return HorarioExcepcionMapper.toDto(horario,true);

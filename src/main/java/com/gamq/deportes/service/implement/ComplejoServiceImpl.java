@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -38,7 +40,7 @@ public class ComplejoServiceImpl implements ComplejoService {
 
     @Override
     public List<ComplejoDeportivoDto> obtenerComplejos() {
-        List<ComplejoDeportivo> complejos = complejoRepository.findAll();
+        List<ComplejoDeportivo> complejos = complejoRepository.findAll(OrdenListados.masRecientes("idComplejo"));
 
         return complejos.stream()
                 .map(ComplejoDeportivoMapper::toDto)

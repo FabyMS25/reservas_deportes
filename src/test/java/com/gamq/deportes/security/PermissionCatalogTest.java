@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PermissionCatalogTest {
@@ -75,7 +76,8 @@ class PermissionCatalogTest {
 
     @Test
     void scopesEveryConfiguredTaxpayerActionToItsUniqueViewRoute() throws IOException {
-        TaxpayerMenuService menus = new TaxpayerMenuService(mapper, "DEPORTESAPP", "SIS-013");
+        TaxpayerMenuService menus = new TaxpayerMenuService(
+                mapper, "DEPORTESAPP", "SIS-013", new MenuResponseNormalizer(mapper));
 
         ArrayNode menu = menus.forRepresentative(true);
         Set<String> permissions = catalog.fromMenu(menu, "SIS-013", "DEPORTESAPP");
@@ -107,6 +109,64 @@ class PermissionCatalogTest {
             assertEquals(route, item.path("permissionRoute").asText());
             assertTrue(permissions.contains(PermissionCatalog.key(route, action)));
         }
+    }
+
+    @Test
+    void returnsOneNavigationTreeWithoutDuplicatingActionsAtTheRoot() throws IOException {
+        TaxpayerMenuService menus = new TaxpayerMenuService(
+                mapper, "DEPORTESAPP", "SIS-013", new MenuResponseNormalizer(mapper));
+
+        ArrayNode menu = menus.forRepresentative(true);
+
+        JsonNode reservations = null;
+        for (JsonNode item : menu) {
+            if ("Reservas".equals(item.path("nombreMenu").asText())) {
+                reservations = item;
+            }
+            assertFalse("Reservas Puntuales".equals(item.path("nombreMenu").asText()));
+        }
+        assertTrue(reservations != null);
+        JsonNode oneTime = reservations.path("permisoHijoListDto").get(0);
+        assertEquals("Reservas Puntuales", oneTime.path("nombreMenu").asText());
+        assertEquals("VER", oneTime.path("accion").asText());
+        assertTrue(oneTime.path("permisoHijoListDto").get(0).path("permissionOnly").asBoolean());
+    }
+
+    @Test
+    void keepsOrdinaryOneTimeCreationWithoutAnOrganizationCapability() throws IOException {
+        TaxpayerMenuService menus = new TaxpayerMenuService(
+                mapper, "DEPORTESAPP", "SIS-013", new MenuResponseNormalizer(mapper));
+
+        ArrayNode ordinaryTaxpayerMenu = menus.forTaxpayer(Set.of("PUNTUAL_MANAGEMENT"));
+        ArrayNode representativeMenu = menus.forTaxpayer(Set.of("PUNTUAL_MANAGEMENT", "ORGANIZATION_DIRECT"));
+
+        JsonNode ordinary = findByPermissionRoute(ordinaryTaxpayerMenu, "/reservations/one-time");
+        JsonNode representative = findByPermissionRoute(representativeMenu, "/reservations/one-time");
+        assertTrue(catalog.fromMenu(ordinaryTaxpayerMenu, "SIS-013", "DEPORTESAPP")
+                .contains(PermissionCatalog.key("/reservations/one-time", "CREAR")));
+        assertFalse(ordinary.has("organizationReservation"));
+        assertEquals("DIRECT", representative.path("organizationReservation").asText());
+    }
+
+    @Test
+    void normalizesTheUsuariosMenuWithoutReplacingItsPermissions() {
+        ObjectNode parent = action("Reservas", "", "");
+        parent.put("uuid", "usuarios-parent-id");
+        ObjectNode view = action("Reservas Puntuales", "VER", "/reservations/one-time");
+        view.set("permisoPadreDto", parent.deepCopy());
+        ObjectNode create = action("Reservas Puntuales", "CREAR", "/reservations/details");
+        create.set("permisoPadreDto", parent.deepCopy());
+        ArrayNode source = mapper.createArrayNode().add(parent).add(view).add(create).add(create.deepCopy());
+
+        ArrayNode normalized = new MenuResponseNormalizer(mapper).normalize(source);
+
+        assertEquals(1, normalized.size());
+        assertFalse(normalized.get(0).has("uuid"));
+        JsonNode module = normalized.get(0).path("permisoHijoListDto").get(0);
+        assertEquals("Reservas Puntuales", module.path("nombreMenu").asText());
+        assertEquals("VER", module.path("accion").asText());
+        assertEquals(1, module.path("permisoHijoListDto").size());
+        assertEquals("CREAR", module.path("permisoHijoListDto").get(0).path("accion").asText());
     }
 
     @Test
@@ -143,5 +203,18 @@ class PermissionCatalogTest {
             items.add((ObjectNode) node);
             collectItems(node.path("permisoHijoListDto"), items);
         }
+    }
+
+    private JsonNode findByPermissionRoute(JsonNode node, String permissionRoute) {
+        if (node.isArray()) {
+            for (JsonNode child : node) {
+                JsonNode found = findByPermissionRoute(child, permissionRoute);
+                if (found != null) return found;
+            }
+        } else if (node.isObject()) {
+            if (permissionRoute.equals(node.path("permissionRoute").asText())) return node;
+            return findByPermissionRoute(node.path("permisoHijoListDto"), permissionRoute);
+        }
+        return null;
     }
 }

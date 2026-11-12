@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -35,7 +37,7 @@ public class ReservaAuditoriaServiceImpl implements ReservaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public List<ReservaAuditoriaDto> obtenerTodasAuditorias() {
-        List<ReservaAuditoria> auditorias = reservaAuditoriaRepository.findAll();
+        List<ReservaAuditoria> auditorias = reservaAuditoriaRepository.findAll(OrdenListados.masRecientesPor("fechaAccion", "idAuditoria"));
 
         return auditorias.stream()
                 .map(auditoria -> ReservaAuditoriaMapper.toDto(auditoria, false))
@@ -45,7 +47,7 @@ public class ReservaAuditoriaServiceImpl implements ReservaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReservaAuditoriaDto> obtenerTodasAuditoriasPage(Pageable pageable) {
-        return reservaAuditoriaRepository.findAll(pageable)
+        return reservaAuditoriaRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientesPor("fechaAccion", "idAuditoria")))
                 .map(auditoria -> ReservaAuditoriaMapper.toDto(auditoria, false));
     }
 
@@ -73,7 +75,7 @@ public class ReservaAuditoriaServiceImpl implements ReservaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReservaAuditoriaDto> findByReservaUuid(String reservaUuid, Pageable pageable) {
-        return reservaAuditoriaRepository.findByReservaUuid(reservaUuid, pageable)
+        return reservaAuditoriaRepository.findByReservaUuid(reservaUuid, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientesPor("fechaAccion", "idAuditoria")))
                 .map(auditoria -> ReservaAuditoriaMapper.toDto(auditoria, false));
     }
 
@@ -120,7 +122,7 @@ public class ReservaAuditoriaServiceImpl implements ReservaAuditoriaService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReservaAuditoriaDto> findByFechaAccionBetween(LocalDateTime fechaInicio, LocalDateTime fechaFin, Pageable pageable) {
-        return reservaAuditoriaRepository.findByFechaAccionBetween(fechaInicio, fechaFin, pageable)
+        return reservaAuditoriaRepository.findByFechaAccionBetween(fechaInicio, fechaFin, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientesPor("fechaAccion", "idAuditoria")))
                 .map(auditoria -> ReservaAuditoriaMapper.toDto(auditoria, false));
     }
 

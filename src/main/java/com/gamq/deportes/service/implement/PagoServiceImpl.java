@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class PagoServiceImpl implements PagoService {
@@ -47,7 +49,7 @@ public class PagoServiceImpl implements PagoService {
 
     }
     public List<PagoDto> obtenerPagos(){
-        List<Pago> pagos = pagosRepository.findAll();
+        List<Pago> pagos = pagosRepository.findAll(OrdenListados.masRecientes("idPago"));
 
         return pagos.stream().map(pag -> {
             return PagoMapper.toDto(pag, true);

@@ -11,6 +11,7 @@ import com.gamq.deportes.model.login.login;
 import com.gamq.deportes.security.DeportesTokenService;
 import com.gamq.deportes.security.PermissionCatalog;
 import com.gamq.deportes.security.TaxpayerMenuService;
+import com.gamq.deportes.security.MenuResponseNormalizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.time.Instant;
 
 @Service
@@ -34,8 +37,11 @@ public class AuthenticationService {
     private final String applicationName;
     private final String adminMenu;
     private final TaxpayerMenuService taxpayerMenus;
+    private final MenuResponseNormalizer menuNormalizer;
     private final PermissionCatalog permissionCatalog;
     private final ApiService ruatService;
+    private final ConfiguracionSistemaService configuracionSistemaService;
+    private final com.gamq.deportes.security.ConfiguracionResolver configuracionResolver;
 
     public AuthenticationService(RestTemplate restTemplate, ObjectMapper objectMapper,
             ContribuyenteService taxpayerService, EncargadoComplejoService staffAssignmentService,
@@ -44,8 +50,10 @@ public class AuthenticationService {
             @Value("${app.code}") String applicationCode,
             @Value("${app.name}") String applicationName,
             @Value("${app.admin-menu}") String adminMenu,
-            TaxpayerMenuService taxpayerMenus, PermissionCatalog permissionCatalog,
-            ApiService ruatService) {
+            TaxpayerMenuService taxpayerMenus, MenuResponseNormalizer menuNormalizer, PermissionCatalog permissionCatalog,
+            ApiService ruatService,
+            ConfiguracionSistemaService configuracionSistemaService,
+            com.gamq.deportes.security.ConfiguracionResolver configuracionResolver) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.taxpayerService = taxpayerService;
@@ -57,8 +65,11 @@ public class AuthenticationService {
         this.applicationName = applicationName;
         this.adminMenu = adminMenu;
         this.taxpayerMenus = taxpayerMenus;
+        this.menuNormalizer = menuNormalizer;
         this.permissionCatalog = permissionCatalog;
         this.ruatService = ruatService;
+        this.configuracionSistemaService = configuracionSistemaService;
+        this.configuracionResolver = configuracionResolver;
     }
 
     public AuthenticationResponse login(AuthenticationRequest request) {
@@ -170,10 +181,12 @@ public class AuthenticationService {
         }
         String personUuid = externalUser.path("designacion").path("personaDto").path("uuid").asText("");
         ((com.fasterxml.jackson.databind.node.ObjectNode) externalUser).remove("token");
+        ArrayNode menu = menuNormalizer.normalize(permissions);
         String token = tokenService.create(userUuid, "STAFF", admin,
-                permissionCatalog.fromMenu(permissions, applicationCode, applicationName), expiresAt);
+                permissionCatalog.fromMenu(menu, applicationCode, applicationName), expiresAt);
         usuariosSessions.put(userUuid, usuariosToken, personUuid, expiresAt);
-        return new AuthenticationResponse(token, externalUser, permissions, assignment, admin, "STAFF");
+        return new AuthenticationResponse(token, externalUser, menu, assignment, admin, "STAFF",
+                configuracionSistemaService.obtenerConfiguracionesParaCliente());
     }
 
     private AuthenticationResponse loginTaxpayer(AuthenticationRequest request) {
@@ -202,10 +215,78 @@ public class AuthenticationService {
 
         boolean representative = taxpayer.getOrganizacionesRepresentadas() != null
                 && !taxpayer.getOrganizacionesRepresentadas().isEmpty();
-        ArrayNode menu = taxpayerMenus.forRepresentative(representative);
+        ArrayNode menu = taxpayerMenus.forTaxpayer(taxpayerFeatures(representative));
         String token = tokenService.create(taxpayer.getUuid(), "TAXPAYER", false,
                 permissionCatalog.fromMenu(menu, applicationCode, applicationName));
-        return new AuthenticationResponse(token, taxpayer, menu, null, false, "TAXPAYER");
+        return new AuthenticationResponse(token, taxpayer, menu, null, false, "TAXPAYER",
+                configuracionSistemaService.obtenerConfiguracionesParaCliente());
+    }
+
+    /**
+     * Configuration is resolved once into taxpayer permissions at login. The
+     * returned normalized menu and the signed token then carry the same
+     * authority; request handlers only add ownership/complex validation.
+     */
+    private Set<String> taxpayerFeatures(boolean representative) {
+        Set<String> features = new HashSet<>();
+        boolean organizationDirect = representative
+                && configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_ORGANIZACIONES", true);
+        boolean organizationRequest = representative
+                && configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES", true);
+
+        // A direct organization reservation takes precedence over a request.
+        // These are context capabilities, not new Usuarios actions: CREAR for
+        // a normal one-time reservation remains available to every taxpayer.
+        if (organizationDirect) {
+            features.add("ORGANIZATION_DIRECT");
+        } else if (organizationRequest) {
+            features.add("ORGANIZATION_REQUEST");
+        }
+
+        addDirectOrRequest(features,
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_RECURRENTES", representative)
+                        || organizationDirect,
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_RECURRENTES", representative)
+                        || organizationRequest,
+                "RECURRENT_CREATE", "RECURRENT_REQUEST", "RECURRENT_MANAGEMENT");
+        // A taxpayer can always create an ordinary one-time reservation
+        // (por hora / por persona). Organization use is a contextual rule,
+        // not the source of the ordinary CREAR permission.
+        features.add("PUNTUAL_MANAGEMENT");
+        if (!organizationDirect && organizationRequest) {
+            features.add("PUNTUAL_REQUEST");
+        }
+        addDirectOrRequest(features,
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_EVENTOS", representative),
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_EVENTOS", representative),
+                "EVENT_CREATE", "EVENT_REQUEST", "PUNTUAL_MANAGEMENT");
+        addManagementFeature(features, representative,
+                "HABILITAR_RESERVAS_PERIODO_ESCUELAS", "GESTION_MENSUALIDADES");
+        addManagementFeature(features, representative,
+                "HABILITAR_RESERVAS_BORDEROUX", "GESTION_BORDEROUX");
+        if (representative && configuracionResolver.permisoHabilitadoParaAudiencia(
+                "HABILITAR_GESTION_ESTUDIANTES", true)) {
+            features.add("GESTION_ESTUDIANTES");
+        }
+        return features;
+    }
+
+    private void addDirectOrRequest(Set<String> features, boolean directEnabled, boolean requestEnabled,
+                                    String directFeature, String requestFeature, String managementFeature) {
+        if (directEnabled) {
+            features.add(directFeature);
+            features.add(managementFeature);
+        } else if (requestEnabled) {
+            features.add(requestFeature);
+            features.add(managementFeature);
+        }
+    }
+
+    private void addManagementFeature(Set<String> features, boolean representative,
+                                      String configurationKey, String feature) {
+        if (configuracionResolver.permisoHabilitadoParaAudiencia(configurationKey, representative)) {
+            features.add(feature);
+        }
     }
 
     private JsonNode unwrap(JsonNode response) {

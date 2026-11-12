@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,10 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.aplicaA = 'global' AND c.referenciaUuid IS NULL AND c.estado = false")
     Optional<ConfiguracionSistema> findByClaveAndEstadoFalse(@Param("clave") String clave);
+
+    /** Active rows for a key, whatever their audience or scope. */
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false")
+    List<ConfiguracionSistema> findByClaveAndEstadoFalseAnyScope(@Param("clave") String clave);
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false AND c.activo = true " +
             "AND c.aplicaA IN ('global', 'contribuyente') " +
@@ -37,6 +42,24 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
             @Param("aplicaA") String aplicaA,
             @Param("referenciaUuid") String referenciaUuid);
 
+    /**
+     * Active audience rows for a key that apply to the caller.
+     *
+     * <p>Only PERMISSIONS flags have precedence
+     * (representante → contribuyente → global). Every other category is a
+     * plain parameter: `clave` is unique, so a key has exactly one row and
+     * `aplica_a` only states who may read it. There is no order between
+     * scopes for those categories, hence the constant ELSE value.</p>
+     */
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.estado = false " +
+            "AND c.activo = true AND c.referenciaUuid IS NULL AND c.aplicaA IN :aplicaA " +
+            "ORDER BY CASE WHEN c.categoria = 'PERMISSIONS' " +
+            "THEN CASE c.aplicaA WHEN 'representante' THEN 0 WHEN 'contribuyente' THEN 1 ELSE 2 END " +
+            "ELSE 1 END")
+    List<ConfiguracionSistema> findAudienceCandidates(
+            @Param("clave") String clave,
+            @Param("aplicaA") Collection<String> aplicaA);
+
     @Query("SELECT COUNT(c) FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.aplicaA = :aplicaA " +
             "AND ((:referenciaUuid IS NULL AND c.referenciaUuid IS NULL) OR c.referenciaUuid = :referenciaUuid) " +
             "AND c.estado = false")
@@ -45,28 +68,37 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
             @Param("aplicaA") String aplicaA,
             @Param("referenciaUuid") String referenciaUuid);
 
+    @Query("SELECT COUNT(c) FROM ConfiguracionSistema c WHERE c.clave = :clave AND c.aplicaA = :aplicaA " +
+            "AND ((:referenciaUuid IS NULL AND c.referenciaUuid IS NULL) OR c.referenciaUuid = :referenciaUuid) " +
+            "AND c.estado = false AND c.uuid <> :uuid")
+    Long countByClaveAndScopeExcludingUuid(
+            @Param("clave") String clave,
+            @Param("aplicaA") String aplicaA,
+            @Param("referenciaUuid") String referenciaUuid,
+            @Param("uuid") String uuid);
+
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.categoria = ?1")
     List<ConfiguracionSistema> findByCategoria(String categoria);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.categoria = :categoria AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.categoria = :categoria AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<ConfiguracionSistema> findByCategoriaAndEstadoFalse(@Param("categoria") String categoria);
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.aplicaA = ?1")
     List<ConfiguracionSistema> findByAplicaA(String aplicaA);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.aplicaA = :aplicaA AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.aplicaA = :aplicaA AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<ConfiguracionSistema> findByAplicaAAndEstadoFalse(@Param("aplicaA") String aplicaA);
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.referenciaUuid = ?1")
     List<ConfiguracionSistema> findByReferenciaUuid(String referenciaUuid);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.referenciaUuid = :referenciaUuid AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.referenciaUuid = :referenciaUuid AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<ConfiguracionSistema> findByReferenciaUuidAndEstadoFalse(@Param("referenciaUuid") String referenciaUuid);
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.activo = true AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.activo = true AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<ConfiguracionSistema> findAllActivas();
 
-    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.modificablePorUsuario = true AND c.activo = true AND c.estado = false")
+    @Query("SELECT c FROM ConfiguracionSistema c WHERE c.modificablePorUsuario = true AND c.activo = true AND c.estado = false ORDER BY c.fechaCreacion DESC")
     List<ConfiguracionSistema> findModificablesPorUsuario();
 
     @Query("SELECT c FROM ConfiguracionSistema c WHERE c.requiereAprobacion = true AND c.estado = false")

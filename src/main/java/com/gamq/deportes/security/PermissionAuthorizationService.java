@@ -22,6 +22,9 @@ public class PermissionAuthorizationService {
     private final ReservaTarifaDetalleRepository details;
     private final PagoRepository payments;
 
+    private static final java.util.Set<String> WRITE_ACTIONS = java.util.Set.of(
+            "CREAR", "ACTUALIZAR", "ANULAR", "ELIMINAR", "CAMBIAR-HORARIO", "CREAR-POSTPAGO");
+
     public PermissionAuthorizationService(ReservaRepository reservations, ReservaPuntualRepository punctual,
             ReservaRecurrenteRepository recurrent, ReservaPeriodoRepository periods,
             OrganizacionRepository organizations, EncargadoComplejoRepository assignments,
@@ -55,10 +58,16 @@ public class PermissionAuthorizationService {
 
     public boolean anyReservation(String action) {
         return has("/reservations/one-time", action) || has("/reservations/recurrent", action)
-                || has("/reservations/schools", action);
+                || has("/reservations/schools", action) || has("/reservations/borderoux", action);
     }
 
-    public boolean reservationType(String action, String type) { return has(moduleForType(type), action); }
+    public boolean reservationType(String action, String type) { return hasReservationModule(type, action); }
+
+    /** The signed menu permission decides the action; the service validates
+     * tutor/organization ownership for the specific enrollment. */
+    public boolean student(String action) {
+        return has("/students", action);
+    }
 
     /** Shared lookup data is needed by booking forms even without the administration menu. */
     public boolean lookup(String module) {
@@ -91,20 +100,23 @@ public class PermissionAuthorizationService {
         String type = dto.getTipoReserva();
         if (type == null && dto.getUuid() != null)
             type = reservations.findByUuid(dto.getUuid()).map(Reserva::getTipoReserva).orElse(null);
-        if (!has(moduleForType(type), action)) return false;
+        if ("CREAR".equals(action) && original == null) {
+            if (!hasReservationCreatePermission(dto, type)) return false;
+        } else if (!hasReservationModule(type, action)) return false;
         if ("recurrente".equalsIgnoreCase(type) && !dto.isEsReservaGratuita()
                 && Boolean.FALSE.equals(dto.getCancelacionAutomatica())
                 && (original == null || !Boolean.FALSE.equals(original.getCancelacionAutomatica()))
                 && !has("/reservations/recurrent", "CREAR-POSTPAGO")) return false;
         if (staff()) return dto.getCampoDeportivoDto() == null
-                ? !"CREAR".equals(action) : fieldScope(dto.getCampoDeportivoDto().getUuid());
+                ? !"CREAR".equals(action) || "borderoux".equalsIgnoreCase(type)
+                : fieldScope(dto.getCampoDeportivoDto().getUuid());
         // Existing owner and destination ownership must both pass.
         boolean own = dto.getContribuyenteDto() != null ? self(dto.getContribuyenteDto().getUuid())
                 : original != null && original.getContribuyente() != null && self(original.getContribuyente().getUuid());
         boolean representative = dto.getOrganizacionDto() != null ? represents(dto.getOrganizacionDto().getUuid())
                 : original != null && original.getOrganizacion() != null && represents(original.getOrganizacion().getUuid());
-        if ("periodo".equalsIgnoreCase(type) && ("CREAR".equals(action) || "ACTUALIZAR".equals(action)))
-            return representative;
+        if (("periodo".equalsIgnoreCase(type) || "borderoux".equalsIgnoreCase(type))
+                && WRITE_ACTIONS.contains(action)) return representative;
         return own || representative;
     }
 
@@ -176,11 +188,14 @@ public class PermissionAuthorizationService {
     }
 
     private boolean allowedReservation(String action, Reserva r) {
-        if (r == null || !has(moduleForType(r.getTipoReserva()), action)) return false;
-        if (staff()) return r.getCampoDeportivo() != null && fieldScope(r.getCampoDeportivo().getUuid());
+        if (r == null || !hasReservationModule(r.getTipoReserva(), action)) return false;
+        if (staff()) {
+            if (r.getCampoDeportivo() == null) return "borderoux".equalsIgnoreCase(r.getTipoReserva());
+            return fieldScope(r.getCampoDeportivo().getUuid());
+        }
         boolean representative = r.getOrganizacion() != null && represents(r.getOrganizacion().getUuid());
-        if ("periodo".equalsIgnoreCase(r.getTipoReserva())
-                && ("CREAR".equals(action) || "ACTUALIZAR".equals(action))) return representative;
+        if (("periodo".equalsIgnoreCase(r.getTipoReserva()) || "borderoux".equalsIgnoreCase(r.getTipoReserva()))
+                && WRITE_ACTIONS.contains(action)) return representative;
         return representative || (r.getContribuyente() != null && self(r.getContribuyente().getUuid()));
     }
 
@@ -206,12 +221,57 @@ public class PermissionAuthorizationService {
         return !linked.isEmpty() && linked.stream().allMatch(r -> allowedReservation(action, r.getReserva()));
     }
 
+    /**
+     * Borderoux now has its own menu route, but existing roles were granted
+     * /reservations/schools. Both routes authorize Borderoux so no role loses
+     * access while the menu is rolled out.
+     */
+    private boolean hasReservationModule(String type, String action) {
+        if (has(moduleForType(type), action)) return true;
+        return "borderoux".equalsIgnoreCase(type) && has("/reservations/schools", action);
+    }
+
+    /**
+     * A taxpayer's creation action may be a direct reservation or a request.
+     * These actions are intentionally different in the signed taxpayer menu,
+     * whereas staff continue using their Usuarios-provided CREAR action.
+     */
+    private boolean hasReservationCreatePermission(ReservaDto dto, String type) {
+        if (staff()) return hasReservationModule(type, "CREAR");
+        boolean solicitud = "PENDIENTE".equalsIgnoreCase(dto.getEstadoValidacion())
+                || "SOLICITADA".equalsIgnoreCase(dto.getEstadoReserva());
+        boolean evento = dto.getTarifaDto() != null
+                && "por_evento".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
+        boolean organizacion = dto.getOrganizacionDto() != null
+                && dto.getOrganizacionDto().getUuid() != null;
+        if ("recurrente".equalsIgnoreCase(type)) {
+            return hasReservationModule(type, solicitud ? "CREAR-SOLICITUD" : "CREAR");
+        }
+        if ("puntual".equalsIgnoreCase(type) && evento) {
+            return hasReservationModule(type,
+                    solicitud ? "CREAR-SOLICITUD-EVENTOS" : "CREAR-EVENTOS");
+        }
+        if ("puntual".equalsIgnoreCase(type) && organizacion) {
+            return hasReservationModule(type, solicitud ? "CREAR-SOLICITUD" : "CREAR");
+        }
+        if ("periodo".equalsIgnoreCase(type)) {
+            return hasReservationModule(type, "CREAR");
+        }
+        if ("borderoux".equalsIgnoreCase(type)) {
+            return hasReservationModule(type, "CREAR");
+        }
+        return hasReservationModule(type, "CREAR");
+    }
+
     public static String moduleForType(String type) {
         if (type == null) return "";
         switch (type.toLowerCase(java.util.Locale.ROOT)) {
             case "puntual": return "/reservations/one-time";
             case "recurrente": return "/reservations/recurrent";
             case "periodo": return "/reservations/schools";
+            // Borderoux has its own module; /reservations/schools is still
+            // accepted as the legacy route in hasReservationModule().
+            case "borderoux": return "/reservations/borderoux";
             default: return "";
         }
     }

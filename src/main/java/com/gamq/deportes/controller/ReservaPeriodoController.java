@@ -46,7 +46,7 @@ public class ReservaPeriodoController {
             @Parameter(description = "Escuela (UUID)")      @RequestParam(required = false) String escuelaFiltro,
             @Parameter(description = "Período (YYYY-MM)")   @RequestParam(required = false) String periodoFiltro) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("fechaCreacion"), Sort.Order.desc("idReservaPeriodo")));
             ReservaPeriodoFilter filter = new ReservaPeriodoFilter();
             filter.setRevisarEstados(revisarEstados);
             filter.setTab(tab);

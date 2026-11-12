@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.gamq.deportes.enums.EntityType.*;
+import com.gamq.deportes.utils.OrdenListados;
 
 @Service
 @Transactional
@@ -65,7 +67,7 @@ public class OrganizacionServiceImpl implements OrganizacionService {
     @Override
     @Transactional(readOnly = true)
     public List<OrganizacionDto> obtenerOrganizaciones() {
-        List<Organizacion> organizaciones = organizacionRepository.findAll();
+        List<Organizacion> organizaciones = organizacionRepository.findAll(OrdenListados.masRecientes("idOrganizacion"));
 
         if (organizaciones.isEmpty()) {
             return List.of();
@@ -78,7 +80,7 @@ public class OrganizacionServiceImpl implements OrganizacionService {
 
     @Transactional(readOnly = true)
     public Page<OrganizacionDto> obtenerOrganizaciones(Pageable pageable) {
-        return organizacionRepository.findAll(pageable)
+        return organizacionRepository.findAll(OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idOrganizacion")))
                 .map(organizacion -> OrganizacionMapper.toDto(organizacion, true));
     }
 
@@ -124,14 +126,14 @@ public class OrganizacionServiceImpl implements OrganizacionService {
 
     @Transactional(readOnly = true)
     public Page<OrganizacionDto> findByActivo(Boolean activo, Pageable pageable) {
-        return organizacionRepository.findByActivo(activo, pageable)
+        return organizacionRepository.findByActivo(activo, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idOrganizacion")))
                 .map(organizacion -> OrganizacionMapper.toDto(organizacion, false));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<OrganizacionDto> findByNombreContaining(String nombre, Pageable pageable) {
-        return organizacionRepository.findByNombreContaining(nombre, pageable)
+        return organizacionRepository.findByNombreContaining(nombre, OrdenListados.conOrdenPorDefecto(pageable, OrdenListados.masRecientes("idOrganizacion")))
                 .map(organizacion -> OrganizacionMapper.toDto(organizacion, false));
     }
 

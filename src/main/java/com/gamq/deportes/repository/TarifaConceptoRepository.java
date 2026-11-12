@@ -17,6 +17,6 @@ public interface TarifaConceptoRepository extends JpaRepository<TarifaConcepto, 
     Optional<TarifaConcepto> findByUuid(@Param("uuid") String uuid);
 
     // Find all conceptos by tarifa UUID
-    @Query("SELECT tc FROM TarifaConcepto tc WHERE tc.tarifa.uuid = :tarifaUuid AND tc.estado = false ORDER BY tc.concepto")
+    @Query("SELECT tc FROM TarifaConcepto tc WHERE tc.tarifa.uuid = :tarifaUuid AND tc.estado = false ORDER BY tc.fechaCreacion DESC")
     List<TarifaConcepto> findByTarifaUuid(@Param("tarifaUuid") String tarifaUuid);
 }

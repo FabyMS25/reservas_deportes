@@ -9,6 +9,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.http.HttpStatusCode;
 
 import java.io.*;
 import java.net.URI;
@@ -46,7 +47,8 @@ public class RestTemplateLoggingInterceptor implements ClientHttpRequestIntercep
                 safeBody(body, false));
         try {
             ClientHttpResponse response = execution.execute(request, body);
-            int status = response.getRawStatusCode();
+//            int status = response.getRawStatusCode();
+            int status = response.getStatusCode().value();
             long elapsed = (System.nanoTime() - started) / 1_000_000;
             String summary = "requestId={} hop=deportes-be->{} direction=response method={} url={} status={} elapsedMs={} contentType={}";
             Object[] args = {id, target, request.getMethod(), url, status, elapsed, response.getHeaders().getContentType()};
@@ -103,12 +105,11 @@ public class RestTemplateLoggingInterceptor implements ClientHttpRequestIntercep
                     };
                     return observed;
                 }
-                @Override public HttpStatus getStatusCode() throws IOException { return response.getStatusCode(); }
-                @Override public int getRawStatusCode() throws IOException { return response.getRawStatusCode(); }
+                @Override public HttpStatusCode getStatusCode() throws IOException { return response.getStatusCode(); }
+                @Override public int getRawStatusCode() throws IOException { return response.getStatusCode().value(); }
                 @Override public String getStatusText() throws IOException { return response.getStatusText(); }
                 @Override public HttpHeaders getHeaders() { return response.getHeaders(); }
-                @Override public void close() {
-                    try { response.close(); } finally { finish(); }
+                @Override public void close() { try { response.close(); } finally { finish(); }
                 }
             };
         } catch (IOException | RuntimeException ex) {

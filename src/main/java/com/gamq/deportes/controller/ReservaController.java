@@ -78,6 +78,17 @@ public class ReservaController {
         );
     }
 
+    @Operation(summary = "Obtener el clasificador RUAT por defecto para liquidaciones Borderoux")
+    @GetMapping("/borderoux/clasificador")
+    @PreAuthorize("@permissions.anyReservation('CREAR')")
+    public Response obtenerClasificadorBorderoux() {
+        try {
+            return Response.ok().setPayload(reservaService.obtenerClasificadorBorderoux());
+        } catch (IllegalStateException ex) {
+            return Response.unprocessableEntity().setPayload(ex.getMessage());
+        }
+    }
+
     @Operation(summary = "Buscar reserva por UUID")
     @GetMapping("/{uuid}")
     @PreAuthorize("@permissions.reservation('VER',#p0)")
@@ -223,7 +234,7 @@ public class ReservaController {
     @GetMapping("/numero-reserva/preview")
     @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response previsualizarNumeroReserva(
-            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
+            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo, borderoux", required = true)
             @RequestParam String tipo) {
         try {
             String numeroReserva = reservationNumberService.previewNextReservationNumber(tipo);
@@ -239,7 +250,7 @@ public class ReservaController {
     @GetMapping("/numero-reserva/generar")
     @PreAuthorize("@permissions.anyReservation('CREAR')")
     public Response generarNumeroReserva(
-            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo", required = true)
+            @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo, borderoux", required = true)
             @RequestParam String tipo) {
         try {
             String numeroReserva = reservationNumberService.findNextAvailableReservationNumber(tipo);

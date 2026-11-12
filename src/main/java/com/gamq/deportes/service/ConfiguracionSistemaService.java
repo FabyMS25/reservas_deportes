@@ -17,6 +17,8 @@ public interface ConfiguracionSistemaService {
     List<ConfiguracionSistemaDto> findByReferenciaUuid(String referenciaUuid);
 
     List<ConfiguracionSistemaDto> obtenerConfiguraciones();
+    /** Safe, global values needed by the authenticated browser UI. */
+    List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente();
     List<ConfiguracionSistemaDto> obtenerConfiguracionesActivas();
     List<ConfiguracionSistemaDto> obtenerConfiguracionesModificablesPorUsuario();
 

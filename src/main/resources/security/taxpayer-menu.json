@@ -60,19 +60,22 @@
         {
           "accion": "CREAR",
           "ruta": "/students",
-          "representativeOnly": true
+          "requiredFeature": "GESTION_ESTUDIANTES"
         },
         {
           "accion": "HABILITAR",
-          "ruta": "/students"
+          "ruta": "/students",
+          "requiredFeature": "GESTION_ESTUDIANTES"
         },
         {
           "accion": "DAR DE BAJA",
-          "ruta": "/students"
+          "ruta": "/students",
+          "requiredFeature": "GESTION_ESTUDIANTES"
         },
         {
           "accion": "ACTUALIZAR",
-          "ruta": "/students"
+          "ruta": "/students",
+          "requiredFeature": "GESTION_ESTUDIANTES"
         }
       ]
     },
@@ -81,34 +84,59 @@
       "ruta": "/reservations/one-time",
       "orden": 1,
       "icono": "ri-profile-line",
+      "organizationReservation": {
+        "directFeature": "ORGANIZATION_DIRECT",
+        "requestFeature": "ORGANIZATION_REQUEST"
+      },
       "actions": [
         {
           "accion": "CREAR",
           "ruta": "/reservations/details"
         },
         {
+          "accion": "CREAR-SOLICITUD",
+          "ruta": "/reservations/details",
+          "requiredFeature": "PUNTUAL_REQUEST"
+        },
+        {
+          "accion": "CREAR-EVENTOS",
+          "ruta": "/reservations/details",
+          "requiredFeature": "EVENT_CREATE"
+        },
+        {
+          "accion": "CREAR-SOLICITUD-EVENTOS",
+          "ruta": "/reservations/details",
+          "requiredFeature": "EVENT_REQUEST"
+        },
+        {
           "accion": "CAMBIAR-HORARIO",
-          "ruta": "/reservations/one-time"
+          "ruta": "/reservations/one-time",
+          "staffOnly": true
         },
         {
           "accion": "GENERAR TICKET",
-          "ruta": "/reservations/ticket"
+          "ruta": "/reservations/ticket",
+          "requiredFeature": "PUNTUAL_MANAGEMENT"
         },
         {
           "accion": "ANULAR",
-          "ruta": "/reservations/one-time"
+          "ruta": "/reservations/one-time",
+          "requiredFeature": "PUNTUAL_MANAGEMENT"
         },
         {
           "accion": "VALIDAR",
-          "ruta": "/reservations/one-time"
+          "ruta": "/reservations/one-time",
+          "staffOnly": true
         },
         {
           "accion": "ACTUALIZAR",
-          "ruta": "/reservations/one-time"
+          "ruta": "/reservations/one-time",
+          "requiredFeature": "PUNTUAL_MANAGEMENT"
         },
         {
           "accion": "VER",
-          "ruta": "/reservations/one-time"
+          "ruta": "/reservations/one-time",
+          "requiredFeature": "PUNTUAL_MANAGEMENT"
         }
       ],
       "section": "Reservas"
@@ -121,56 +149,101 @@
       "actions": [
         {
           "accion": "VALIDAR",
-          "ruta": "/reservations/recurrent"
+          "ruta": "/reservations/recurrent",
+          "staffOnly": true
         },
         {
           "accion": "ANULAR",
-          "ruta": "/reservations/recurrent"
+          "ruta": "/reservations/recurrent",
+          "requiredFeature": "RECURRENT_MANAGEMENT"
         },
         {
           "accion": "ACTUALIZAR",
-          "ruta": "/reservations/recurrent"
+          "ruta": "/reservations/recurrent",
+          "requiredFeature": "RECURRENT_MANAGEMENT"
         },
         {
           "accion": "VER",
-          "ruta": "/reservations/recurrent"
+          "ruta": "/reservations/recurrent",
+          "requiredFeature": "RECURRENT_MANAGEMENT"
         },
         {
           "accion": "GENERAR TICKET",
-          "ruta": "/reservations/ticket"
+          "ruta": "/reservations/ticket",
+          "requiredFeature": "RECURRENT_MANAGEMENT"
         },
         {
           "accion": "CREAR",
-          "ruta": "/reservations/details"
+          "ruta": "/reservations/details",
+          "requiredFeature": "RECURRENT_CREATE"
+        },
+        {
+          "accion": "CREAR-SOLICITUD",
+          "ruta": "/reservations/details",
+          "requiredFeature": "RECURRENT_REQUEST"
         }
       ],
       "section": "Reservas"
     },
     {
-      "nombreMenu": "Escuelas Municipales",
+      "nombreMenu": "Mensualidades",
       "ruta": "/reservations/schools",
       "orden": 3,
       "icono": "ri-government-line",
       "actions": [
         {
           "accion": "ANULAR",
-          "ruta": "/reservations/schools"
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
         },
         {
           "accion": "VER",
-          "ruta": "/reservations/schools"
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
         },
         {
           "accion": "CREAR",
-          "ruta": "/reservations/schools"
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
         },
         {
           "accion": "ACTUALIZAR",
-          "ruta": "/reservations/schools"
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
         },
         {
           "accion": "GENERAR TICKET",
-          "ruta": "/reservations/schools"
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
+        }
+      ],
+      "section": "Reservas"
+    },
+    {
+      "nombreMenu": "Liquidaciones Borderoux",
+      "ruta": "/reservations/borderoux",
+      "orden": 4,
+      "icono": "ri-file-list-3-line",
+      "actions": [
+        {
+          "accion": "VER",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
+        },
+        {
+          "accion": "CREAR",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
+        },
+        {
+          "accion": "ACTUALIZAR",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
+        },
+        {
+          "accion": "ANULAR",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
         }
       ],
       "section": "Reservas"
