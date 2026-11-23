@@ -144,8 +144,10 @@ class PermissionCatalogTest {
         JsonNode representative = findByPermissionRoute(representativeMenu, "/reservations/one-time");
         assertTrue(catalog.fromMenu(ordinaryTaxpayerMenu, "SIS-013", "DEPORTESAPP")
                 .contains(PermissionCatalog.key("/reservations/one-time", "CREAR")));
-        assertFalse(ordinary.has("organizationReservation"));
-        assertEquals("DIRECT", representative.path("organizationReservation").asText());
+        assertFalse(catalog.fromMenu(ordinaryTaxpayerMenu, "SIS-013", "DEPORTESAPP")
+                .contains(PermissionCatalog.key("/reservations/one-time", "CREAR-PARA-ORGANIZACIONES")));
+        assertTrue(catalog.fromMenu(representativeMenu, "SIS-013", "DEPORTESAPP")
+                .contains(PermissionCatalog.key("/reservations/one-time", "CREAR-PARA-ORGANIZACIONES")));
     }
 
     @Test

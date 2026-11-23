@@ -39,7 +39,6 @@ import com.gamq.deportes.utils.OrdenListados;
 
 @Component
 public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
-    private static final String HABILITAR_RESERVAS_PERIODO_ESCUELAS = "HABILITAR_RESERVAS_PERIODO_ESCUELAS";
 
     @Autowired
     private ReservaRuatRevisionService ruatRevisionService;
@@ -58,9 +57,6 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
 
     @Autowired
     private EstudianteEscuelaRepository estudianteEscuelaRepository;
-
-    @Autowired
-    private com.gamq.deportes.security.ConfiguracionResolver configuracionResolver;
 
     @Autowired
     private com.gamq.deportes.service.EstudianteEscuelaService estudianteService;
@@ -293,7 +289,6 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                 if (!"periodo".equalsIgnoreCase(reserva.getTipoReserva())) {
                     throw new IllegalArgumentException("Los detalles de periodo solo pueden pertenecer a reservas tipo periodo");
                 }
-                requireEnabledForContributor(HABILITAR_RESERVAS_PERIODO_ESCUELAS);
                 EstudianteEscuela inscripcion = resolveEstudiante(reservaPeriodoDto);
                 validarInscripcionParaReserva(inscripcion, reserva);
                 validarAccesoMensualidadParaContribuyente(inscripcion, reserva);
@@ -448,17 +443,6 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
         if (!esPagador && !esTutor && !representaEscuela) {
             throw new IllegalArgumentException(
                     "No tiene autorización para administrar esta mensualidad");
-        }
-    }
-
-    /**
-     * Resolves the functionality flag for the current audience. The resolver
-     * returns true for staff/admin (they are governed by menu permissions and
-     * complex assignments) and the most specific contributor scope otherwise.
-     */
-    private void requireEnabledForContributor(String key) {
-        if (!configuracionResolver.permisoHabilitado(key)) {
-            throw new IllegalArgumentException("La funcionalidad " + key + " está deshabilitada");
         }
     }
 

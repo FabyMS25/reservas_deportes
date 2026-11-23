@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -16,6 +17,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 @RequestMapping({"/api/configuracionSistema", "/api/system-configurations"})
 @Tag(name = "Complejos", description = "Complejos del GAMQ ")
 public class ConfiguracionSistemaController {
+
+    private static final Set<String> CLAVES_REFERENCIA_PUBLICAS = Set.of("ADMIN_DEPORTES");
 
     @Autowired
     private ConfiguracionSistemaService configuracionSistemaService;
@@ -48,6 +51,31 @@ public class ConfiguracionSistemaController {
             ConfiguracionSistemaDto configuracionDto = configuracionSistemaService.findByClave(clave);
             return Response.ok().setPayload(configuracionDto);
         } catch(Exception ex) {
+            return Response.notFound().setPayload(ex.getMessage());
+        }
+    }
+
+    /**
+     * Public, deliberately narrow endpoint for institutional information that
+     * may appear on a landing page, ticket, or booking form. It never exposes
+     * the administrative catalogue, RUAT, notifications, or permission flags.
+     */
+    @Operation(summary = "Buscar un dato de referencia público")
+    @GetMapping("/public/clave/{clave}")
+    public Response buscarConfiguracionPublicaPorClave(@PathVariable String clave) {
+        try {
+            if (!CLAVES_REFERENCIA_PUBLICAS.contains(clave)) {
+                return Response.notFound().setPayload("Configuración pública no encontrada");
+            }
+            ConfiguracionSistemaDto configuracion = configuracionSistemaService.findByClave(clave);
+            if (!"DATOS_REFERENCIA".equalsIgnoreCase(configuracion.getCategoria())
+                    || !"global".equalsIgnoreCase(configuracion.getAplicaA())
+                    || configuracion.getReferenciaUuid() != null
+                    || !configuracion.isActivo()) {
+                return Response.notFound().setPayload("Configuración pública no encontrada");
+            }
+            return Response.ok().setPayload(configuracion);
+        } catch (Exception ex) {
             return Response.notFound().setPayload(ex.getMessage());
         }
     }

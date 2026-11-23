@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** One editable definition per taxpayer menu. The frontend never rebuilds this policy. */
+/** One editable definition for the taxpayer menu. The frontend consumes the resolved actions only. */
 @Service
 public class TaxpayerMenuService {
     private final JsonNode definition;
@@ -101,26 +101,7 @@ public class TaxpayerMenuService {
         ObjectNode item = base(module);
         item.put("accion", action.path("accion").asText());
         item.put("ruta", action.path("ruta").asText(module.path("ruta").asText()));
-        applyOrganizationReservationMode(item, module, enabledFeatures);
         return item;
-    }
-
-    /**
-     * The organization flag controls a context within Reservas Puntuales and
-     * Recurrentes. It must not replace the ordinary taxpayer CREAR action.
-     * The response carries only the resolved capability, never a system
-     * configuration row or its key/value.
-     */
-    private void applyOrganizationReservationMode(ObjectNode item, JsonNode module, Set<String> enabledFeatures) {
-        JsonNode definition = module.path("organizationReservation");
-        if (!definition.isObject()) {
-            return;
-        }
-        if (enabledFeatures.contains(definition.path("directFeature").asText())) {
-            item.put("organizationReservation", "DIRECT");
-        } else if (enabledFeatures.contains(definition.path("requestFeature").asText())) {
-            item.put("organizationReservation", "REQUEST");
-        }
     }
 
     /**
@@ -131,7 +112,7 @@ public class TaxpayerMenuService {
     public ArrayNode forRepresentative(boolean representative) {
         java.util.Set<String> features = new java.util.HashSet<>(Set.of(
                 "RECURRENT_CREATE", "RECURRENT_REQUEST", "RECURRENT_MANAGEMENT",
-                "PUNTUAL_REQUEST", "PUNTUAL_MANAGEMENT",
+                "PUNTUAL_MANAGEMENT",
                 "EVENT_CREATE", "EVENT_REQUEST",
                 "GESTION_MENSUALIDADES", "GESTION_BORDEROUX", "GESTION_ESTUDIANTES"));
         if (representative) {

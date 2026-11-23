@@ -10,6 +10,7 @@ public interface ComplejoService {
 
     ComplejoDeportivoDto findByUuid(String uuid);
     List<ComplejoDeportivoDto> obtenerComplejos();
+    List<ComplejoDeportivoDto> obtenerComplejosPublicos();
     ComplejoDeportivoDto crearComplejo(ComplejoDeportivoDto complejoDto);
     ComplejoDeportivoDto actualizarComplejo(ComplejoDeportivoDto complejoDto);
     String eliminarComplejo(String uuid);

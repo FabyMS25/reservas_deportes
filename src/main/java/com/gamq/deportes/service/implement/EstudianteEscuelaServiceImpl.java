@@ -86,11 +86,12 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
     @Override
     @Transactional
     public List<EstudianteEscuelaDto> obtenerEstudiantes() {
-        // The catalogue is visible to every user with VER. Mutating actions
-        // remain protected by the management feature and organization/tutor
-        // ownership checks below.
-        List<EstudianteEscuela> estudiantes = estudianteEscuelaRepository
-                .findAll(OrdenListados.masRecientes("idEstudiante"));
+        String contribuyenteUuid = contribuyenteActualUuid();
+        // A taxpayer only sees the enrollments they tutor or that belong to a
+        // school they represent. Staff keep the complete catalogue.
+        List<EstudianteEscuela> estudiantes = contribuyenteUuid == null
+                ? estudianteEscuelaRepository.findAll(OrdenListados.masRecientes("idEstudiante"))
+                : estudianteEscuelaRepository.findVisibleToContribuyente(contribuyenteUuid);
         return estudiantes.stream()
                 .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
                 .collect(Collectors.toList());
@@ -130,10 +131,14 @@ public class EstudianteEscuelaServiceImpl implements EstudianteEscuelaService {
         if (term == null || term.trim().length() < 3) {
             return List.of();
         }
-        return estudianteEscuelaRepository.searchExistingStudents(term.trim()).stream()
-                .limit(20)
-                .map(estudiante -> EstudianteEscuelaMapper.toDto(estudiante, false))
-                .collect(Collectors.toList());
+        java.util.Map<String, EstudianteEscuelaDto> uniqueStudents = new java.util.LinkedHashMap<>();
+        for (EstudianteEscuela inscripcion : estudianteEscuelaRepository.searchExistingStudents(term.trim())) {
+            EstudianteEscuelaDto dto = EstudianteEscuelaMapper.toDto(inscripcion, false);
+            String key = dto.getEstudianteUuid() == null ? dto.getUuid() : dto.getEstudianteUuid();
+            uniqueStudents.putIfAbsent(key, dto);
+            if (uniqueStudents.size() == 20) break;
+        }
+        return List.copyOf(uniqueStudents.values());
     }
 
     @Override

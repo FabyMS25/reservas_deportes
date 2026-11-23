@@ -84,19 +84,10 @@
       "ruta": "/reservations/one-time",
       "orden": 1,
       "icono": "ri-profile-line",
-      "organizationReservation": {
-        "directFeature": "ORGANIZATION_DIRECT",
-        "requestFeature": "ORGANIZATION_REQUEST"
-      },
       "actions": [
         {
           "accion": "CREAR",
           "ruta": "/reservations/details"
-        },
-        {
-          "accion": "CREAR-SOLICITUD",
-          "ruta": "/reservations/details",
-          "requiredFeature": "PUNTUAL_REQUEST"
         },
         {
           "accion": "CREAR-EVENTOS",
@@ -107,6 +98,16 @@
           "accion": "CREAR-SOLICITUD-EVENTOS",
           "ruta": "/reservations/details",
           "requiredFeature": "EVENT_REQUEST"
+        },
+        {
+          "accion": "CREAR-PARA-ORGANIZACIONES",
+          "ruta": "/reservations/details",
+          "requiredFeature": "ORGANIZATION_DIRECT"
+        },
+        {
+          "accion": "CREAR-SOLICITUD-PARA-ORGANIZACIONES",
+          "ruta": "/reservations/details",
+          "requiredFeature": "ORGANIZATION_REQUEST"
         },
         {
           "accion": "CAMBIAR-HORARIO",
@@ -137,6 +138,11 @@
           "accion": "VER",
           "ruta": "/reservations/one-time",
           "requiredFeature": "PUNTUAL_MANAGEMENT"
+        },
+        {
+          "accion": "CONSULTAR",
+          "ruta": "/reservations/one-time",
+          "requiredFeature": "PUNTUAL_MANAGEMENT"
         }
       ],
       "section": "Reservas"
@@ -164,13 +170,15 @@
         },
         {
           "accion": "VER",
-          "ruta": "/reservations/recurrent",
-          "requiredFeature": "RECURRENT_MANAGEMENT"
+          "ruta": "/reservations/recurrent"
+        },
+        {
+          "accion": "CONSULTAR",
+          "ruta": "/reservations/recurrent"
         },
         {
           "accion": "GENERAR TICKET",
-          "ruta": "/reservations/ticket",
-          "requiredFeature": "RECURRENT_MANAGEMENT"
+          "ruta": "/reservations/ticket"
         },
         {
           "accion": "CREAR",
@@ -181,6 +189,16 @@
           "accion": "CREAR-SOLICITUD",
           "ruta": "/reservations/details",
           "requiredFeature": "RECURRENT_REQUEST"
+        },
+        {
+          "accion": "CREAR-PARA-ORGANIZACIONES",
+          "ruta": "/reservations/details",
+          "requiredFeature": "ORGANIZATION_DIRECT"
+        },
+        {
+          "accion": "CREAR-SOLICITUD-PARA-ORGANIZACIONES",
+          "ruta": "/reservations/details",
+          "requiredFeature": "ORGANIZATION_REQUEST"
         }
       ],
       "section": "Reservas"
@@ -215,6 +233,11 @@
           "accion": "GENERAR TICKET",
           "ruta": "/reservations/schools",
           "requiredFeature": "GESTION_MENSUALIDADES"
+        },
+        {
+          "accion": "CONSULTAR",
+          "ruta": "/reservations/schools",
+          "requiredFeature": "GESTION_MENSUALIDADES"
         }
       ],
       "section": "Reservas"
@@ -242,6 +265,16 @@
         },
         {
           "accion": "ANULAR",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
+        },
+        {
+          "accion": "CONSULTAR",
+          "ruta": "/reservations/borderoux",
+          "requiredFeature": "GESTION_BORDEROUX"
+        },
+        {
+          "accion": "GENERAR TICKET",
           "ruta": "/reservations/borderoux",
           "requiredFeature": "GESTION_BORDEROUX"
         }

@@ -77,7 +77,7 @@ public class ApiController {
     }
     @Operation(summary = "VErifica pago de una tasa")
     @PostMapping("/pago")
-    @PreAuthorize("#p0 != null and #p0.pago != null and @permissions.ruatRate('VER',#p0.pago.numeroTasa)")
+    @PreAuthorize("#p0 != null and #p0.pago != null and @permissions.ruatRate('CONSULTAR',#p0.pago.numeroTasa)")
     public ResponseEntity<?> consultaPago(@RequestBody PagoToken pagoToken) {
 
         try{

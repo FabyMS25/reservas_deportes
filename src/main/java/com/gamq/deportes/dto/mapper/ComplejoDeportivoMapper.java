@@ -8,6 +8,8 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
 import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Collections;
 
 public class ComplejoDeportivoMapper {
     public static ComplejoDeportivoDto toDto(ComplejoDeportivo complejo) {
@@ -110,6 +112,16 @@ public class ComplejoDeportivoMapper {
             dto.setLatitud(point.getX());
             dto.setLongitud(point.getY());
         }
+        return dto;
+    }
+
+    /** Data appropriate for the unauthenticated landing catalogue. */
+    public static ComplejoDeportivoDto toPublicDto(ComplejoDeportivo complejo) {
+        ComplejoDeportivoDto dto = toDto(complejo);
+        dto.setEncargadosDtoList(Collections.emptyList());
+        dto.setCamposDeportivosDtoList(dto.getCamposDeportivosDtoList().stream()
+                .filter(campo -> "activo".equalsIgnoreCase(campo.getEstadoActual()))
+                .collect(Collectors.toList()));
         return dto;
     }
     private static Point setLatLgtCoordinates(Double pointX, Double pointY) {

@@ -31,6 +31,17 @@ public class complejoController {
             return Response.notContent().setPayload(ex.getMessage());
         }
     }
+
+    @Operation(summary = "Listar complejos y campos operativos para visitantes")
+    @GetMapping("/public")
+    @PreAuthorize("permitAll()")
+    public Response obtenerComplejosPublicos() {
+        try {
+            return Response.ok().setPayload(complejoService.obtenerComplejosPublicos());
+        } catch (Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
+        }
+    }
     @Operation(summary = "Buscar Complejo por uuid")
     @GetMapping("/{uuid}")
     @PreAuthorize("@permissions.lookup('/admin/facilities')")

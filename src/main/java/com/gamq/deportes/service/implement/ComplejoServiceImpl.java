@@ -48,6 +48,15 @@ public class ComplejoServiceImpl implements ComplejoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ComplejoDeportivoDto> obtenerComplejosPublicos() {
+        return complejoRepository.findAll(OrdenListados.masRecientes("idComplejo")).stream()
+                .filter(complejo -> "activo".equalsIgnoreCase(complejo.getEstadoActual()))
+                .map(ComplejoDeportivoMapper::toPublicDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public ComplejoDeportivoDto crearComplejo(ComplejoDeportivoDto complejoDto) {
         if (complejoDto != null) {
             ComplejoDeportivo newComplejo = ComplejoDeportivoMapper.toEntity(complejoDto);

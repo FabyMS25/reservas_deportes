@@ -232,7 +232,7 @@ public class ReservaController {
 
     @Operation(summary = "Previsualizar próximo número de reserva")
     @GetMapping("/numero-reserva/preview")
-    @PreAuthorize("@permissions.anyReservation('CREAR')")
+    @PreAuthorize("@permissions.anyReservationCreate()")
     public Response previsualizarNumeroReserva(
             @Parameter(description = "Tipo de reserva: puntual, recurrente, periodo, borderoux", required = true)
             @RequestParam String tipo) {
@@ -386,7 +386,7 @@ public class ReservaController {
 
     @Operation(summary = "Completar reserva recurrente gratuita de escuela")
     @PutMapping("/completar-escuela")
-    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    @PreAuthorize("@permissions.reservation('REGISTRAR-COMPLETADO',#p0)")
     public Response completarReservaEscuela(@RequestParam("uuid") String uuid) {
         try {
             return Response.ok().setPayload(reservaService.completarReservaEscuela(uuid));
@@ -397,7 +397,7 @@ public class ReservaController {
 
     @Operation(summary = "Registrar No Show")
     @PutMapping("/update-not-show")
-    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    @PreAuthorize("@permissions.reservation('REGISTRAR-NO-SHOW',#p0)")
     public Response marcarNoShow(@RequestParam("uuid") String uuid,
                                 @RequestParam(required = false) String observacion) {
         return actualizarEstadoUso(uuid, "NO_SHOW", observacion);
@@ -405,7 +405,7 @@ public class ReservaController {
 
     @Operation(summary = "Confirmar uso completo de reserva")
     @PutMapping("/completar")
-    @PreAuthorize("@permissions.reservation('ACTUALIZAR',#p0)")
+    @PreAuthorize("@permissions.completeUsage(#p0)")
     public Response completarUso(@RequestParam("uuid") String uuid) {
         return actualizarEstadoUso(uuid, "COMPLETADA", null);
     }

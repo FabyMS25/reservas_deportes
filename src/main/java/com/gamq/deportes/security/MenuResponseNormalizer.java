@@ -138,8 +138,7 @@ public class MenuResponseNormalizer {
 
     private ObjectNode copyMenuFields(JsonNode source) {
         ObjectNode item = mapper.createObjectNode();
-        for (String field : new String[]{"modulo", "codigo", "nombreMenu", "ruta", "orden", "icono", "estado", "subNivel",
-                "organizationReservation"}) {
+        for (String field : new String[]{"modulo", "codigo", "nombreMenu", "ruta", "orden", "icono", "estado", "subNivel"}) {
             if (source.has(field)) item.set(field, source.get(field));
         }
         if (!item.has("estado")) item.put("estado", false);

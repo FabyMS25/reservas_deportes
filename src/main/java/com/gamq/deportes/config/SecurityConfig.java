@@ -36,9 +36,16 @@ public class SecurityConfig {
                         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reporte/public/ticket/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/api/reporte/public/ticket/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/complejos/public").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contribuyente").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/contribuyente/public/exists").permitAll()
                 .requestMatchers("/api/ruat/**").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/api/configuracionSistema/public/**", "/api/system-configurations/public/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/api/configuracionSistema/**", "/api/system-configurations/**")
+                .hasAuthority("DEPORTES_ADMIN")
                 .requestMatchers(HttpMethod.POST,
                         "/api/configuracionSistema/**", "/api/system-configurations/**")
                 .hasAuthority("DEPORTES_ADMIN")

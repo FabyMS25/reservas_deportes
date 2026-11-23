@@ -154,7 +154,7 @@ public class EstudianteEscuelaController {
 
     @Operation(summary = "Buscar estudiantes existentes para crear una relación")
     @GetMapping("/buscar-existente")
-    @PreAuthorize("@permissions.has('/students','VER')")
+    @PreAuthorize("@permissions.student('CREAR')")
     public Response buscarEstudiantesExistentes(@RequestParam String term) {
         try {
             return Response.ok().setPayload(estudianteEscuelaService.searchExistingStudents(term));

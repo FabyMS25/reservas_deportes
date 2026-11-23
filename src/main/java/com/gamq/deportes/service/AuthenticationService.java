@@ -219,7 +219,7 @@ public class AuthenticationService {
         String token = tokenService.create(taxpayer.getUuid(), "TAXPAYER", false,
                 permissionCatalog.fromMenu(menu, applicationCode, applicationName));
         return new AuthenticationResponse(token, taxpayer, menu, null, false, "TAXPAYER",
-                configuracionSistemaService.obtenerConfiguracionesParaCliente());
+                configuracionSistemaService.obtenerConfiguracionesParaCliente(representative));
     }
 
     /**
@@ -227,39 +227,44 @@ public class AuthenticationService {
      * returned normalized menu and the signed token then carry the same
      * authority; request handlers only add ownership/complex validation.
      */
-    private Set<String> taxpayerFeatures(boolean representative) {
+    Set<String> taxpayerFeatures(boolean representative) {
         Set<String> features = new HashSet<>();
+
+        // Organization reservation actions are granted only to representatives.
+        // Direct creation takes precedence over the request-only alternative.
         boolean organizationDirect = representative
                 && configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_ORGANIZACIONES", true);
-        boolean organizationRequest = representative
+        boolean organizationRequest = representative && !organizationDirect
                 && configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES", true);
-
-        // A direct organization reservation takes precedence over a request.
-        // These are context capabilities, not new Usuarios actions: CREAR for
-        // a normal one-time reservation remains available to every taxpayer.
         if (organizationDirect) {
             features.add("ORGANIZATION_DIRECT");
         } else if (organizationRequest) {
             features.add("ORGANIZATION_REQUEST");
         }
-
-        addDirectOrRequest(features,
-                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_RECURRENTES", representative)
-                        || organizationDirect,
-                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_RECURRENTES", representative)
-                        || organizationRequest,
-                "RECURRENT_CREATE", "RECURRENT_REQUEST", "RECURRENT_MANAGEMENT");
-        // A taxpayer can always create an ordinary one-time reservation
-        // (por hora / por persona). Organization use is a contextual rule,
-        // not the source of the ordinary CREAR permission.
-        features.add("PUNTUAL_MANAGEMENT");
-        if (!organizationDirect && organizationRequest) {
-            features.add("PUNTUAL_REQUEST");
+        if (organizationDirect || organizationRequest) {
+            // The organization creation action also enables the normal
+            // taxpayer lifecycle actions for that representative's own rows.
+            features.add("RECURRENT_MANAGEMENT");
         }
+
+        // Each capability resolves independently: a direct flag enables the
+        // direct action; otherwise the request action is used when its own
+        // flag is enabled. No capability borrows another one's flag.
+        addDirectOrRequest(features,
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_RECURRENTES", representative),
+                configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_RECURRENTES", representative),
+                "RECURRENT_CREATE", "RECURRENT_REQUEST", "RECURRENT_MANAGEMENT");
+
+        // Every taxpayer can create an ordinary one-time reservation
+        // (por hora / por persona), and can manage only records they own.
+        // Organization and event actions are additional signed permissions.
+        features.add("PUNTUAL_MANAGEMENT");
+
         addDirectOrRequest(features,
                 configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_RESERVAS_EVENTOS", representative),
                 configuracionResolver.permisoHabilitadoParaAudiencia("HABILITAR_SOLICITUD_RESERVAS_EVENTOS", representative),
                 "EVENT_CREATE", "EVENT_REQUEST", "PUNTUAL_MANAGEMENT");
+
         addManagementFeature(features, representative,
                 "HABILITAR_RESERVAS_PERIODO_ESCUELAS", "GESTION_MENSUALIDADES");
         addManagementFeature(features, representative,

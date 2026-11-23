@@ -65,14 +65,6 @@ public class ReservaServiceImpl implements ReservaService {
     private static final String HORAS_VALIDACION_PAGO_EVENTOS = "HORAS_VALIDACION_PAGO_EVENTOS";
     private static final String HORAS_VALIDACION_PAGO_RECURRENTES = "HORAS_VALIDACION_PAGO_RECURRENTES";
     private static final int HORAS_VALIDACION_PAGO_DEFAULT = 4;
-    private static final String HABILITAR_RESERVAS_EVENTOS = "HABILITAR_RESERVAS_EVENTOS";
-    private static final String HABILITAR_RESERVAS_ORGANIZACIONES = "HABILITAR_RESERVAS_ORGANIZACIONES";
-    private static final String HABILITAR_RESERVAS_RECURRENTES = "HABILITAR_RESERVAS_RECURRENTES";
-    private static final String HABILITAR_RESERVAS_PERIODO_ESCUELAS = "HABILITAR_RESERVAS_PERIODO_ESCUELAS";
-    private static final String HABILITAR_RESERVAS_BORDEROUX = "HABILITAR_RESERVAS_BORDEROUX";
-    private static final String HABILITAR_SOLICITUD_RESERVAS_EVENTOS = "HABILITAR_SOLICITUD_RESERVAS_EVENTOS";
-    private static final String HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES = "HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES";
-    private static final String HABILITAR_SOLICITUD_RESERVAS_RECURRENTES = "HABILITAR_SOLICITUD_RESERVAS_RECURRENTES";
     private static final String HORAS_ANTICIPACION_RESERVAS_PUNTUALES = "HORAS_ANTICIPACION_RESERVAS_PUNTUALES";
     private static final String HORAS_ANTICIPACION_RECURRENTES = "HORAS_ANTICIPACION_RECURRENTES";
     private static final String DIAS_ANTICIPACION_EVENTOS = "DIAS_ANTICIPACION_EVENTOS";
@@ -451,7 +443,7 @@ public class ReservaServiceImpl implements ReservaService {
         if (reservaDto.getTipoReserva() == null || reservaDto.getTipoReserva().trim().isEmpty()) {
             throw new IllegalArgumentException("El tipo de reserva es requerido");
         }
-        validarPoliticasConfiguradasParaContribuyente(reservaDto);
+        validarReglasOperativasDeReserva(reservaDto);
 
         boolean esPeriodo = "periodo".equalsIgnoreCase(reservaDto.getTipoReserva());
         if (esPeriodo) {
@@ -1262,49 +1254,19 @@ public class ReservaServiceImpl implements ReservaService {
         }
     }
 
-    private void validarPoliticasConfiguradasParaContribuyente(ReservaDto dto) {
+    /**
+     * Operational rules (anticipation and duration) taken from the
+     * configuration snapshot. Permission flags are not re-checked here: the
+     * signed menu already decided which creation action this taxpayer may use.
+     */
+    private void validarReglasOperativasDeReserva(ReservaDto dto) {
         if (!isContributorRequest()) {
             return;
         }
 
-        boolean solicitud = "PENDIENTE".equalsIgnoreCase(dto.getEstadoValidacion())
-                || "SOLICITADA".equalsIgnoreCase(dto.getEstadoReserva());
         boolean recurrente = "recurrente".equalsIgnoreCase(dto.getTipoReserva());
-        boolean periodo = "periodo".equalsIgnoreCase(dto.getTipoReserva());
-        boolean borderoux = "borderoux".equalsIgnoreCase(dto.getTipoReserva());
-        boolean organizacion = dto.getOrganizacionDto() != null
-                && dto.getOrganizacionDto().getUuid() != null;
         boolean evento = dto.getTarifaDto() != null
                 && "por_evento".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
-
-        if (recurrente) {
-            requireEnabled(solicitud
-                    ? HABILITAR_SOLICITUD_RESERVAS_RECURRENTES
-                    : HABILITAR_RESERVAS_RECURRENTES);
-        }
-        if (evento) {
-            requireEnabled(solicitud
-                    ? HABILITAR_SOLICITUD_RESERVAS_EVENTOS
-                    : HABILITAR_RESERVAS_EVENTOS);
-        }
-        // Organization flags are scoped to contributors that represent an
-        // organization. Borderoux requires this generic switch plus its own
-        // HABILITAR_RESERVAS_BORDEROUX permission.
-        if (organizacion) {
-            requireEnabled(solicitud
-                    ? HABILITAR_SOLICITUD_RESERVAS_ORGANIZACIONES
-                    : HABILITAR_RESERVAS_ORGANIZACIONES);
-        }
-        if (periodo) {
-            requireEnabled(HABILITAR_RESERVAS_PERIODO_ESCUELAS);
-        }
-        if (borderoux) {
-            if (!organizacion) {
-                throw new IllegalArgumentException(
-                        "La organización es requerida para una reserva Borderoux");
-            }
-            requireEnabled(HABILITAR_RESERVAS_BORDEROUX);
-        }
 
         if (recurrente && dto.getReservaRecurrenteDto() != null) {
             validarReservaRecurrente(dto);
@@ -1363,12 +1325,6 @@ public class ReservaServiceImpl implements ReservaService {
         if (duracionSesion != null && duracionSesion < minima) {
             throw new IllegalArgumentException(
                     "Cada sesión debe durar al menos " + minima + " horas");
-        }
-    }
-
-    private void requireEnabled(String key) {
-        if (!configuracionResolver.permisoHabilitado(key)) {
-            throw new IllegalArgumentException("La funcionalidad " + key + " está deshabilitada");
         }
     }
 

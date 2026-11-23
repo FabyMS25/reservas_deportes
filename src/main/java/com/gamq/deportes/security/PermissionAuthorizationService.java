@@ -23,7 +23,8 @@ public class PermissionAuthorizationService {
     private final PagoRepository payments;
 
     private static final java.util.Set<String> WRITE_ACTIONS = java.util.Set.of(
-            "CREAR", "ACTUALIZAR", "ANULAR", "ELIMINAR", "CAMBIAR-HORARIO", "CREAR-POSTPAGO");
+            "CREAR", "ACTUALIZAR", "ANULAR", "ELIMINAR", "CAMBIAR-HORARIO", "CREAR-POSTPAGO",
+            "REGISTRAR-NO-SHOW", "REGISTRAR-COMPLETADO");
 
     public PermissionAuthorizationService(ReservaRepository reservations, ReservaPuntualRepository punctual,
             ReservaRecurrenteRepository recurrent, ReservaPeriodoRepository periods,
@@ -53,12 +54,21 @@ public class PermissionAuthorizationService {
     public boolean self(String uuid) { return principal() != null && principal().getSubject().equals(uuid); }
 
     public boolean organizationLookup() {
-        return has("/organizations", "VER") || has("/students", "VER") || anyReservation("CREAR");
+        return has("/organizations", "VER") || has("/students", "VER") || anyReservationCreate();
     }
 
     public boolean anyReservation(String action) {
         return has("/reservations/one-time", action) || has("/reservations/recurrent", action)
                 || has("/reservations/schools", action) || has("/reservations/borderoux", action);
+    }
+
+    public boolean anyReservationCreate() {
+        return anyReservation("CREAR")
+                || anyReservation("CREAR-EVENTO")
+                || anyReservation("CREAR-SOLICITUD-EVENTO")
+                || anyReservation("CREAR-PARA-ORGANIZACIONES")
+                || anyReservation("CREAR-SOLICITUD-PARA-ORGANIZACIONES")
+                || anyReservation("CREAR-SOLICITUD");
     }
 
     public boolean reservationType(String action, String type) { return hasReservationModule(type, action); }
@@ -71,7 +81,7 @@ public class PermissionAuthorizationService {
 
     /** Shared lookup data is needed by booking forms even without the administration menu. */
     public boolean lookup(String module) {
-        return has(module, "VER") || anyReservation("VER") || anyReservation("CREAR")
+        return has(module, "VER") || anyReservation("VER") || anyReservationCreate()
                 || has("/inicio/taxpayer", "VER") || has("/inicio/employee", "VER");
     }
 
@@ -187,6 +197,15 @@ public class PermissionAuthorizationService {
         return child(kind, "GENERAR TICKET", uuid);
     }
 
+    @Transactional(readOnly = true)
+    public boolean completeUsage(String uuid) {
+        return uuid != null && reservations.findByUuid(uuid).map(reserva ->
+                "recurrente".equalsIgnoreCase(reserva.getTipoReserva())
+                        ? allowedReservation("REGISTRAR-COMPLETADO", reserva)
+                        : allowedReservation("ACTUALIZAR", reserva)
+        ).orElse(false);
+    }
+
     private boolean allowedReservation(String action, Reserva r) {
         if (r == null || !hasReservationModule(r.getTipoReserva(), action)) return false;
         if (staff()) {
@@ -244,15 +263,28 @@ public class PermissionAuthorizationService {
                 && "por_evento".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
         boolean organizacion = dto.getOrganizacionDto() != null
                 && dto.getOrganizacionDto().getUuid() != null;
+        boolean requiereAprobacionCampo = dto.getCampoDeportivoDto() != null
+                && dto.getCampoDeportivoDto().getUuid() != null
+                && fields.findByUuid(dto.getCampoDeportivoDto().getUuid())
+                        .map(campo -> Boolean.TRUE.equals(campo.getRequiereAprobacion()))
+                        .orElse(false);
+        // A taxpayer cannot turn a field that requires approval into a direct
+        // reservation by sending a direct state from the client.
+        if (requiereAprobacionCampo) solicitud = true;
         if ("recurrente".equalsIgnoreCase(type)) {
+            if (organizacion) {
+                return hasReservationModule(type, solicitud
+                        ? "CREAR-SOLICITUD-PARA-ORGANIZACIONES"
+                        : "CREAR-PARA-ORGANIZACIONES");
+            }
             return hasReservationModule(type, solicitud ? "CREAR-SOLICITUD" : "CREAR");
         }
-        if ("puntual".equalsIgnoreCase(type) && evento) {
-            return hasReservationModule(type,
-                    solicitud ? "CREAR-SOLICITUD-EVENTOS" : "CREAR-EVENTOS");
-        }
-        if ("puntual".equalsIgnoreCase(type) && organizacion) {
-            return hasReservationModule(type, solicitud ? "CREAR-SOLICITUD" : "CREAR");
+        if ("puntual".equalsIgnoreCase(type)) {
+            if (evento && !hasReservationModule(type,
+                    solicitud ? "CREAR-SOLICITUD-EVENTO" : "CREAR-EVENTO")) return false;
+            if (organizacion && !hasReservationModule(type,
+                    solicitud ? "CREAR-SOLICITUD-PARA-ORGANIZACIONES" : "CREAR-PARA-ORGANIZACIONES")) return false;
+            if (evento || organizacion) return true;
         }
         if ("periodo".equalsIgnoreCase(type)) {
             return hasReservationModule(type, "CREAR");

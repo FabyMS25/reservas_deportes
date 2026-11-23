@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gamq.deportes.security.DeportesPrincipal;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,8 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
 
     private static final String CATEGORIA_RUAT = "RUAT";
     private static final String GLOBAL = "global";
+    private static final String CONTRIBUYENTE = "contribuyente";
+    private static final String REPRESENTANTE = "representante";
     private static final Set<String> CATEGORIAS_CLIENTE = Set.of(
             "DATOS_REFERENCIA", "REGLAS_RESERVA", "POLITICAS_PAGO", "LIMITES", "TIMEOUTS");
     private static final Set<String> AMBITOS_PERMITIDOS = Set.of(
@@ -108,14 +111,31 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     /**
      * Snapshot embedded in the authentication response. Permission flags are
      * resolved into the menu before this point; RUAT and notification values
-     * are server-only. The UI receives just global, non-sensitive values it
-     * uses to present reservation rules and reference data.
+     * are server-only. The UI receives the non-sensitive values that apply to
+     * the session audience, so contributor-specific reservation rules can be
+     * presented with the same values the server enforces.
      */
     @Override
     public List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente() {
+        return snapshot(List.of(GLOBAL));
+    }
+
+    @Override
+    public List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente(boolean representante) {
+        List<String> audiencias = new ArrayList<>();
+        if (representante) {
+            audiencias.add(REPRESENTANTE);
+        }
+        audiencias.add(CONTRIBUYENTE);
+        audiencias.add(GLOBAL);
+        return snapshot(audiencias);
+    }
+
+    private List<ConfiguracionSistemaDto> snapshot(List<String> audiencias) {
         return configuracionSistemaRepository.findAllActivas().stream()
                 .filter(config -> CATEGORIAS_CLIENTE.contains(config.getCategoria()))
-                .filter(config -> GLOBAL.equalsIgnoreCase(config.getAplicaA()))
+                .filter(config -> audiencias.stream()
+                        .anyMatch(audiencia -> audiencia.equalsIgnoreCase(config.getAplicaA())))
                 .filter(config -> config.getReferenciaUuid() == null)
                 .map(ConfiguracionSistemaMapper::toDto)
                 .map(this::sanitizeForClient)

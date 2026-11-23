@@ -19,6 +19,12 @@ public interface ConfiguracionSistemaService {
     List<ConfiguracionSistemaDto> obtenerConfiguraciones();
     /** Safe, global values needed by the authenticated browser UI. */
     List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente();
+    /**
+     * Safe values for a contributor session, including the audience rows that
+     * apply to that contributor (contribuyente, and representante when the
+     * taxpayer represents at least one organization).
+     */
+    List<ConfiguracionSistemaDto> obtenerConfiguracionesParaCliente(boolean representante);
     List<ConfiguracionSistemaDto> obtenerConfiguracionesActivas();
     List<ConfiguracionSistemaDto> obtenerConfiguracionesModificablesPorUsuario();
 

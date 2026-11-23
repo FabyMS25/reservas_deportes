@@ -15,23 +15,18 @@ import java.util.Objects;
 /**
  * Single resolver for `configuracion_sistema`.
  *
- * <p>Only the PERMISSIONS category has an audience precedence:
- * representante (only for contributors that represent at least one
- * organization) &gt; contribuyente (any contributor) &gt; global. Every other
- * category is a plain parameter: `clave` is unique, so a key has exactly one
- * row and `aplica_a` only states who may read it. There is no precedence
- * between scopes for those categories.</p>
+ * <p>A configuration is identified by its key together with its scope (and,
+ * when used, its reference). A key may therefore exist in more than one
+ * scope. Permission flags are resolved only during taxpayer login using:
+ * representante &gt; contribuyente &gt; global.</p>
  *
  * <p>Rules:</p>
  * <ul>
- *   <li>Admin is never restricted by a functionality flag.</li>
- *   <li>Staff is not gated by flags either: menu permissions plus the
- *       assigned complex decide what they can do.</li>
- *   <li>A contributor without an organization never receives
- *       `representante` values, so those functionalities are read-only for
- *       them (missing/inapplicable scope resolves to {@code false}).</li>
- *   <li>Numeric/text values are parameters: each key has a single row, so the
- *       value is returned as-is when its scope applies to the caller.</li>
+ *   <li>Staff/admin actions come from Usuarios and the assigned-complex rule.</li>
+ *   <li>Taxpayer permission flags become signed menu permissions at login.</li>
+ *   <li>A non-representative never receives representative-only flags.</li>
+ *   <li>Numeric and text policies are resolved from the applicable active
+ *       candidates; current reservation and payment policies are global.</li>
  * </ul>
  */
 @Component
@@ -96,10 +91,8 @@ public class ConfiguracionResolver {
     }
 
     /**
-     * Active audience rows for a key that apply to the caller. Only
-     * PERMISSIONS are ordered by precedence; other categories have a single
-     * row per key. Entity overrides are not enabled: only rows without
-     * referenciaUuid are considered.
+     * Active rows for a key that apply to the caller. Entity overrides are not
+     * enabled here: only rows without referenciaUuid are considered.
      */
     @Transactional(readOnly = true)
     public List<ConfiguracionSistema> candidatos(String clave) {
@@ -110,23 +103,8 @@ public class ConfiguracionResolver {
     }
 
     /**
-     * Functionality flag. Admin/staff are never blocked (menu permissions and
-     * assigned complex handle them). A contributor receives the most specific
-     * applicable row; without a row the functionality is disabled.
-     */
-    @Transactional(readOnly = true)
-    public boolean permisoHabilitado(String clave) {
-        if (esAdmin() || esStaff()) {
-            return true;
-        }
-        return permisoHabilitadoParaAudiencia(clave, representaOrganizacion());
-    }
-
-    /**
-     * Resolves a contributor feature before an authenticated DeportesPrincipal
-     * exists (for example while building the signed taxpayer menu at login).
-     * The precedence is the same as {@link #permisoHabilitado(String)}:
-     * representante, contribuyente, then global.
+     * Resolves one taxpayer feature while building the signed menu at login.
+     * No request handler calls this method for permission authorization.
      */
     @Transactional(readOnly = true)
     public boolean permisoHabilitadoParaAudiencia(String clave, boolean representante) {
