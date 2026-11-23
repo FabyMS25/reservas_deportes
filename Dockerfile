@@ -15,7 +15,7 @@ RUN ./gradlew test bootJar --no-daemon
 
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
