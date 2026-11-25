@@ -90,12 +90,12 @@
           "ruta": "/reservations/details"
         },
         {
-          "accion": "CREAR-EVENTOS",
+          "accion": "CREAR-EVENTO",
           "ruta": "/reservations/details",
           "requiredFeature": "EVENT_CREATE"
         },
         {
-          "accion": "CREAR-SOLICITUD-EVENTOS",
+          "accion": "CREAR-SOLICITUD-EVENTO",
           "ruta": "/reservations/details",
           "requiredFeature": "EVENT_REQUEST"
         },

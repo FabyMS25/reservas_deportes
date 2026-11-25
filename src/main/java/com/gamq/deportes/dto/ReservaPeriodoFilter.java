@@ -12,6 +12,8 @@ public class ReservaPeriodoFilter {
     private String categoria;
     private String escuelaFiltro; // UUID de organización
     private String periodoFiltro; // YYYY-MM
+    private Integer mesFiltro;
+    private Integer anioFiltro;
 
     public String getEstadoReservaFromTab() {
         if (tab == null) return null;

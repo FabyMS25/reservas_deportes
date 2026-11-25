@@ -28,7 +28,10 @@ public class ReservaBorderouxTalonarioDto {
     private BigDecimal precioBoleta;
     private Integer numeroInicial;
     private Integer numeroFinal;
+    private String serieTalonario;
     private Integer cantidad;
+    private Integer cantidadAnuladas;
+    private Integer cantidadVendida;
     private BigDecimal totalBoletas;
     private BigDecimal montoBorderoux;
 }

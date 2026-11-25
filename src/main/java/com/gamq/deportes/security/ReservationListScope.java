@@ -102,4 +102,45 @@ public class ReservationListScope {
             );
         };
     }
+
+    /** Scope for the grouped monthly reservation list, including enrollment sponsors. */
+    public Specification<com.gamq.deportes.model.Reserva> periodReservations() {
+        DeportesPrincipal principal = permissions.principal();
+        boolean staff = permissions.staff();
+        boolean admin = permissions.admin();
+        return (root, query, cb) -> {
+            if (principal == null) return cb.disjunction();
+            var monthlyReservation = cb.equal(root.get("tipoReserva"), "periodo");
+            if (admin) return monthlyReservation;
+            if (staff) {
+                Subquery<String> assignments = query.subquery(String.class);
+                var assignment = assignments.from(EncargadoComplejo.class);
+                assignments.select(assignment.get("complejo").get("uuid"))
+                        .where(cb.equal(assignment.get("userUuid"), principal.getSubject()),
+                                cb.isTrue(assignment.get("activo")));
+                return cb.and(monthlyReservation,
+                        root.get("campoDeportivo").get("complejo").get("uuid").in(assignments));
+            }
+
+            Subquery<Long> representative = query.subquery(Long.class);
+            var link = representative.from(com.gamq.deportes.model.OrganizacionRepresentante.class);
+            representative.select(link.get("id").get("idOrganizacion"))
+                    .where(cb.equal(link.get("contribuyente").get("uuid"), principal.getSubject()),
+                            cb.equal(link.get("organizacion"), root.get("organizacion")));
+
+            Subquery<Long> sponsoredEnrollment = query.subquery(Long.class);
+            var period = sponsoredEnrollment.from(com.gamq.deportes.model.ReservaPeriodo.class);
+            var enrollment = period.join("estudianteEscuela", JoinType.LEFT);
+            sponsoredEnrollment.select(period.get("idReservaPeriodo"))
+                    .where(cb.equal(period.get("reserva"), root),
+                            cb.equal(enrollment.join("contribuyenteDto", JoinType.LEFT)
+                                    .get("uuid"), principal.getSubject()));
+
+            return cb.and(monthlyReservation, cb.or(
+                    cb.equal(root.join("contribuyente", JoinType.LEFT).get("uuid"), principal.getSubject()),
+                    cb.exists(representative),
+                    cb.exists(sponsoredEnrollment)
+            ));
+        };
+    }
 }

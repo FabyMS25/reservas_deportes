@@ -78,17 +78,6 @@ public class ReservaController {
         );
     }
 
-    @Operation(summary = "Obtener el clasificador RUAT por defecto para liquidaciones Borderoux")
-    @GetMapping("/borderoux/clasificador")
-    @PreAuthorize("@permissions.anyReservation('CREAR')")
-    public Response obtenerClasificadorBorderoux() {
-        try {
-            return Response.ok().setPayload(reservaService.obtenerClasificadorBorderoux());
-        } catch (IllegalStateException ex) {
-            return Response.unprocessableEntity().setPayload(ex.getMessage());
-        }
-    }
-
     @Operation(summary = "Buscar reserva por UUID")
     @GetMapping("/{uuid}")
     @PreAuthorize("@permissions.reservation('VER',#p0)")
@@ -375,9 +364,11 @@ public class ReservaController {
             @Parameter(description = "UUID de la reserva")
             @PathVariable("uuid") String uuid,
             @Parameter(description = "Usuario que aprueba")
-            @RequestParam String aprobadoPor) {
+            @RequestParam String aprobadoPor,
+            @Parameter(description = "Observación de la aprobación")
+            @RequestParam(required = false) String observacion) {
         try {
-            ReservaDto reservaAprobada = reservaService.aprobarReserva(uuid, aprobadoPor);
+            ReservaDto reservaAprobada = reservaService.aprobarReserva(uuid, aprobadoPor, observacion);
             return Response.ok().setPayload(reservaAprobada);
         } catch (Exception ex) {
             return Response.unprocessableEntity().setPayload("Error al aprobar reserva: " + ex.getMessage());

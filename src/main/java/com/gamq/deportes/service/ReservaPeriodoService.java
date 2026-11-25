@@ -2,6 +2,7 @@ package com.gamq.deportes.service;
 
 import com.gamq.deportes.dto.ReservaPeriodoDto;
 import com.gamq.deportes.dto.ReservaPeriodoFilter;
+import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPuntualDto;
 import com.gamq.deportes.dto.ReservaPuntualFilter;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import java.util.List;
 public interface ReservaPeriodoService {
     List<ReservaPeriodoDto> obtenerTodos();
     Page<ReservaPeriodoDto> obtenerReservasConFiltros(ReservaPeriodoFilter filter, Pageable pageable);
+    Page<ReservaDto> obtenerReservasAgrupadasConFiltros(ReservaPeriodoFilter filter, Pageable pageable);
     List<ReservaPeriodoDto> historialPorEstudiante(String estudianteUuid);
     List<ReservaPeriodoDto> findByEstudianteUuid(String estudianteUuid);
     ReservaPeriodoDto findByUuid(String uuid);

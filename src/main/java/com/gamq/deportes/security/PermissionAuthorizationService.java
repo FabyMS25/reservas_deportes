@@ -120,14 +120,31 @@ public class PermissionAuthorizationService {
         if (staff()) return dto.getCampoDeportivoDto() == null
                 ? !"CREAR".equals(action) || "borderoux".equalsIgnoreCase(type)
                 : fieldScope(dto.getCampoDeportivoDto().getUuid());
-        // Existing owner and destination ownership must both pass.
+        // A reservation addressed to an organization must be authorized through
+        // that organization. Being the payer does not authorize selecting an
+        // unrelated organization in a crafted request.
         boolean own = dto.getContribuyenteDto() != null ? self(dto.getContribuyenteDto().getUuid())
                 : original != null && original.getContribuyente() != null && self(original.getContribuyente().getUuid());
         boolean representative = dto.getOrganizacionDto() != null ? represents(dto.getOrganizacionDto().getUuid())
                 : original != null && original.getOrganizacion() != null && represents(original.getOrganizacion().getUuid());
         if (("periodo".equalsIgnoreCase(type) || "borderoux".equalsIgnoreCase(type))
                 && WRITE_ACTIONS.contains(action)) return representative;
-        return own || representative;
+        boolean destinationIsOrganization = dto.getOrganizacionDto() != null
+                && dto.getOrganizacionDto().getUuid() != null;
+        return destinationIsOrganization ? representative : own;
+    }
+
+    /** Authorization entry point for the dedicated Borderoux API contract. */
+    public boolean borderouxBody(String action, ReservaBorderouxDto dto) {
+        if (dto == null) return false;
+        ReservaDto reserva = new ReservaDto();
+        reserva.setUuid(dto.getUuid());
+        reserva.setTipoReserva("borderoux");
+        reserva.setContribuyenteDto(dto.getContribuyenteDto());
+        reserva.setOrganizacionDto(dto.getOrganizacionDto());
+        reserva.setEstadoReserva(dto.getEstadoReserva());
+        reserva.setEstadoValidacion(dto.getEstadoValidacion());
+        return reservationBody(action, reserva);
     }
 
     @Transactional(readOnly = true)
@@ -261,6 +278,8 @@ public class PermissionAuthorizationService {
                 || "SOLICITADA".equalsIgnoreCase(dto.getEstadoReserva());
         boolean evento = dto.getTarifaDto() != null
                 && "por_evento".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
+        boolean club = dto.getTarifaDto() != null
+                && "por_club".equalsIgnoreCase(dto.getTarifaDto().getTipoCobro());
         boolean organizacion = dto.getOrganizacionDto() != null
                 && dto.getOrganizacionDto().getUuid() != null;
         boolean requiereAprobacionCampo = dto.getCampoDeportivoDto() != null
@@ -272,18 +291,18 @@ public class PermissionAuthorizationService {
         // reservation by sending a direct state from the client.
         if (requiereAprobacionCampo) solicitud = true;
         if ("recurrente".equalsIgnoreCase(type)) {
-            if (organizacion) {
-                return hasReservationModule(type, solicitud
-                        ? "CREAR-SOLICITUD-PARA-ORGANIZACIONES"
-                        : "CREAR-PARA-ORGANIZACIONES");
+            if (organizacion || club) {
+                return hasSpecialReservationCreatePermission(type, solicitud,
+                        "CREAR-PARA-ORGANIZACIONES",
+                        "CREAR-SOLICITUD-PARA-ORGANIZACIONES");
             }
             return hasReservationModule(type, solicitud ? "CREAR-SOLICITUD" : "CREAR");
         }
         if ("puntual".equalsIgnoreCase(type)) {
-            if (evento && !hasReservationModule(type,
-                    solicitud ? "CREAR-SOLICITUD-EVENTO" : "CREAR-EVENTO")) return false;
-            if (organizacion && !hasReservationModule(type,
-                    solicitud ? "CREAR-SOLICITUD-PARA-ORGANIZACIONES" : "CREAR-PARA-ORGANIZACIONES")) return false;
+            if (evento && !hasSpecialReservationCreatePermission(type, solicitud,
+                    "CREAR-EVENTO", "CREAR-SOLICITUD-EVENTO")) return false;
+            if (organizacion && !hasSpecialReservationCreatePermission(type, solicitud,
+                    "CREAR-PARA-ORGANIZACIONES", "CREAR-SOLICITUD-PARA-ORGANIZACIONES")) return false;
             if (evento || organizacion) return true;
         }
         if ("periodo".equalsIgnoreCase(type)) {
@@ -293,6 +312,18 @@ public class PermissionAuthorizationService {
             return hasReservationModule(type, "CREAR");
         }
         return hasReservationModule(type, "CREAR");
+    }
+
+    /**
+     * A direct special permission also authorizes an already-request flow.
+     * It never turns that request into a direct reservation. Conversely, a
+     * request-only permission cannot authorize a direct submitted state.
+     */
+    private boolean hasSpecialReservationCreatePermission(
+            String type, boolean solicitud, String directAction, String requestAction) {
+        boolean hasDirect = hasReservationModule(type, directAction);
+        boolean hasRequest = hasReservationModule(type, requestAction);
+        return (hasDirect || hasRequest) && (solicitud || hasDirect);
     }
 
     public static String moduleForType(String type) {

@@ -2,6 +2,8 @@ package com.gamq.deportes.service.implement;
 
 import com.gamq.deportes.dto.ReservaPeriodoDto;
 import com.gamq.deportes.dto.ReservaPeriodoFilter;
+import com.gamq.deportes.dto.ReservaDto;
+import com.gamq.deportes.dto.mapper.ReservaMapper;
 import com.gamq.deportes.dto.mapper.ReservaPeriodoMapper;
 import com.gamq.deportes.model.*;
 import com.gamq.deportes.repository.ReservaAuditoriaRepository;
@@ -135,6 +137,7 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                     // Tab 0 - Todas, no filter needed
                     break;
             }
+
         }
         if (filter.getEstadoReserva() != null && !filter.getEstadoReserva().isEmpty()) {
             spec = spec.and((root, query, cb) ->
@@ -213,6 +216,104 @@ public class ReservaPeriodoServiceImpl implements ReservaPeriodoService {
                         ReservaRuatRevisionService.candidatas(reviewScope, "reserva", after),
                         PageRequest.of(0, 100, Sort.by("reserva.idReserva"))));
     }
+
+    @Override
+    @Transactional(Transactional.TxType.NOT_SUPPORTED)
+    public Page<ReservaDto> obtenerReservasAgrupadasConFiltros(ReservaPeriodoFilter filter, Pageable pageable) {
+        Specification<Reserva> spec = listScope.periodReservations();
+        Specification<Reserva> reviewScope = spec;
+
+        String estadoReserva = filter.getEstadoReserva();
+        if (filter.getTab() != null) {
+            switch (filter.getTab()) {
+                case 1 -> estadoReserva = "PENDIENTE";
+                case 2 -> estadoReserva = "PAGADA";
+                case 3 -> estadoReserva = "EN_CURSO";
+                case 4 -> estadoReserva = "COMPLETADA";
+                case 5, 6 -> estadoReserva = "CANCELADA";
+                default -> { }
+            }
+        }
+        if (estadoReserva != null && !estadoReserva.isBlank()) {
+            String resolvedEstadoReserva = estadoReserva;
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("estadoReserva"), resolvedEstadoReserva));
+        }
+        if (filter.getEstadoValidacion() != null && !filter.getEstadoValidacion().isBlank()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("estadoValidacion"), filter.getEstadoValidacion()));
+        }
+        if (filter.getEscuelaFiltro() != null && !filter.getEscuelaFiltro().isBlank()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.join("organizacion", JoinType.LEFT).get("uuid"), filter.getEscuelaFiltro()));
+        }
+        if (filter.getMesFiltro() != null || filter.getAnioFiltro() != null) {
+            spec = spec.and((root, query, cb) -> {
+                jakarta.persistence.criteria.Subquery<Long> matchingPeriod = query.subquery(Long.class);
+                jakarta.persistence.criteria.Root<ReservaPeriodo> period =
+                        matchingPeriod.from(ReservaPeriodo.class);
+                jakarta.persistence.criteria.Predicate matches = cb.equal(period.get("reserva"), root);
+                if (filter.getMesFiltro() != null) {
+                    matches = cb.and(matches, cb.equal(period.get("mes"), filter.getMesFiltro()));
+                }
+                if (filter.getAnioFiltro() != null) {
+                    matches = cb.and(matches, cb.equal(period.get("año"), filter.getAnioFiltro()));
+                }
+                matchingPeriod.select(period.get("idReservaPeriodo")).where(matches);
+                return cb.exists(matchingPeriod);
+            });
+        }
+        if (filter.getSearchTerm() != null && !filter.getSearchTerm().isBlank()) {
+            String term = "%" + filter.getSearchTerm().trim().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> {
+                Join<Reserva, Contribuyente> contributor = root.join("contribuyente", JoinType.LEFT);
+                Join<Reserva, Organizacion> organization = root.join("organizacion", JoinType.LEFT);
+                Join<Reserva, CampoDeportivo> field = root.join("campoDeportivo", JoinType.LEFT);
+                Join<CampoDeportivo, ComplejoDeportivo> complex = field.join("complejo", JoinType.LEFT);
+                jakarta.persistence.criteria.Subquery<Long> matchingPeriod = query.subquery(Long.class);
+                jakarta.persistence.criteria.Root<ReservaPeriodo> period =
+                        matchingPeriod.from(ReservaPeriodo.class);
+                Join<ReservaPeriodo, EstudianteEscuela> enrollment =
+                        period.join("estudianteEscuela", JoinType.LEFT);
+                Join<EstudianteEscuela, Estudiante> student = enrollment.join("estudiante", JoinType.LEFT);
+                jakarta.persistence.criteria.Predicate periodMatches = cb.or(
+                        cb.like(cb.lower(student.get("nombreCompleto")), term),
+                        cb.like(cb.lower(student.get("numeroDocumento")), term),
+                        cb.like(cb.lower(enrollment.get("matricula")), term),
+                        cb.like(cb.lower(period.get("matricula")), term),
+                        cb.like(cb.lower(period.get("mes").as(String.class)), term),
+                        cb.like(cb.lower(period.get("año").as(String.class)), term)
+                );
+                matchingPeriod.select(period.get("idReservaPeriodo"))
+                        .where(cb.equal(period.get("reserva"), root), periodMatches);
+                return cb.or(
+                        cb.like(cb.lower(cb.concat(cb.concat(cb.coalesce(contributor.get("nombre"), ""), " "),
+                                cb.concat(cb.coalesce(contributor.get("primerApellido"), ""),
+                                        cb.concat(" ", cb.coalesce(contributor.get("segundoApellido"), ""))))), term),
+                        cb.like(cb.lower(organization.get("nombre")), term),
+                        cb.like(cb.lower(organization.get("disciplina")), term),
+                        cb.like(cb.lower(organization.get("entrenador")), term),
+                        cb.like(cb.lower(root.get("numeroReserva")), term),
+                        cb.like(cb.lower(root.get("numeroTasa")), term),
+                        cb.like(cb.lower(field.get("nombre")), term),
+                        cb.like(cb.lower(complex.get("nombre")), term),
+                        cb.exists(matchingPeriod)
+                );
+            });
+        }
+
+        final Specification<Reserva> listSpec = spec;
+        if (Boolean.FALSE.equals(filter.getRevisarEstados())) {
+            return ruatRevisionService.leerPagina(() -> reservaRepository.findAll(listSpec, pageable), ReservaMapper::toDto);
+        }
+        return ruatRevisionService.revisarLista(
+                () -> reservaRepository.findAll(listSpec, pageable),
+                reserva -> reserva,
+                ReservaMapper::toDto,
+                after -> reservaRepository.findAll(
+                        ReservaRuatRevisionService.candidatas(reviewScope, "", after),
+                        PageRequest.of(0, 100, Sort.by("idReserva"))));
+    }
+
      @Override
     public ReservaPeriodoDto findByUuid(String uuid) {
         Optional<ReservaPeriodo> reservaPeriodoOptional = reservaPeriodoRepository.findByUuid(uuid);

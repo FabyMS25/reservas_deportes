@@ -53,8 +53,17 @@ public class ReservaBorderouxTalonario {
     @Column(name = "numero_final", nullable = false)
     private Integer numeroFinal;
 
+    @Column(name = "serie_talonario", length = 100)
+    private String serieTalonario;
+
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
+
+    @Column(name = "cantidad_anuladas", nullable = false)
+    private Integer cantidadAnuladas;
+
+    @Column(name = "cantidad_vendida", nullable = false)
+    private Integer cantidadVendida;
 
     @Column(name = "total_boletas", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalBoletas;

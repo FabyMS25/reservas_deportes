@@ -71,13 +71,13 @@ class TaxpayerMenuServiceTest {
     void eventRequestAndDirectAreMutuallyExclusiveInTheOneTimeModule() {
         ArrayNode request = service.forTaxpayer(Set.of("EVENT_REQUEST", "PUNTUAL_MANAGEMENT"));
         Set<String> requestActions = actionsOf(request, "Reservas Puntuales");
-        assertTrue(requestActions.contains("CREAR-SOLICITUD-EVENTOS"), "expected " + requestActions);
-        assertFalse(requestActions.contains("CREAR-EVENTOS"), "expected no direct event action in " + requestActions);
+        assertTrue(requestActions.contains("CREAR-SOLICITUD-EVENTO"), "expected " + requestActions);
+        assertFalse(requestActions.contains("CREAR-EVENTO"), "expected no direct event action in " + requestActions);
 
         ArrayNode direct = service.forTaxpayer(Set.of("EVENT_CREATE", "PUNTUAL_MANAGEMENT"));
         Set<String> directActions = actionsOf(direct, "Reservas Puntuales");
-        assertTrue(directActions.contains("CREAR-EVENTOS"), "expected " + directActions);
-        assertFalse(directActions.contains("CREAR-SOLICITUD-EVENTOS"),
+        assertTrue(directActions.contains("CREAR-EVENTO"), "expected " + directActions);
+        assertFalse(directActions.contains("CREAR-SOLICITUD-EVENTO"),
                 "expected no event request action in " + directActions);
     }
 

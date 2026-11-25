@@ -3,17 +3,23 @@ package com.gamq.deportes.repository;
 import com.gamq.deportes.model.CampoDeportivo;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.List;
+import jakarta.persistence.LockModeType;
 @Repository
 public interface CampoDeportivoRepository extends JpaRepository<CampoDeportivo, Long> {
 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.uuid = ?1")
     Optional<CampoDeportivo> findByUuid(String uuid);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM CampoDeportivo c WHERE c.uuid = :uuid")
+    Optional<CampoDeportivo> findByUuidForReservationCreation(@Param("uuid") String uuid);
 
     @Query("SELECT c FROM CampoDeportivo c WHERE c.complejo.uuid = ?1 ORDER BY c.fechaCreacion DESC")
 //    @Query("SELECT c FROM CampoDeportivo c WHERE c.complejo.uuid = :complejoUuid AND c.estado = false")

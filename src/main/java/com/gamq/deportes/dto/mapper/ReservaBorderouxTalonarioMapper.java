@@ -20,7 +20,10 @@ public class ReservaBorderouxTalonarioMapper {
         dto.setPrecioBoleta(talonario.getPrecioBoleta());
         dto.setNumeroInicial(talonario.getNumeroInicial());
         dto.setNumeroFinal(talonario.getNumeroFinal());
+        dto.setSerieTalonario(talonario.getSerieTalonario());
         dto.setCantidad(talonario.getCantidad());
+        dto.setCantidadAnuladas(talonario.getCantidadAnuladas());
+        dto.setCantidadVendida(talonario.getCantidadVendida());
         dto.setTotalBoletas(talonario.getTotalBoletas());
         dto.setMontoBorderoux(talonario.getMontoBorderoux());
         return dto;
@@ -36,7 +39,10 @@ public class ReservaBorderouxTalonarioMapper {
         talonario.setPrecioBoleta(dto.getPrecioBoleta());
         talonario.setNumeroInicial(dto.getNumeroInicial());
         talonario.setNumeroFinal(dto.getNumeroFinal());
+        talonario.setSerieTalonario(dto.getSerieTalonario());
         talonario.setCantidad(dto.getCantidad());
+        talonario.setCantidadAnuladas(dto.getCantidadAnuladas());
+        talonario.setCantidadVendida(dto.getCantidadVendida());
         talonario.setTotalBoletas(dto.getTotalBoletas());
         talonario.setMontoBorderoux(dto.getMontoBorderoux());
         return talonario;

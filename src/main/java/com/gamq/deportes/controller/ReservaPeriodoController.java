@@ -3,10 +3,12 @@ package com.gamq.deportes.controller;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.gamq.deportes.dto.ReservaPeriodoDto;
+import com.gamq.deportes.dto.ReservaDto;
 import com.gamq.deportes.dto.ReservaPeriodoFilter;
 import com.gamq.deportes.dto.response.Response;
 import com.gamq.deportes.service.ApiService;
 import com.gamq.deportes.service.ReservaPeriodoService;
+import com.gamq.deportes.service.implement.ReservaServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,6 +63,44 @@ public class ReservaPeriodoController {
         } catch (Exception ex) {
             return Response.notContent().setPayload(ex.getMessage());
 //            return Response.serverError().setPayload("Error al obtener reservas por período: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Obtener reservas de periodo agrupadas para el listado")
+    @GetMapping("/reservas")
+    @PreAuthorize("@permissions.has('/reservations/schools','VER')")
+    public Response obtenerListadoReservasPeriodo(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "true") boolean revisarEstados,
+            @RequestParam(required = false) Integer tab,
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String estadoReserva,
+            @RequestParam(required = false) String estadoValidacion,
+            @RequestParam(required = false) String organization,
+            @RequestParam(required = false) Integer mesFiltro,
+            @RequestParam(required = false) Integer anioFiltro,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection) {
+        try {
+            Pageable pageable = PageRequest.of(
+                    page,
+                    size,
+                    ReservaServiceImpl.ordenListado(sortBy, sortDirection, "periodo")
+            );
+            ReservaPeriodoFilter filter = new ReservaPeriodoFilter();
+            filter.setRevisarEstados(revisarEstados);
+            filter.setTab(tab);
+            filter.setSearchTerm(searchTerm);
+            filter.setEstadoReserva(estadoReserva);
+            filter.setEstadoValidacion(estadoValidacion);
+            filter.setEscuelaFiltro(organization);
+            filter.setMesFiltro(mesFiltro);
+            filter.setAnioFiltro(anioFiltro);
+            Page<ReservaDto> reservasPage = reservaPeriodoService.obtenerReservasAgrupadasConFiltros(filter, pageable);
+            return Response.ok().setPayload(reservasPage);
+        } catch (Exception ex) {
+            return Response.notContent().setPayload(ex.getMessage());
         }
     }
 
